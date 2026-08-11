@@ -1,0 +1,8 @@
+1. upload all files
+2. run http://your_jcow_network/install.php
+3. done.
+delete install.php
+
+Need clean URLs? Got errors?
+please read Jcow FAQ:
+http://www.jcow.net/docs/?s=faq

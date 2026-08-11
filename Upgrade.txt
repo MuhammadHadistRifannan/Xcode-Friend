@@ -1,0 +1,74 @@
+** upgrade from 4.2/4.3 to 4.3.1 **
+
+replace following folders&files:
+Replace following files:
+includes/boot.inc.php
+includes/libs/jquery.module.php
+includes/libs/story.inc.php
+includes/libs/common.inc.php
+includes/libs/admin.module.php
+includes/libs/ss.inc.php
+includes/libs/dashboard.module.php
+includes/libs/pages.inc.php
+files/icons/thumbs_up.png
+files/icons/thumbs_down.png
+files/common_css/style.css
+files/common_css/sharebox_arrow_bg.gif
+files/common_css/sharebox_arrow.png
+js/facebox
+modules/blogs/blogs.hook.php
+modules/photos/photos.hook.php
+modules/videos/videos.hook.php
+modules/events/events.hook.php
+
+finished
+
+
+
+** upgrade from 4.2 to 4.2.1 **
+
+replace following folders&files:
+/includes/libs
+/themes/default
+finished
+
+
+
+** upgrade from 4.1 to 4.2 **
+
+replace following folders&files:
+/includes/
+/modules/
+
+finished
+
+
+** upgrade from 4.0 to 4.1 **
+
+replace following folders&files:
+/index.php
+/modules/
+/includes/libs/
+/includes/boot.inc.php
+
+finished
+
+
+
+
+
+** upgrade from 3.2/3.3 to 4.0/4.1 **
+
+1. replace following folders&files:
+/index.php
+/upgrade3to4.php
+/modules/
+/includes/libs/
+/includes/boot.inc.php
+/uploads/avatars/logo.jpg
+/uploads/avatars/s_logo.jpg
+
+2. run http://YOUR_URL/upgrade3to4.php
+
+finished
+

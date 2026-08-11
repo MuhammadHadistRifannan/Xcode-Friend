@@ -1,0 +1,85 @@
+body {
+	background-color: white;
+}
+a, a:visited {
+	text-decoration: none;
+	color: #4366AD;
+}
+a:hover {
+	text-decoration: underline;
+}
+#topbar_box {
+	background: url("topbar_box_border.gif") bottom repeat-x;
+	background-color: #74B7D8;
+	padding-bottom: 6px;
+}
+
+#topbar a, #topbar a:visited {
+	color: white;
+	}
+
+#topbar li.menuon {
+	background: url("menuon_left.gif") top left no-repeat;
+	}
+#topbar li.menuon a {
+	background: url("menuon_right.gif") top right no-repeat;
+	}
+
+#topbar li.menuhover {
+	background: url("menuon_left.gif") top left no-repeat;
+	}
+#topbar li.menuhover a {
+	background: url("menuon_right.gif") top right no-repeat;
+	}
+
+ul#menu {
+	display: block;
+	height: auto;
+	}	
+#topbar li {	
+	list-style: none;
+	float: left;
+	}
+
+#topbar li a {	
+	display: block;
+	padding: 5px 9px 4px 9px;
+	white-space: nowrap;
+	}
+
+#topbar li a {
+	text-decoration: none;
+	font-weight: bold;
+	}
+
+#topbar li.menugen {
+	background: url("menugen_left.gif") top left no-repeat;
+	}
+#topbar li.menugen a {
+	background: url("menugen_right.gif") top right no-repeat;
+	}
+
+#appside .block_title {
+	background: url("appleft_btitle.png") no-repeat;
+	color: white;
+}
+#appmain .block_title {
+	background: url("appcenter_btitle.png") no-repeat;
+	color: white;
+}
+#appright {
+	border-left: #BEDEED 1px solid;
+	}
+
+.block_title a, .block_title a:visited {
+	text-decoration: underline;
+	color: white;
+}
+
+
+#jcow_application_box {
+	background: white;
+	}
+#menu {
+
+}
