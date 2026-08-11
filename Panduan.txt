@@ -1,0 +1,373 @@
+PANDUAN INSTALLASI DAN MENJALANKAN APLIKASI JCOW
+================================================
+
+Aplikasi ini adalah aplikasi PHP lama berbasis JCow yang sudah disiapkan agar berjalan lewat Docker.
+Dengan Docker, Anda tidak perlu install PHP 5.6 dan MySQL 5.7 secara manual.
+
+
+1. PERSIAPAN
+------------
+
+Pastikan komputer/server sudah terinstall:
+
+1. Docker
+2. Docker Compose
+
+Cek instalasi:
+
+    docker --version
+    docker compose version
+
+Jika perintah di atas belum dikenali, install Docker Desktop untuk Windows/Mac atau Docker Engine untuk Linux.
+
+
+2. MASUK KE FOLDER PROJECT
+--------------------------
+
+Buka terminal/CMD, lalu masuk ke folder aplikasi ini.
+
+Contoh:
+
+    cd "/home/bennedistus/dibuatbssmtputklupapassword (1)"
+
+Jika folder ada di lokasi lain, sesuaikan path-nya.
+
+
+3. JALANKAN APLIKASI DENGAN DOCKER
+----------------------------------
+
+Jalankan perintah berikut dari root folder project:
+
+    docker compose up -d --build
+
+Perintah tersebut akan:
+
+1. Build image PHP Apache dari Dockerfile
+2. Menjalankan container aplikasi bernama jcow
+3. Menjalankan database MySQL 5.7 bernama jcow-mysql
+4. Membuka aplikasi di port 8080
+
+Cek status container:
+
+    docker compose ps
+
+Jika status service jcow dan mysql sudah running/healthy, aplikasi siap dibuka.
+
+
+4. AKSES APLIKASI
+-----------------
+
+Buka browser:
+
+    http://localhost:8080
+
+Jika aplikasi dibuka dari server/VPS, gunakan IP/domain server:
+
+    http://IP-SERVER:8080
+
+Contoh:
+
+    http://192.168.1.10:8080
+
+
+5. INSTALLASI DATABASE PERTAMA KALI
+-----------------------------------
+
+Jika aplikasi belum pernah diinstall atau database masih kosong, buka:
+
+    http://localhost:8080/install.php
+
+Isi form install dengan data berikut:
+
+Database Host:
+
+    mysql
+
+Database Name:
+
+    jcow
+
+Database User:
+
+    jcow
+
+Database Password:
+
+    jcow
+
+Website URL:
+
+    http://localhost:8080
+
+Administrator Email:
+
+    isi dengan email admin Anda
+
+Administrator Password:
+
+    isi dengan password admin yang Anda inginkan
+
+Setelah install berhasil, login menggunakan:
+
+Username:
+
+    admin
+
+Password:
+
+    password yang Anda isi pada form install
+
+Penting:
+Setelah install berhasil, hapus atau nonaktifkan file install.php agar installer tidak bisa diakses ulang.
+
+Contoh rename file:
+
+    mv install.php install.php.bak
+
+Di Windows, file bisa diubah namanya manual menjadi:
+
+    install.php.bak
+
+
+6. JIKA APLIKASI SUDAH PERNAH DIINSTALL
+---------------------------------------
+
+Jika file my/config.php sudah berisi konfigurasi database dan database Docker masih berisi data lama,
+Anda bisa langsung buka:
+
+    http://localhost:8080
+
+Konfigurasi database saat ini ada di:
+
+    my/config.php
+
+Data koneksi yang digunakan:
+
+    host   = mysql
+    user   = jcow
+    pass   = jcow
+    dbname = jcow
+
+
+7. PANDUAN PENGGUNAAN APLIKASI
+------------------------------
+
+Login:
+
+    http://localhost:8080/index.php?p=member/login
+
+Daftar akun baru:
+
+    http://localhost:8080/index.php?p=member/signup
+
+Halaman admin:
+
+    http://localhost:8080/index.php?p=admin
+
+Fitur umum aplikasi:
+
+1. Member dapat membuat akun dan login
+2. Member dapat mengubah profil
+3. Member dapat membuat status/post
+4. Tersedia modul teman, follow, pesan, blog, foto, musik, video, event, group, dan page
+5. Admin dapat mengatur module, user, menu, permission, theme, blacklist, dan konfigurasi website
+
+Catatan:
+Akun admin default dibuat saat proses install dengan username admin.
+
+
+8. KONFIGURASI EMAIL SMTP
+-------------------------
+
+Pengaturan SMTP ada di file:
+
+    docker-compose.yml
+
+Bagian environment:
+
+    SMTP_HOST
+    SMTP_PORT
+    SMTP_SECURE
+    SMTP_USERNAME
+    SMTP_PASSWORD
+    SMTP_FROM_EMAIL
+    SMTP_FROM_NAME
+
+Default saat ini memakai SMTP Gmail. Untuk keamanan, sebaiknya gunakan file .env agar username dan password SMTP
+tidak ditulis langsung di docker-compose.yml.
+
+Contoh membuat file .env:
+
+    SMTP_USERNAME=emailanda@gmail.com
+    SMTP_PASSWORD=app_password_gmail_anda
+    SMTP_FROM_EMAIL=emailanda@gmail.com
+    SMTP_FROM_NAME=JCow
+
+Setelah mengubah SMTP, restart container:
+
+    docker compose down
+    docker compose up -d --build
+
+
+9. PERINTAH DOCKER YANG SERING DIPAKAI
+--------------------------------------
+
+Menjalankan aplikasi:
+
+    docker compose up -d
+
+Menjalankan ulang setelah edit Dockerfile/docker-compose.yml:
+
+    docker compose up -d --build
+
+Melihat log aplikasi:
+
+    docker compose logs -f jcow
+
+Melihat log database:
+
+    docker compose logs -f mysql
+
+Menghentikan aplikasi:
+
+    docker compose down
+
+Menghentikan aplikasi dan menghapus data database:
+
+    docker compose down -v
+
+Peringatan:
+Perintah docker compose down -v akan menghapus volume database jcow-mysql-data.
+Gunakan hanya jika ingin install ulang dari awal.
+
+
+10. INSTALL ULANG DARI AWAL
+---------------------------
+
+Jika ingin mengulang install dari database kosong:
+
+1. Matikan container dan hapus volume database:
+
+       docker compose down -v
+
+2. Pastikan file install.php masih ada.
+
+3. Jalankan ulang:
+
+       docker compose up -d --build
+
+4. Buka installer:
+
+       http://localhost:8080/install.php
+
+5. Isi data database seperti pada bagian nomor 5.
+
+
+11. TROUBLESHOOTING
+-------------------
+
+Masalah: Port 8080 sudah digunakan.
+
+Solusi:
+Edit docker-compose.yml bagian ports:
+
+    "8080:80"
+
+Ubah 8080 menjadi port lain, misalnya:
+
+    "8081:80"
+
+Lalu jalankan:
+
+    docker compose up -d
+
+Buka:
+
+    http://localhost:8081
+
+
+Masalah: Aplikasi tidak bisa konek ke database.
+
+Solusi:
+Pastikan data database di installer atau my/config.php adalah:
+
+    host   = mysql
+    user   = jcow
+    pass   = jcow
+    dbname = jcow
+
+Lalu cek container:
+
+    docker compose ps
+    docker compose logs -f mysql
+
+
+Masalah: Permission file my/config.php error.
+
+Solusi:
+Container sudah otomatis mengatur permission lewat docker-entrypoint.sh.
+Restart container:
+
+    docker compose down
+    docker compose up -d
+
+
+Masalah: Halaman blank/error.
+
+Solusi:
+Lihat log:
+
+    docker compose logs -f jcow
+
+Pastikan container jcow berjalan:
+
+    docker compose ps
+
+
+Masalah: Email tidak terkirim.
+
+Solusi:
+1. Pastikan SMTP_USERNAME dan SMTP_PASSWORD benar.
+2. Jika memakai Gmail, gunakan App Password, bukan password login Gmail biasa.
+3. Restart container setelah mengubah konfigurasi SMTP.
+
+
+12. CATATAN KEAMANAN UNTUK PRODUCTION
+-------------------------------------
+
+Sebelum aplikasi dipakai di server publik:
+
+1. Hapus atau rename install.php setelah install selesai
+2. Ganti password database default jika perlu
+3. Jangan simpan password SMTP langsung di docker-compose.yml
+4. Gunakan HTTPS lewat reverse proxy seperti Nginx/Caddy/Traefik
+5. Backup database secara rutin
+6. Batasi akses port database agar tidak terbuka ke publik
+
+
+13. RINGKASAN CEPAT
+-------------------
+
+Jalankan:
+
+    docker compose up -d --build
+
+Buka installer:
+
+    http://localhost:8080/install.php
+
+Isi database:
+
+    host   = mysql
+    dbname = jcow
+    user   = jcow
+    pass   = jcow
+
+Login setelah install:
+
+    http://localhost:8080/index.php?p=member/login
+
+Admin panel:
+
+    http://localhost:8080/index.php?p=admin
+
