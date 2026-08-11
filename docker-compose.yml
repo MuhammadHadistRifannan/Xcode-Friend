@@ -1,0 +1,46 @@
+services:
+  jcow:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jcow
+    restart: unless-stopped
+
+    ports:
+      - "8080:80"
+
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  mysql:
+    image: mysql:5.7
+    container_name: jcow-mysql
+    restart: unless-stopped
+
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: jcow
+      MYSQL_USER: jcow
+      MYSQL_PASSWORD: jcow
+
+    volumes:
+      - jcow-mysql-data:/var/lib/mysql
+
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-uroot",
+          "-proot"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  jcow-mysql-data:
