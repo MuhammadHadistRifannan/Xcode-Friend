@@ -11,6 +11,17 @@ services:
     ports:
       - "8080:80"
 
+    environment:
+      TZ: Asia/Jakarta
+      DISABLE_LEGACY_RECAPTCHA: 1
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: 587
+      SMTP_SECURE: tls
+      SMTP_USERNAME: ${SMTP_USERNAME:-ipanjabar933@gmail.com}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-moaluinmkghtvzyx}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-ipanjabar933@gmail.com}
+      SMTP_FROM_NAME: ${SMTP_FROM_NAME:-JCow}
+
     depends_on:
       mysql:
         condition: service_healthy
@@ -28,6 +39,9 @@ services:
 
     volumes:
       - jcow-mysql-data:/var/lib/mysql
+
+    command: 
+      - --sql-mode=
 
     healthcheck:
       test:

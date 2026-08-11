@@ -33,6 +33,8 @@ RUN docker-php-ext-configure gd \
 
 RUN a2enmod rewrite
 
+RUN echo "date.timezone=Asia/Jakarta" > /usr/local/etc/php/conf.d/timezone.ini
+
 # Development entrypoint
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 

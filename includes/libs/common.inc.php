@@ -924,11 +924,150 @@ function client($key='') {
 		return $client[$key];
 }
 
+function jcow_env($key,$default = '') {
+	$value = getenv($key);
+	return ($value === false) ? $default : $value;
+}
+
+function jcow_smtp_read($fp) {
+	$response = '';
+	while ($line = fgets($fp, 515)) {
+		$response .= $line;
+		if (isset($line[3]) && $line[3] == ' ') {
+			break;
+		}
+	}
+	return $response;
+}
+
+function jcow_smtp_expect($fp,$codes) {
+	$response = jcow_smtp_read($fp);
+	$code = substr($response,0,3);
+	if (!in_array($code,$codes)) {
+		return false;
+	}
+	return $response;
+}
+
+function jcow_smtp_command($fp,$command,$codes) {
+	if (fwrite($fp,$command."\r\n") === false) {
+		return false;
+	}
+	return jcow_smtp_expect($fp,$codes);
+}
+
+function jcow_smtp_escape($message) {
+	$message = str_replace("\r\n","\n",$message);
+	$message = str_replace("\r","\n",$message);
+	$lines = explode("\n",$message);
+	foreach ($lines as $key=>$line) {
+		if (isset($line[0]) && $line[0] == '.') {
+			$lines[$key] = '.'.$line;
+		}
+	}
+	return implode("\r\n",$lines);
+}
+
+function jcow_mail_header_value($value) {
+	return str_replace(array("\r","\n"),'',trim($value));
+}
+
+function jcow_mailbox($email,$name = '') {
+	$email = jcow_mail_header_value($email);
+	$name = jcow_mail_header_value($name);
+	if (strlen($name)) {
+		return '"'.str_replace('"','\"',$name).'" <'.$email.'>';
+	}
+	return $email;
+}
+
+function jcow_smtp_mail($to,$subject,$message,$reply = '') {
+	$host = jcow_env('SMTP_HOST');
+	$username = jcow_env('SMTP_USERNAME');
+	$password = jcow_env('SMTP_PASSWORD');
+	if (!strlen($host) || !strlen($username) || !strlen($password)) {
+		return false;
+	}
+
+	$port = jcow_env('SMTP_PORT','587');
+	$secure = strtolower(jcow_env('SMTP_SECURE','tls'));
+	$timeout = intval(jcow_env('SMTP_TIMEOUT','20'));
+	$from_email = jcow_env('SMTP_FROM_EMAIL',$username);
+	$from_name = jcow_env('SMTP_FROM_NAME',get_gvar('site_name'));
+	$reply_to = jcow_env('SMTP_REPLY_TO',$from_email);
+	$reply_name = jcow_env('SMTP_REPLY_TO_NAME',$from_name);
+	$server = ($secure == 'ssl' || $secure == 'smtps') ? 'ssl://'.$host : $host;
+	$fp = @stream_socket_client($server.':'.$port,$errno,$errstr,$timeout);
+	if (!$fp) {
+		return false;
+	}
+	stream_set_timeout($fp,$timeout);
+	if (!jcow_smtp_expect($fp,array('220'))) {
+		fclose($fp);
+		return false;
+	}
+	$hostname = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost';
+	$hostname = preg_replace('/:.*/','',$hostname);
+	$hostname = preg_replace('/[^a-z0-9.-]/i','',$hostname);
+	if (!strlen($hostname)) {
+		$hostname = 'localhost.localdomain';
+	}
+	if (!jcow_smtp_command($fp,'EHLO '.$hostname,array('250'))) {
+		fclose($fp);
+		return false;
+	}
+	if ($secure == 'tls' || $secure == 'starttls') {
+		if (!jcow_smtp_command($fp,'STARTTLS',array('220'))) {
+			fclose($fp);
+			return false;
+		}
+		if (!stream_socket_enable_crypto($fp,true,STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
+			fclose($fp);
+			return false;
+		}
+		if (!jcow_smtp_command($fp,'EHLO '.$hostname,array('250'))) {
+			fclose($fp);
+			return false;
+		}
+	}
+	if (!jcow_smtp_command($fp,'AUTH LOGIN',array('334')) ||
+		!jcow_smtp_command($fp,base64_encode($username),array('334')) ||
+		!jcow_smtp_command($fp,base64_encode($password),array('235'))) {
+		fclose($fp);
+		return false;
+	}
+	if (!jcow_smtp_command($fp,'MAIL FROM:<'.jcow_mail_header_value($from_email).'>',array('250')) ||
+		!jcow_smtp_command($fp,'RCPT TO:<'.jcow_mail_header_value($to).'>',array('250','251')) ||
+		!jcow_smtp_command($fp,'DATA',array('354'))) {
+		fclose($fp);
+		return false;
+	}
+
+	$headers = 'Date: '.date('r')."\r\n".
+		'From: '.jcow_mailbox($from_email,$from_name)."\r\n".
+		'Reply-To: '.jcow_mailbox($reply_to,$reply_name)."\r\n".
+		'To: <'.jcow_mail_header_value($to).">\r\n".
+		'Subject: '.jcow_mail_header_value($subject)."\r\n".
+		"Message-ID: <".time().'.'.mt_rand(1000,9999).'@'.$hostname.">\r\n".
+		'X-Mailer: JCow SMTP'."\r\n".
+		"MIME-Version: 1.0\r\n".
+		"Content-Type: text/html; charset=utf-8\r\n".
+		"Content-Transfer-Encoding: 8bit\r\n";
+	$message = str_replace("\r\n",'<br />',$message);
+	$sent = jcow_smtp_command($fp,$headers."\r\n".jcow_smtp_escape($message)."\r\n.",array('250'));
+	jcow_smtp_command($fp,'QUIT',array('221'));
+	fclose($fp);
+	return $sent ? true : false;
+}
+
 function jcow_mail($to,$subject,$message,$reply = '') {
 	if (function_exists('jcow_user_mail')) {
 		return jcow_user_mail($to,$subject,$message,$reply);
 	}
 	else {
+		if (jcow_env('SMTP_HOST')) {
+			return jcow_smtp_mail($to,$subject,$message,$reply);
+		}
 		if (!$reply)
 			$reply = get_gvar('site_name').'<noreply@'.$_SERVER['HTTP_HOST'].'>';
 		$headers = "From: $reply\r\n" .

@@ -173,7 +173,7 @@ elseif ($_POST['step'] == 2) {
 		// insert administrator account
 		$password = md5($_POST['password'].'jcow');
 		$timeline = time();
-		sql_query("insert into `jcow_accounts` (roles,gender,birthyear,hide_age,password,email,username,fullname,created,lastlogin) values(3,1,1990,1,'$password','".$_POST['email']."','admin','admin',$timeline,$timeline)", $conn);
+		sql_query("insert into `jcow_accounts` (fbid,points,avatar,signature,blurbs,about_me,disabled,gender,location,birthyear,birthmonth,birthday,hide_age,password,email,username,fullname,created,lastlogin,ipaddress,chpass,intr,forum_posts,featured,roles,country,locale,state,jcowsess,token,wall_id,followers,settings,var1,var2,var3,var4,var5,var6,var7,reg_code,pass,hide_me) values(0,0,'','','','',0,1,'',1990,1,1,1,'$password','".$_POST['email']."','admin','admin',$timeline,$timeline,'','','',0,0,'3','','','','','',0,0,'','','','','','','','','','',0)", $conn);
 		$uid = mysql_insert_id();
 		sql_query("insert into `jcow_pages` (uid,uri,type) values($uid,'admin','u')",$conn);
 

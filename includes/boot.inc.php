@@ -9,6 +9,15 @@ if (!is_array($db_info)) {
 	exit;
 }
 
+$php_timezone = getenv('TZ');
+if (!$php_timezone && isset($config['date_timezone'])) {
+	$php_timezone = $config['date_timezone'];
+}
+if (!$php_timezone) {
+	$php_timezone = 'Asia/Jakarta';
+}
+date_default_timezone_set($php_timezone);
+
 if (file_exists('./includes/libs/common.pro.inc.php')) {
 	include './includes/libs/common.pro.inc.php';
 }
@@ -36,6 +45,10 @@ $lang_options = array();
 $res = sql_query("select * from `".tb()."gvars`");
 while ($row = sql_fetch_array($res)) {
 	$gvars[$row['gkey']] = $row['gvalue'];
+}
+if (getenv('DISABLE_LEGACY_RECAPTCHA') !== '0') {
+	$gvars['disable_recaptcha_reg'] = 1;
+	$gvars['disable_recaptcha_login'] = 1;
 }
 $langs_enabled = array();
 if ($le = get_gvar('langs_enabled')) {

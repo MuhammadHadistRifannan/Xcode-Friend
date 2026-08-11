@@ -227,7 +227,10 @@ class member{
 		$code = get_rand(10);
 		sql_query("update `".tb()."accounts` set chpass='$code' where id={$row['id']}");
 		$link = url('member/chpassdo/'.$code,t('Click Here'));
-		jcow_mail($_POST['email'],t('Get your password'),$link);
+		$message = t('Click the link below to reset your password').':<br /><br />'.$link;
+		if (!jcow_mail($_POST['email'],t('Reset your password'),$message)) {
+			sys_back(t('Unable to send verification email. Please contact the site administrator.'));
+		}
 		c(t('A verification email has been sent to you, please check your email inbox'));
 	}
 
@@ -300,7 +303,7 @@ class member{
 			}
 			
 			//get_r(array('username','password','password2','email','agree','confirm_code','location'));
-			if (strtolower($_COOKIE['cfm']) != strtolower($_POST['confirm_code'])) {
+			if (strlen($_COOKIE['cfm']) && isset($_POST['confirm_code']) && strtolower(trim($_COOKIE['cfm'])) != strtolower(trim($_POST['confirm_code']))) {
 				$errors[] = t('The string you entered for the code verification did not match what was displayed');
 			}
 			$_POST['username'] = strtolower($_POST['username']);
@@ -368,7 +371,7 @@ class member{
 				else {
 					$member_disabled = 0;
 				}
-				sql_query("insert into `".tb()."accounts` (about_me,disabled,gender,location,birthyear,birthmonth,birthday,hide_age,password,email,username,fullname,created,lastlogin,ipaddress,var1,var2,var3,var4,var5,var6,var7,reg_code) values('{$_POST['about_me']}',$member_disabled,'{$_POST['gender']}','{$_POST['location']}','{$_POST['birthyear']}','{$_POST['birthmonth']}','{$_POST['birthday']}','{$hide_age}','$password','".$_POST['email']."','{$_POST['username']}','{$_POST['fullname']}',$timeline,$timeline,'{$client['ip']}','{$_POST['var1']}','{$_POST['var2']}','{$_POST['var3']}','{$_POST['var4']}','{$_POST['var5']}','{$_POST['var6']}','{$_POST['var7']}','{$reg_code}')");
+				sql_query("insert into `".tb()."accounts` (fbid,points,avatar,signature,blurbs,about_me,disabled,gender,location,birthyear,birthmonth,birthday,hide_age,password,email,username,fullname,created,lastlogin,ipaddress,chpass,intr,forum_posts,featured,roles,country,locale,state,jcowsess,token,wall_id,followers,settings,var1,var2,var3,var4,var5,var6,var7,reg_code,pass,hide_me) values(0,0,'','','','{$_POST['about_me']}',$member_disabled,'{$_POST['gender']}','{$_POST['location']}','{$_POST['birthyear']}','{$_POST['birthmonth']}','{$_POST['birthday']}','{$hide_age}','$password','".$_POST['email']."','{$_POST['username']}','{$_POST['fullname']}',$timeline,$timeline,'{$client['ip']}','','',0,0,'','','','','$newss','',0,0,'','{$_POST['var1']}','{$_POST['var2']}','{$_POST['var3']}','{$_POST['var4']}','{$_POST['var5']}','{$_POST['var6']}','{$_POST['var7']}','{$reg_code}','',0)");
 				$uid = insert_id();
 				if ($uid == 1) {
 					sql_query("update ".tb()."accounts set roles='3' where id='$uid'");
@@ -637,10 +640,21 @@ $(document).ready( function(){
 		if (!$client['id']) die('plz login');
 		set_title('Not verified');
 		if (get_gvar('acc_verify') == 1 && strlen($client['reg_code'])) {
+			if ($_POST['resend_code']) {
+				$reg_code = get_rand(6,'0123456789');
+				sql_query("update ".tb()."accounts set reg_code='$reg_code' where id='{$client['id']}'");
+				if (jcow_mail($client['email'],t('Verification Code'),t('Verification Code: {1}',$reg_code))) {
+					$client['reg_code'] = $reg_code;
+					sys_notice(t('A verification email has been sent to you, please check your email inbox'));
+				}
+				else {
+					sys_notice(t('Unable to send verification email. Please contact the site administrator.'));
+				}
+			}
 			if ($_POST['reg_code']) {
 				$reg_code = trim($_POST['reg_code']);
-				if (strlen($reg_code) && $reg_code == $client['reg_code']) {
-					sql_query("update ".tb()."accounts set disabled=0 where id='{$client['id']}'");
+				if (strlen($reg_code) && strtolower($reg_code) == strtolower(trim($client['reg_code']))) {
+					sql_query("update ".tb()."accounts set disabled=0,reg_code='' where id='{$client['id']}'");
 					redirect('dashboard',1);
 				}
 				else {
@@ -648,7 +662,11 @@ $(document).ready( function(){
 				}
 			}
 			c('<form action="'.url('member/need_verify').'" method="post" >
-			'.t('Verification Code').': <input type="text" size="6" name="reg_code" /> <input type="submit" value="Verify" /></form><br />
+			'.t('Verification Code').': <input type="text" size="6" name="reg_code" /> <input type="submit" value="Verify" /></form>
+			<form action="'.url('member/need_verify').'" method="post" >
+			<input type="hidden" name="resend_code" value="1" />
+			<input type="submit" value="'.t('Resend Verification Code').'" />
+			</form><br />
 			('.t('We have sent a welcome email to your. Please check your inbox for the Verification Code').')');
 		}
 		elseif (get_gvar('acc_verify') == 2) {
