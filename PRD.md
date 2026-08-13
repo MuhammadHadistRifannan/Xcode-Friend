@@ -1,629 +1,878 @@
+Siap. Saya revisi **PRD yang kamu upload**, bukan membuat PRD baru dari nol. Bagian scope, timeline 12 minggu, pembagian 6 orang, migration, milestone, dan workflow yang sudah ada tetap dipertahankan; yang saya ubah terutama **arsitektur target dan pembagian responsibility supaya benar-benar mengikuti Layered Monolith: Controller → Service → Repository → Model, dengan Controller → View**. PRD lama memang sudah punya Service Layer, tetapi Repository Layer belum menjadi bagian eksplisit dari arsitektur target. 
+
 # PRD — Modernisasi JCow Social Network ke Laravel 13
 
-**Project:** Modernisasi JCow Social Network
-**Jenis:** Proyek Magang
-**Durasi:** ±12 minggu / 3 bulan
-**Hari kerja:** Senin–Jumat, mengikuti hari libur nasional
-**Tim:** 6 anggota + 1 Tech Lead
-**Target:** Functional Migration + UI/UX Modernization
-**Framework target:** Laravel 13
-**Database target:** MySQL
-**Strategi:** Incremental Rewrite + Data Migration + Functional Parity
+## Revised Architecture & Team Implementation Plan
 
 ---
 
-# 1. Executive Summary
+# 1. Project Overview
 
-Proyek ini bertujuan melakukan **modernisasi JCow Social Network**, sebuah aplikasi social network berbasis PHP Native, menjadi aplikasi modern berbasis **Laravel 13**.
+| Item            | Detail                                 |
+| --------------- | -------------------------------------- |
+| Project         | JCow Social Network Modernization      |
+| Tipe            | Legacy System Modernization            |
+| Existing System | JCow PHP Native                        |
+| Target System   | Laravel 13                             |
+| Architecture    | **Layered Monolithic Architecture**    |
+| Database        | MySQL                                  |
+| View            | Laravel Blade                          |
+| Backend Team    | Hadist, Daffa                          |
+| Frontend Team   | Akmal, Giska                           |
+| UI/UX Team      | Bima, Ifan                             |
+| Team Size       | 6 orang                                |
+| Duration        | ± 12 minggu / 3 bulan                  |
+| Working Days    | 5 hari kerja/minggu                    |
+| Working Style   | Fleksibel                              |
+| Main Objective  | Migrasi fitur JCow + modernisasi UI/UX |
 
-Berdasarkan source code dan database yang diberikan, JCow saat ini memiliki **113 file PHP** di luar `.git`, **51 tabel database**, serta modul seperti:
+Target 12 minggu tetap menggunakan scope prioritas karena dokumen sebelumnya juga menilai seluruh module JCow tidak realistis untuk dijanjikan selesai sempurna dalam tiga bulan. 
 
-* Account
-* Friends
-* Follow
+---
+
+# 2. Product Objective
+
+Modernisasi JCow dilakukan dengan dua tujuan utama:
+
+### 2.1 Technical Modernization
+
+Mengubah implementasi PHP Native legacy menjadi Laravel 13 dengan struktur:
+
+```text
+Controller
+     │
+     ▼
+ Service
+     │
+     ▼
+Repository
+     │
+     ▼
+  Model
+     │
+     ▼
+ Database
+```
+
+### 2.2 UI/UX Modernization
+
+Memperbarui:
+
+* visual interface;
+* layout;
+* responsive design;
+* navigation;
+* interaction;
+* loading state;
+* error state;
+* empty state;
+* accessibility.
+
+Jadi output proyek bukan sekadar:
+
+> "JCow dipindah ke Laravel."
+
+Tetapi:
+
+> **"JCow dimodernisasi secara teknis dan visual."**
+
+---
+
+# 3. Problem Statement
+
+JCow saat ini merupakan aplikasi PHP Native legacy yang memiliki banyak module dan dependency legacy.
+
+Dokumen sebelumnya mencatat sekitar **113 PHP files dan 51 tabel**, sehingga proses modernisasi harus dilakukan dengan feature inventory, database inventory, module inventory, dan prioritas P0/P1/P2. 
+
+Masalah utama:
+
+1. Business logic sulit dipisahkan.
+2. Data access tersebar.
+3. Maintainability rendah.
+4. UI legacy.
+5. Pengembangan fitur membutuhkan pemahaman terhadap kode lama.
+6. Risiko migration data tinggi.
+7. Banyak feature berpotensi menyebabkan scope creep.
+
+---
+
+# 4. Product Scope
+
+## P0 — Core Social Network
+
+P0 menjadi prioritas utama.
+
+### Authentication
+
+* Register
+* Login
+* Logout
+* Session
+* Password
+* Forgot Password
+* Reset Password
+
+### User
+
+* User profile
+* Edit profile
+* Avatar
+* User settings
+
+### Social
+
+* Post
+* Edit post
+* Delete post
 * Feed
-* Member
-* Dashboard
+* Comment
+* Like
+* Friend request
+* Accept
+* Reject
+* Unfriend
+* Follow
+
+### Communication
+
+* Notification
+* Messaging
+* Conversation
+
+### Data
+
+* Users
+* Profiles
+* Posts
+* Comments
+* Friends
+* Followers
 * Notifications
 * Messages
+* Media
+
+P0 tersebut konsisten dengan migration acceptance criteria pada PRD sebelumnya. 
+
+---
+
+# 5. P1 — Secondary Features
+
+Jika P0 sudah stabil:
+
 * Groups
+* Group members
+* Group posts
 * Events
-* Blogs
-* Photos
-* Videos
-* Forums
-* Pages
+* Event members
 * Search
-* Admin
-* Invite
-* Preference
-* Report
-* Blacklist
-* Language
 
-Database legacy juga masih menggunakan pola lama seperti **MyISAM**, timestamp integer, dan tabel `jcow_accounts` yang menyimpan banyak atribut user sekaligus. Karena itu proyek ini bukan sekadar "PHP diganti Laravel", tetapi **modernisasi arsitektur sekaligus migrasi data**.
+PRD sebelumnya menempatkan Groups, Events, dan Search pada Week 8 sebagai **P1 minimal functional**. 
 
-Target akhirnya:
+---
+
+# 6. P2 — Backlog
+
+Feature yang tidak critical terhadap core social network masuk backlog.
+
+Contoh:
 
 ```text
-JCow PHP Native
-      │
-      │ Reverse Engineering
-      ▼
-Feature & Database Mapping
-      │
-      ▼
-Laravel 13
-      │
-      ├── Eloquent
-      ├── Service Layer
-      ├── Policies
-      ├── Form Requests
-      ├── Blade
-      ├── Notifications
-      ├── Queues
-      └── Storage
-      │
-      ▼
-Modernized JCow
+P2
+├── Advanced recommendation
+├── Advanced analytics
+├── Complex real-time system
+└── Non-critical legacy feature
+```
+
+Aturan:
+
+```text
+P0 belum selesai
+       ↓
+P2 tidak dikerjakan
+```
+
+Ini mempertahankan scope-control rule dari PRD sebelumnya. 
+
+---
+
+# 7. Architecture
+
+## 7.1 Architecture Decision
+
+**Layered Monolithic Architecture**
+
+Aplikasi tetap satu Laravel application dan satu deployment unit.
+
+```text
+                    INTERNET
+                       │
+                       ▼
+                    NGINX
+                       │
+                       ▼
+              ┌────────────────┐
+              │   Laravel 13   │
+              │    Monolith    │
+              └───────┬────────┘
+                      │
+        ┌─────────────┴──────────────┐
+        │                            │
+        ▼                            ▼
+   Controller                     Blade View
+        │
+        ▼
+     Service
+        │
+        ▼
+   Repository
+        │
+        ▼
+      Model
+        │
+        ▼
+      MySQL
 ```
 
 ---
 
-# 2. Team Structure
+# 8. Layer Responsibility
 
-Tim terdiri dari 6 orang:
+## 8.1 Controller
 
-| Nama       | Role                 | PIC Utama                            |
-| ---------- | -------------------- | ------------------------------------ |
-| **Hadist** | **BE-2 + Tech Lead** | Architecture, Migration, Integration |
-| **Daffa**  | **BE-1**             | Backend Core                         |
-| **Akmal**  | **FE-1**             | Core Frontend                        |
-| **Giska**  | **FE-2**             | Social Frontend                      |
-| **Bima**   | **UI/UX-1**          | Design System                        |
-| **Ifan**   | **UI/UX-2**          | Feature UI/UX                        |
+Controller bertanggung jawab terhadap:
 
-Struktur:
+* HTTP request;
+* menerima Form Request;
+* memanggil Service;
+* menentukan response;
+* redirect;
+* return View.
+
+### Controller tidak boleh:
 
 ```text
-                         HADIST
-                   TECH LEAD + BE-2
-                          │
-          ┌───────────────┼───────────────┐
-          │               │               │
-       BACKEND         FRONTEND          UI/UX
-          │               │               │
-       Daffa       ┌──────┴──────┐    ┌───┴────┐
-       BE-1       Akmal       Giska  Bima     Ifan
-                   FE-1        FE-2  UI/UX-1  UI/UX-2
+SQL Query              ❌
+Business Logic         ❌
+Complex Transaction    ❌
+Data Transformation besar ❌
+```
+
+Contoh:
+
+```php
+public function store(StorePostRequest $request)
+{
+    $post = $this->postService->create(
+        auth()->user(),
+        $request->validated()
+    );
+
+    return redirect()
+        ->route('posts.show', $post);
+}
 ```
 
 ---
 
-# 3. Jobdesk Detail Setiap Anggota
+# 9. Service Layer
 
-## 3.1 Hadist — Tech Lead + BE-2
+Service merupakan **business layer**.
 
-### Tanggung jawab utama
+Tanggung jawab:
 
-**Architecture**
+* business rules;
+* application logic;
+* orchestration;
+* transaction;
+* koordinasi repository;
+* authorization logic yang bersifat business;
+* trigger notification/job.
 
-* Menentukan struktur Laravel.
-* Menentukan standar coding.
-* Menentukan database architecture.
-* Menentukan relationship antar model.
-* Menentukan migration strategy.
-* Menentukan API/route contract.
-* Menentukan authorization strategy.
-
-**Technical Leadership**
-
-* Membuat task breakdown.
-* Membuat dependency antar task.
-* Code review.
-* Pull request approval.
-* Menyelesaikan technical blocker.
-* Menjaga scope agar realistis.
-* Integrasi antar tim.
-
-**Backend**
-
-* Legacy database connection.
-* Data migration.
-* Social domain tertentu.
-* Notification.
-* Integration backend.
-* Performance.
-* Security.
-* Deployment.
-
-### Batasan
-
-Hadist **tidak boleh menjadi satu-satunya programmer backend**.
-
-Prinsipnya:
+Contoh:
 
 ```text
-Daffa = Backend Core Owner
-
-Hadist = Architecture + Migration + Integration
+PostService
+├── Create Post
+├── Update Post
+├── Delete Post
+└── Publish Post
 ```
+
+Service boleh memanggil:
+
+```text
+Repository
+```
+
+tetapi tidak melakukan query database secara langsung.
 
 ---
 
-# 4. Daffa — BE-1
+# 10. Repository Layer
 
-### Fokus
+Ini merupakan perubahan arsitektur utama dari PRD sebelumnya.
 
-**Laravel Core Backend**
-
-### Jobdesk
-
-* Laravel setup.
-* Eloquent.
-* Migrations.
-* Authentication.
-* User.
-* Profile.
-* Authorization.
-* Form Requests.
-* Policies.
-* Core services.
-* Validation.
-* Testing backend.
-
-### Model utama
+Repository menjadi abstraction untuk data access.
 
 ```text
-User
-Profile
-Role
-Permission
-```
-
-### Target
-
-Daffa menjadi orang yang paling memahami:
-
-```text
-Laravel Application Core
-```
-
----
-
-# 5. Akmal — FE-1
-
-### Fokus
-
-**Core Frontend**
-
-### Jobdesk
-
-* Laravel Blade.
-* Layout.
-* Navbar.
-* Sidebar.
-* Dashboard.
-* Authentication page.
-* Profile.
-* User page.
-* Feed base.
-* Components.
-* Responsive implementation.
-* Frontend validation.
-* JavaScript interaction.
-
-### Struktur target
-
-```text
-resources/views/
-├── layouts/
-├── components/
-├── auth/
-├── dashboard/
-├── profile/
-└── users/
-```
-
----
-
-# 6. Giska — FE-2
-
-### Fokus
-
-**Social & Feature Frontend**
-
-### Jobdesk
-
-* Feed interaction.
-* Post.
-* Comment.
-* Like.
-* Friendship.
-* Notification.
-* Message.
-* Group.
-* Event.
-* Search.
-* AJAX/fetch.
-* Integration dengan backend.
-* Responsive social feature.
-
-### Struktur target
-
-```text
-resources/views/
-├── posts/
-├── comments/
-├── friends/
-├── notifications/
-├── messages/
-├── groups/
-├── events/
-└── search/
-```
-
----
-
-# 7. Bima — UI/UX-1
-
-### Fokus
-
-**Design System**
-
-### Jobdesk
-
-* Color system.
-* Typography.
-* Spacing.
-* Grid.
-* Button.
-* Form.
-* Card.
-* Modal.
-* Navbar.
-* Sidebar.
-* Table.
-* Alert.
-* Notification.
-* Iconography.
-* Component consistency.
-
-Bima menjadi **owner visual language** aplikasi.
-
----
-
-# 8. Ifan — UI/UX-2
-
-### Fokus
-
-**Feature UX**
-
-### Jobdesk
-
-* User flow.
-* Login/register UX.
-* Dashboard.
-* Profile.
-* Feed.
-* Post.
-* Friendship.
-* Messages.
-* Groups.
-* Events.
-* Admin.
-* Responsive design.
-* Accessibility.
-* Usability testing.
-* Design QA.
-
-Bima menentukan **design system**.
-
-Ifan menentukan **bagaimana user menggunakan sistem tersebut**.
-
----
-
-# 9. Product Goal
-
-Target proyek bukan:
-
-> "Semua kode PHP JCow berhasil diterjemahkan."
-
-Targetnya:
-
-> **JCow berhasil dire-engineer menjadi aplikasi Laravel 13 modern dengan data dan fungsi utama tetap terjaga.**
-
----
-
-# 10. Scope Prioritas
-
-Karena waktu hanya ±12 minggu, fitur dibagi menjadi tiga prioritas.
-
-## P0 — Mandatory
-
-```text
-Authentication
-User
-Profile
-Friendship
-Follow
-Feed
-Posts
-Comments
-Likes
-Notifications
-Media
-Admin Basic
-```
-
-## P1 — Important
-
-```text
-Messages
-Groups
-Events
-Search
-Pages
-```
-
-## P2 — Stretch Goal
-
-```text
-Forums
-Blogs
-Stories
-Music
-Videos
-RSS
-Invite
-Advanced Admin
-Polls
-Wiki
-```
-
-**P2 hanya dikerjakan jika P0 dan P1 stabil.**
-
----
-
-# 11. Development Methodology
-
-Gunakan:
-
-**Agile + Weekly Sprint**
-
-Setiap minggu:
-
-```text
-Monday
-Planning
-   ↓
-Tuesday–Thursday
-Development
-   ↓
-Friday
-Demo + Review + Retrospective
-```
-
-Setiap feature:
-
-```text
-UI/UX
-   ↓
-Frontend
-   ↓
-Backend
-   ↓
-Integration
-   ↓
-Testing
-   ↓
-Code Review
-   ↓
-DONE
-```
-
----
-
-# 12. WEEK 1 — Discovery & Reverse Engineering
-
-## Objective
-
-Memahami JCow sebelum menulis ulang.
-
-**Tidak boleh buru-buru coding feature.**
-
-### Hadist
-
-* Audit architecture JCow.
-* Audit module.
-* Audit routing.
-* Audit authentication.
-* Audit database.
-* Menentukan target Laravel architecture.
-* Menentukan coding convention.
-* Menentukan Git workflow.
-* Membuat architecture document.
-
-### Daffa
-
-* Analisis 51 tabel.
-* Mapping tabel → domain.
-* Identifikasi primary key.
-* Identifikasi relationship.
-* Identifikasi data yang harus dipertahankan.
-* Identifikasi tabel deprecated/cache.
-
-### Akmal
-
-* Audit halaman JCow.
-* Mapping page → Laravel view.
-* Identifikasi layout.
-* Identifikasi reusable component.
-
-### Giska
-
-* Audit interaction.
-* Identifikasi AJAX.
-* Identifikasi social feature.
-* Mapping flow user.
-
-### Bima
-
-* Audit visual JCow.
-* Identifikasi masalah typography.
-* Identifikasi warna.
-* Identifikasi component yang harus diredesign.
-
-### Ifan
-
-* Audit user flow.
-* Identifikasi UX problem.
-* Mapping journey:
-
-  * register
-  * login
-  * profile
-  * feed
-  * social interaction
-
-### Output
-
-```text
-✓ Feature Inventory
-✓ Database Inventory
-✓ Module Inventory
-✓ Architecture Proposal
-✓ UI/UX Audit
-✓ User Flow
-✓ Git Strategy
-✓ Coding Convention
-```
-
-### Definition of Done
-
-Semua anggota memahami:
-
-> "JCow sekarang seperti apa dan Laravel nanti akan seperti apa."
-
----
-
-# 13. WEEK 2 — Laravel Foundation
-
-## Objective
-
-Membuat foundation aplikasi.
-
-### Hadist
-
-* Setup Laravel 13.
-* Setup environment.
-* Docker.
-* Database.
-* Legacy DB connection.
-* Git branch.
-* CI/CD foundation.
-* Logging.
-* Error handling.
-
-### Daffa
-
-* Migration foundation.
-* User model.
-* Base model convention.
-* Eloquent relationship convention.
-* Validation architecture.
-
-### Akmal
-
-* Blade setup.
-* Main layout.
-* Asset structure.
-* Component structure.
-
-### Giska
-
-* Frontend JS architecture.
-* AJAX/fetch convention.
-* Form interaction.
-
-### Bima
-
-* Finalize design system.
-* Colors.
-* Typography.
-* Components.
-
-### Ifan
-
-* Finalize UX flow.
-* Login flow.
-* Registration flow.
-* Dashboard flow.
-
-### Output
-
-```text
-Laravel 13
+Service
    │
-   ├── MySQL
-   ├── Legacy DB
-   ├── Blade
-   ├── CI/CD
-   └── Design System
+   ▼
+Repository Interface
+   │
+   ▼
+Repository Implementation
+   │
+   ▼
+Eloquent Model
+```
+
+Contoh:
+
+```php
+interface PostRepositoryInterface
+{
+    public function create(array $data): Post;
+
+    public function findById(int $id): ?Post;
+
+    public function update(Post $post, array $data): bool;
+
+    public function delete(Post $post): bool;
+}
+```
+
+Implementasi:
+
+```php
+class PostRepository implements PostRepositoryInterface
+{
+    public function create(array $data): Post
+    {
+        return Post::create($data);
+    }
+}
+```
+
+### Repository bertanggung jawab:
+
+* query;
+* filtering;
+* pagination;
+* persistence;
+* retrieval.
+
+### Repository tidak bertanggung jawab:
+
+```text
+Business Rule       ❌
+HTTP Response       ❌
+View                ❌
+Authorization Flow  ❌
 ```
 
 ---
 
-# 14. WEEK 3 — Authentication
+# 11. Model Layer
 
-## Objective
+Model menggunakan Eloquent.
 
-Membangun authentication.
+Tanggung jawab:
 
-### Backend
+* database representation;
+* relationship;
+* casts;
+* scopes;
+* attributes.
 
-Daffa:
+Contoh:
 
-* Register.
-* Login.
-* Logout.
-* Session.
-* Password.
-* User model.
-* Validation.
+```text
+User
+├── posts()
+├── comments()
+├── friendships()
+├── followers()
+└── conversations()
+```
 
-Hadist:
+Model tidak menjadi tempat business logic besar.
 
-* Legacy password strategy.
-* Security review.
-* Authentication architecture.
+---
 
-### Frontend
+# 12. View Layer
 
-Akmal:
+Laravel Blade digunakan sebagai presentation layer.
 
-* Login.
-* Register.
-* Forgot password.
-* Reset password.
+```text
+resources/views/
 
-Giska:
+layouts/
+components/
+auth/
+users/
+posts/
+comments/
+friends/
+messages/
+notifications/
+groups/
+admin/
+```
 
-* Form interaction.
-* Error state.
-* Loading state.
+View hanya bertugas:
 
-### UI
+```text
+Receive Data
+     ↓
+Render UI
+```
 
-Bima:
+Tidak boleh:
 
-* Auth components.
+```text
+View → Database       ❌
+View → Repository     ❌
+View → Service        ❌
+```
 
-Ifan:
+---
 
-* Auth UX.
+# 13. Target Folder Structure
 
-### Acceptance Criteria
+Struktur target diubah menjadi:
+
+```text
+app/
+│
+├── Http/
+│   ├── Controllers/
+│   │   ├── Auth/
+│   │   ├── User/
+│   │   ├── Post/
+│   │   ├── Comment/
+│   │   ├── Friendship/
+│   │   ├── Message/
+│   │   ├── Notification/
+│   │   ├── Group/
+│   │   └── Admin/
+│   │
+│   ├── Requests/
+│   │   ├── Auth/
+│   │   ├── User/
+│   │   ├── Post/
+│   │   └── ...
+│   │
+│   └── Middleware/
+│
+├── Models/
+│   ├── User.php
+│   ├── Profile.php
+│   ├── Post.php
+│   ├── Comment.php
+│   ├── Friendship.php
+│   ├── Follow.php
+│   ├── Conversation.php
+│   ├── Message.php
+│   └── Notification.php
+│
+├── Services/
+│   ├── Auth/
+│   ├── User/
+│   ├── Social/
+│   ├── Messaging/
+│   ├── Notification/
+│   └── Migration/
+│
+├── Repositories/
+│   ├── Contracts/
+│   │   ├── UserRepositoryInterface.php
+│   │   ├── PostRepositoryInterface.php
+│   │   ├── CommentRepositoryInterface.php
+│   │   ├── FriendshipRepositoryInterface.php
+│   │   └── MessageRepositoryInterface.php
+│   │
+│   └── Eloquent/
+│       ├── UserRepository.php
+│       ├── PostRepository.php
+│       ├── CommentRepository.php
+│       ├── FriendshipRepository.php
+│       └── MessageRepository.php
+│
+├── Policies/
+├── Notifications/
+├── Jobs/
+│
+├── Console/
+│   └── Commands/
+│       └── Jcow/
+│
+└── Providers/
+    └── RepositoryServiceProvider.php
+```
+
+---
+
+# 14. Architecture Rules
+
+Semua anggota wajib mengikuti dependency berikut:
+
+```text
+Controller
+    │
+    ▼
+Service
+    │
+    ▼
+Repository Interface
+    │
+    ▼
+Repository
+    │
+    ▼
+Model
+    │
+    ▼
+Database
+```
+
+Controller dapat mengembalikan:
+
+```text
+Controller → View
+```
+
+Tidak boleh:
+
+```text
+Controller → DB                  ❌
+Controller → Model query         ❌
+Controller → Repository          ❌
+View → DB                        ❌
+View → Service                   ❌
+Repository → Business Logic      ❌
+```
+
+---
+
+# 15. Team Structure
+
+| Person     | Position         | Main Responsibility                           |
+| ---------- | ---------------- | --------------------------------------------- |
+| **Hadist** | Tech Lead + BE 2 | Architecture, Service, Integration, Migration |
+| **Daffa**  | BE 1             | Model, Repository, Database                   |
+| **Akmal**  | FE 1             | Blade, Layout, Core UI                        |
+| **Giska**  | FE 2             | Social Interaction, Feature UI                |
+| **Bima**   | UI/UX 1          | Visual Design System                          |
+| **Ifan**   | UI/UX 2          | UX Flow & Responsive                          |
+
+---
+
+# 16. Hadist — Tech Lead + BE 2
+
+### Primary responsibility
+
+```text
+Architecture
+Service Layer
+Integration
+Migration
+Code Review
+Technical Decision
+```
+
+### Detailed responsibility
+
+* Laravel architecture;
+* Service architecture;
+* Repository architecture review;
+* critical business logic;
+* migration architecture;
+* migration commands;
+* integration;
+* performance review;
+* security review;
+* pull request review;
+* technical documentation.
+
+### Important
+
+Hadist **tidak menjadi bottleneck coding**.
+
+PRD sebelumnya sudah menekankan bahwa Tech Lead harus menjadi technical decision maker, bukan mengerjakan seluruh pekerjaan tim. 
+
+---
+
+# 17. Daffa — BE 1
+
+### Primary responsibility
+
+```text
+Database
+Model
+Repository
+```
+
+### Detailed responsibility
+
+* migration;
+* schema;
+* Eloquent models;
+* relationships;
+* repository interface implementation;
+* query optimization;
+* database validation;
+* data integrity;
+* backend testing.
+
+Daffa menjadi **owner utama Data Access Layer**.
+
+---
+
+# 18. Akmal — FE 1
+
+### Primary responsibility
+
+```text
+Blade
+Layout
+Core Pages
+```
+
+### Detailed responsibility
+
+* Laravel Blade;
+* layout;
+* reusable component;
+* authentication UI;
+* profile;
+* settings;
+* core page;
+* frontend integration.
+
+---
+
+# 19. Giska — FE 2
+
+### Primary responsibility
+
+```text
+Social Interaction
+Feature Integration
+```
+
+### Detailed responsibility
+
+* Feed interaction;
+* Post;
+* Comment;
+* Like;
+* Friendship;
+* Notification;
+* Messaging;
+* frontend state;
+* AJAX/fetch interaction.
+
+---
+
+# 20. Bima — UI/UX 1
+
+### Primary responsibility
+
+```text
+Visual Design
+```
+
+### Detailed responsibility
+
+* Design System;
+* typography;
+* color;
+* spacing;
+* components;
+* desktop design;
+* visual consistency;
+* design QA.
+
+---
+
+# 21. Ifan — UI/UX 2
+
+### Primary responsibility
+
+```text
+User Experience
+```
+
+### Detailed responsibility
+
+* user flow;
+* information architecture;
+* interaction;
+* responsive behavior;
+* mobile UX;
+* usability;
+* accessibility;
+* UAT UX validation.
+
+---
+
+# 22. Revised 12-Week Development Plan
+
+## WEEK 1 — Discovery & Architecture
+
+### Hadist
+
+* Laravel architecture design;
+* Layered Monolith specification;
+* Controller/Service/Repository rules;
+* Git strategy;
+* coding convention;
+* legacy architecture audit.
+
+### Daffa
+
+* database inventory;
+* 51-table audit;
+* relationship mapping;
+* schema proposal.
+
+### Akmal
+
+* Blade architecture;
+* page inventory;
+* component inventory.
+
+### Giska
+
+* legacy interaction audit;
+* frontend behavior inventory.
+
+### Bima
+
+* UI audit;
+* design system initial draft.
+
+### Ifan
+
+* user flow audit;
+* UX problem identification.
+
+### Deliverables
+
+```text
+Feature Inventory
+Database Inventory
+Module Inventory
+Architecture Proposal
+UI/UX Audit
+User Flow
+Git Strategy
+Coding Convention
+```
+
+Deliverable tersebut mempertahankan output Week 1 dari PRD sebelumnya. 
+
+---
+
+# WEEK 2 — Laravel Foundation
+
+### Hadist
+
+* Laravel 13;
+* environment;
+* Docker;
+* MySQL;
+* legacy DB connection;
+* Git branch;
+* CI/CD;
+* logging;
+* error handling;
+* RepositoryServiceProvider;
+* Service convention.
+
+### Daffa
+
+* migrations;
+* Model foundation;
+* relationship convention;
+* Repository contracts;
+* first repository implementation.
+
+### Akmal
+
+* Blade;
+* main layout;
+* asset structure;
+* components.
+
+### Giska
+
+* JS interaction;
+* AJAX/fetch convention.
+
+### Bima
+
+* design system finalization.
+
+### Ifan
+
+* UX flow finalization.
+
+### Output
+
+```text
+Laravel 13
+├── Layered Architecture
+├── MySQL
+├── Legacy DB
+├── Blade
+├── Repository
+├── Service
+├── CI/CD
+└── Design System
+```
+
+---
+
+# WEEK 3 — Authentication
+
+### Hadist
+
+* Auth Service;
+* legacy password strategy;
+* security review.
+
+### Daffa
+
+* User Model;
+* UserRepository;
+* authentication data access;
+* migration.
+
+### Akmal
+
+* Login;
+* Register;
+* Forgot Password;
+* Reset Password.
+
+### Giska
+
+* validation state;
+* loading state;
+* error state.
+
+### Bima
+
+* authentication design.
+
+### Ifan
+
+* authentication UX.
+
+### Acceptance
 
 ```text
 Register
@@ -635,102 +884,85 @@ Dashboard
 Logout
 ```
 
-berfungsi.
-
 ---
 
-# 15. WEEK 4 — User & Profile
+# WEEK 4 — User & Profile
 
-## Objective
+### Hadist
 
-User management selesai.
+* User Service;
+* authorization;
+* Policy;
+* integration review.
 
-### Backend
+### Daffa
 
-* Profile.
+* Profile Model;
+* ProfileRepository;
+* relationships;
+* migration.
+
+### Akmal
+
+* Dashboard;
+* Profile;
+* Edit Profile;
 * Avatar.
-* Settings.
-* User detail.
-* Authorization.
-* Policy.
 
-### Frontend
+### Giska
 
-* Dashboard.
-* Profile.
-* Edit profile.
-* Avatar upload.
-* Settings.
+* profile interaction;
+* settings interaction.
 
-### UI
+### Bima
 
 * Profile design.
-* Profile card.
-* Settings page.
-* Mobile layout.
 
-### Acceptance Criteria
+### Ifan
 
-User dapat:
-
-```text
-Login
- ↓
-Profile
- ↓
-Edit
- ↓
-Upload avatar
- ↓
-Save
-```
+* Profile UX;
+* responsive.
 
 ---
 
-# 16. WEEK 5 — Posts & Feed
+# WEEK 5 — Posts & Feed
 
-## Objective
+### Hadist
 
-Membangun core social network.
+* PostService;
+* FeedService;
+* business rules;
+* transaction;
+* architecture review.
 
-### Backend
+### Daffa
 
-Hadist + Daffa:
+* PostRepository;
+* Feed query;
+* Post Model;
+* pagination.
 
-* Post model.
-* Post service.
-* Create.
-* Update.
-* Delete.
-* Feed query.
-* Pagination.
-* Authorization.
+### Akmal
 
-### Frontend
+* Feed;
+* Post Card;
+* Create Post.
 
-Akmal:
+### Giska
 
-* Feed.
-* Post card.
-* Create post.
+* Post interaction;
+* Comment UI;
+* Like.
 
-Giska:
-
-* Post interaction.
-* Comment UI.
-* Like interaction.
-
-### UI
-
-Bima:
+### Bima
 
 * Post component.
 
-Ifan:
+### Ifan
 
 * Feed UX.
 
-### Acceptance Criteria
+### Acceptance
 
 ```text
 Create Post
@@ -740,96 +972,84 @@ Delete Post
 Pagination
 ```
 
----
-
-# 17. WEEK 6 — Comments, Likes & Friendship
-
-## Backend
-
-* Comments.
-* Likes.
-* Friend request.
-* Accept.
-* Reject.
-* Unfriend.
-* Follow.
-
-### Frontend
-
-* Comment.
-* Like.
-* Friend request.
-* Friend list.
-* Follow.
-
-### UI
-
-* Interaction states.
-* Empty states.
-* Loading states.
-* Error states.
-
-### Acceptance Criteria
-
-User dapat:
-
-```text
-Post
- ↓
-Like
- ↓
-Comment
- ↓
-Friend
- ↓
-Follow
-```
+PRD awal juga menempatkan Post, Feed, CRUD, pagination, dan authorization pada Week 5. 
 
 ---
 
-# 18. WEEK 7 — Notifications & Messaging
+# WEEK 6 — Comments, Likes & Friendship
 
-## Backend
+### Hadist
 
-Hadist:
+* CommentService;
+* FriendshipService;
+* business rules.
 
-* Notification architecture.
-* Message integration.
-* Read/unread.
-* Event-driven notification jika memungkinkan.
+### Daffa
 
-Daffa:
+* CommentRepository;
+* FriendshipRepository;
+* relationships.
 
-* Conversation model.
-* Message model.
-* Validation.
-* Authorization.
+### Akmal
 
-### Frontend
+* Comment;
+* Like;
+* Friend List.
 
-Giska:
+### Giska
 
-* Notification.
-* Message list.
-* Conversation.
-* Send message.
+* Friend Request;
+* Accept;
+* Reject;
+* Unfriend;
+* Follow.
 
-Akmal:
+### Bima
 
-* Notification component.
+* interaction states.
+
+### Ifan
+
+* social interaction UX.
+
+---
+
+# WEEK 7 — Notification & Messaging
+
+### Hadist
+
+* NotificationService;
+* MessageService;
+* read/unread;
+* integration.
+
+### Daffa
+
+* Conversation Model;
+* Message Model;
+* ConversationRepository;
+* MessageRepository.
+
+### Akmal
+
+* Notification component;
 * Navbar integration.
 
-### UI
+### Giska
 
-Bima:
+* Message list;
+* Conversation;
+* Send Message.
+
+### Bima
 
 * Notification system.
 
-Ifan:
+### Ifan
 
 * Messaging UX.
 
-### Acceptance Criteria
+Acceptance:
 
 ```text
 User A
@@ -843,63 +1063,63 @@ Notification
 Read
 ```
 
+Scope ini mengikuti struktur Week 7 pada PRD sebelumnya. 
+
 ---
 
-# 19. WEEK 8 — Groups, Events & Search
+# WEEK 8 — Groups, Events & Search
 
-## Backend
+### Hadist
 
-* Groups.
-* Membership.
-* Group posts.
-* Events.
-* Event membership.
-* Search.
+* Service architecture;
+* integration.
 
-## Frontend
+### Daffa
 
-Giska:
+* Models;
+* repositories;
+* relationships.
 
-* Groups.
-* Events.
-* Search.
+### Akmal
 
-Akmal:
-
-* Group detail.
+* Group detail;
 * Event detail.
 
-## UI
+### Giska
 
-Bima:
+* Groups;
+* Events;
+* Search.
 
-* Group component.
+### Bima
+
+* Group component;
 * Event component.
 
-Ifan:
+### Ifan
 
-* Group UX.
+* Group UX;
 * Search UX.
 
-### Target
+Target:
 
-P1 minimal functional.
+> **P1 minimal functional**
 
 ---
 
-# 20. WEEK 9 — Data Migration
+# WEEK 9 — Data Migration
 
-Ini adalah **minggu paling berisiko**.
+Ini tetap menjadi **high-risk milestone**.
 
-### Hadist — PIC utama
+### Hadist — Migration Lead
 
-Membuat:
+Membuat migration command:
 
 ```bash
 php artisan jcow:migrate
 ```
 
-dan:
+Dengan command spesifik:
 
 ```bash
 php artisan jcow:migrate-users
@@ -912,29 +1132,27 @@ php artisan jcow:migrate-media
 
 ### Daffa
 
-* Laravel schema validation.
-* Relationship validation.
-* Data integrity.
-* Foreign key verification.
+* schema validation;
+* relationship validation;
+* foreign key;
+* data integrity;
+* repository compatibility.
 
-### Frontend
+### Akmal + Giska
 
-Akmal + Giska:
+* migrated user;
+* migrated profile;
+* migrated post;
+* migrated media;
+* functional verification.
 
-* Test migrated user.
-* Test migrated post.
-* Test migrated profile.
-* Test migrated media.
+### Bima + Ifan
 
-### UI
+* broken image;
+* empty state;
+* visual validation.
 
-Bima + Ifan:
-
-* Visual verification.
-* Broken image detection.
-* Empty state verification.
-
-### Migration flow
+Migration:
 
 ```text
 JCow DB
@@ -950,61 +1168,44 @@ Load
 Laravel DB
 ```
 
-### Acceptance Criteria
-
-Minimal P0:
-
-```text
-Users
-Profiles
-Posts
-Comments
-Friends
-Followers
-Notifications
-Messages
-Media
-```
-
-berhasil dimigrasikan.
+Legacy DB hanya digunakan sebagai sumber migration, bukan dependency permanen. 
 
 ---
 
-# 21. WEEK 10 — Integration & Functional Parity
-
-Semua feature digabung.
+# WEEK 10 — Integration & Functional Parity
 
 ### Hadist
 
-* Integration.
-* Architecture cleanup.
-* Performance.
-* Security.
-* Code review.
+* architecture cleanup;
+* Service review;
+* Repository review;
+* integration;
+* security;
+* performance.
 
 ### Daffa
 
-* Backend bug fixing.
-* Query optimization.
-* N+1 detection.
+* query optimization;
+* N+1 detection;
+* database bug fixing.
 
 ### Akmal
 
-* Core frontend bug fixing.
+* core frontend fixes.
 
 ### Giska
 
-* Social frontend bug fixing.
+* social feature fixes.
 
 ### Bima
 
-* Design consistency.
+* visual consistency.
 
 ### Ifan
 
 * UX consistency.
 
-### Testing
+Regression:
 
 ```text
 Register
@@ -1025,38 +1226,35 @@ Media
 
 ---
 
-# 22. WEEK 11 — QA & Hardening
+# WEEK 11 — QA & Hardening
 
 **Tidak boleh menambah feature besar.**
 
-Semua fokus bug fixing.
-
 ### Backend
 
-* Security.
-* Validation.
-* Authorization.
-* Query optimization.
-* Error handling.
+* security;
+* validation;
+* authorization;
+* query optimization;
+* error handling.
 
 ### Frontend
 
-* Responsive.
-* Browser compatibility.
-* Loading state.
-* Error state.
+* responsive;
+* browser compatibility;
+* loading;
+* error;
+* empty states.
 
 ### UI/UX
 
-* Visual consistency.
-* Accessibility.
-* Typography.
-* Spacing.
-* Interaction.
+* consistency;
+* accessibility;
+* typography;
+* spacing;
+* interaction.
 
-### Tech Lead
-
-Melakukan:
+### Hadist
 
 ```text
 Code Review
@@ -1066,72 +1264,70 @@ Migration Review
 Performance Review
 ```
 
----
-
-# 23. WEEK 12 — UAT, Deployment & Handover
-
-## Hadist
-
-* Production deployment.
-* Final database migration.
-* Backup.
-* Monitoring.
-* Rollback strategy.
-
-## Daffa
-
-* Final backend validation.
-* Database validation.
-
-## Akmal
-
-* Final frontend testing.
-
-## Giska
-
-* Feature testing.
-
-## Bima
-
-* Final visual QA.
-
-## Ifan
-
-* UAT.
-* UX verification.
-* Documentation.
+Scope ini mempertahankan Week 11 dari PRD sebelumnya. 
 
 ---
 
-# 24. Final Cutover
+# WEEK 12 — UAT, Deployment & Handover
 
-Proses:
+### Hadist
+
+* production deployment;
+* final migration;
+* backup;
+* monitoring;
+* rollback strategy.
+
+### Daffa
+
+* database validation;
+* backend validation.
+
+### Akmal
+
+* frontend testing.
+
+### Giska
+
+* feature testing.
+
+### Bima
+
+* visual QA.
+
+### Ifan
+
+* UAT;
+* UX verification;
+* documentation.
+
+---
+
+# 23. Final Cutover
 
 ```text
-             JCow Production
-                   │
-                   ▼
-              Final Backup
-                   │
-                   ▼
-             Final Migration
-                   │
-                   ▼
-             Data Validation
-                   │
-                   ▼
-             Laravel 13
-                   │
-                   ▼
-                UAT
-                   │
-                   ▼
-             Production
+JCow Production
+       │
+       ▼
+ Final Backup
+       │
+       ▼
+Final Migration
+       │
+       ▼
+Data Validation
+       │
+       ▼
+ Laravel 13
+       │
+       ▼
+      UAT
+       │
+       ▼
+ Production
 ```
 
-JCow **jangan langsung dihapus**.
-
-Setelah Laravel stabil:
+JCow lama **tidak langsung dihapus**.
 
 ```text
 JCow
@@ -1139,82 +1335,142 @@ JCow
 Read-only
  ↓
 Archive
+ ↓
+Decommission
 ```
 
-Baru kemudian decommission.
+Hal ini juga sudah ditetapkan pada PRD awal. 
 
 ---
 
-# 25. Weekly Deliverable
+# 24. Milestone
 
-| Week | Deliverable                      |
-| ---- | -------------------------------- |
-| 1    | Architecture + Feature Inventory |
-| 2    | Laravel Foundation               |
-| 3    | Authentication                   |
-| 4    | User + Profile                   |
-| 5    | Posts + Feed                     |
-| 6    | Comments + Likes + Friendship    |
-| 7    | Notification + Messaging         |
-| 8    | Groups + Events + Search         |
-| 9    | Data Migration                   |
-| 10   | Integration                      |
-| 11   | QA                               |
-| 12   | UAT + Deployment                 |
+| Milestone | Week | Target             |
+| --------- | ---: | ------------------ |
+| M1        |  1–2 | Foundation         |
+| M2        |  3–4 | Auth + User        |
+| M3        |  5–6 | Social Core        |
+| M4        |  7–8 | Communication + P1 |
+| M5        |    9 | Data Migration     |
+| M6        |   10 | Integration        |
+| M7        |   11 | QA                 |
+| M8        |   12 | UAT + Production   |
+
+Struktur milestone ini dipertahankan dari PRD sebelumnya. 
 
 ---
 
-# 26. Dependency Antar Tim
+# 25. Definition of Done
 
-Ini penting supaya tidak chaos.
+Feature hanya dianggap selesai apabila:
 
 ```text
-                 UI/UX
-                   │
-                   ▼
-               Frontend
-                   │
-                   ▼
-                Backend
-                   │
-                   ▼
-              Integration
-                   │
-                   ▼
-                   QA
-```
-
-Tetapi pekerjaan **tidak harus sequential**.
-
-Contoh Week 5:
-
-```text
-Bima ──────┐
-           ▼
-        Post Design
-           │
-Ifan ──────┘
-           │
-           ▼
-Akmal ── Frontend
-           │
-Giska ── Interaction
-           │
-           ▼
-Daffa ── Backend
-           │
-Hadist ─ Integration
+[ ] Requirement selesai
+[ ] UI selesai
+[ ] UX tervalidasi
+[ ] Controller mengikuti convention
+[ ] Business logic berada di Service
+[ ] Data access melalui Repository
+[ ] Model memiliki relationship yang benar
+[ ] Validation menggunakan Form Request
+[ ] Authorization tersedia
+[ ] Error handling tersedia
+[ ] Responsive
+[ ] Tested
+[ ] Pull Request dibuat
+[ ] Code Review selesai
+[ ] Integration test berhasil
 ```
 
 ---
 
-# 27. Daily Workflow
+# 26. Team Dependency
 
-Setiap hari cukup:
+Alurnya:
 
-### Daily Standup — 10–15 menit
+```text
+             UI/UX
+           Bima + Ifan
+               │
+               ▼
+           Frontend
+        Akmal + Giska
+               │
+               ▼
+            Backend
+        Daffa + Hadist
+               │
+               ▼
+           Integration
+             Hadist
+               │
+               ▼
+              QA
+         Semua anggota
+```
 
-Masing-masing jawab:
+Tetapi ini **bukan berarti pekerjaan harus sequential**. PRD sebelumnya juga menetapkan bahwa pekerjaan dapat berjalan paralel berdasarkan dependency feature. 
+
+Contoh:
+
+```text
+Bima ── Design Post ──┐
+                      │
+Ifan ── Post UX ──────┤
+                      ▼
+Akmal ── Post UI ─────┐
+                      │
+Giska ── Interaction ─┤
+                      ▼
+Daffa ── Repository ──┐
+                      │
+Hadist ── Service ────┘
+```
+
+---
+
+# 27. Git Workflow
+
+```text
+main
+ │
+ └── develop
+       │
+       ├── feature/auth
+       ├── feature/profile
+       ├── feature/post
+       ├── feature/friendship
+       ├── feature/message
+       ├── feature/migration
+       │
+       ├── ui/auth
+       ├── ui/profile
+       └── ui/feed
+```
+
+Flow:
+
+```text
+Feature Branch
+      ↓
+Pull Request
+      ↓
+Code Review
+      ↓
+develop
+      ↓
+Integration Test
+      ↓
+main
+```
+
+**Tidak ada direct push ke `main`.**
+
+---
+
+# 28. Daily Workflow
+
+Standup 10–15 menit:
 
 ```text
 1. Kemarin mengerjakan apa?
@@ -1222,363 +1478,128 @@ Masing-masing jawab:
 3. Ada blocker?
 ```
 
-Jangan berubah menjadi rapat 1 jam. Itu bukan standup, itu podcast.
+Tidak perlu berubah menjadi rapat satu jam. PRD awal juga menetapkan format standup tersebut. 
 
 ---
 
-# 28. Git Workflow
+# 29. Risk Management
 
-```text
-main
- │
- └── develop
-      │
-      ├── feature/auth
-      ├── feature/profile
-      ├── feature/posts
-      ├── feature/messages
-      ├── feature/migration
-      ├── ui/feed
-      └── ui/profile
-```
+| Risiko                   | Level     | Mitigasi                      |
+| ------------------------ | --------- | ----------------------------- |
+| Legacy DB kompleks       | 🔴 High   | Audit Week 1                  |
+| Password legacy          | 🔴 High   | Migration strategy sejak awal |
+| Relationship rusak       | 🔴 High   | Preserve ID + validation      |
+| Migration terlambat      | 🔴 High   | Prototype Week 2              |
+| Hadist jadi bottleneck   | 🔴 High   | Delegasi ke Daffa             |
+| Backend bottleneck       | 🔴 High   | Repository ownership Daffa    |
+| UI terlalu banyak revisi | 🟠 Medium | Design freeze                 |
+| Scope terlalu besar      | 🔴 High   | P0/P1/P2                      |
+| Bug akhir proyek         | 🟠 Medium | Continuous testing            |
 
-Flow:
-
-```text
-Create Branch
-     ↓
-Development
-     ↓
-Commit
-     ↓
-Pull Request
-     ↓
-Code Review
-     ↓
-CI
-     ↓
-Approve
-     ↓
-Merge
-```
-
-**`main` tidak boleh direct push.**
+Risk matrix ini mempertahankan risiko utama pada PRD sebelumnya, dengan tambahan penekanan bahwa Repository/Data Access menjadi ownership Daffa. 
 
 ---
 
-# 29. Definition of Done
-
-Sebuah feature hanya boleh diberi status **DONE** jika:
-
-* [ ] Database selesai.
-* [ ] Migration selesai.
-* [ ] Model selesai.
-* [ ] Business logic selesai.
-* [ ] Validation selesai.
-* [ ] Authorization selesai.
-* [ ] Frontend selesai.
-* [ ] UI selesai.
-* [ ] Responsive.
-* [ ] Error handling.
-* [ ] Test.
-* [ ] Code review.
-* [ ] Tidak ada critical bug.
-
----
-
-# 30. Project Definition of Done
+# 30. Target Akhir
 
 Pada akhir Week 12:
 
-### Backend
-
-* [ ] Laravel 13 berjalan.
-* [ ] Authentication berjalan.
-* [ ] User berjalan.
-* [ ] Profile berjalan.
-* [ ] Social feature berjalan.
-* [ ] Messaging berjalan.
-* [ ] Notification berjalan.
-* [ ] Migration command tersedia.
-* [ ] Database tervalidasi.
-
-### Frontend
-
-* [ ] Core pages selesai.
-* [ ] Social pages selesai.
-* [ ] Responsive.
-* [ ] Interaction berjalan.
-* [ ] Error/loading state tersedia.
-
-### UI/UX
-
-* [ ] Design system selesai.
-* [ ] Core pages redesigned.
-* [ ] Social pages redesigned.
-* [ ] Responsive design.
-* [ ] UX flow tervalidasi.
-* [ ] Design QA selesai.
-
-### Migration
-
-* [ ] User migrated.
-* [ ] Profile migrated.
-* [ ] Post migrated.
-* [ ] Comment migrated.
-* [ ] Friendship migrated.
-* [ ] Follow migrated.
-* [ ] Message migrated.
-* [ ] Media migrated.
-* [ ] Data integrity verified.
-
----
-
-# 31. KPI Proyek
-
-Saya menyarankan KPI tim dibuat seperti ini:
-
-| KPI                   |              Target |
-| --------------------- | ------------------: |
-| P0 feature completion |            **100%** |
-| P1 feature completion |            **≥80%** |
-| Critical bug          |  **0** saat release |
-| High severity bug     |  **0** saat release |
-| User migration        |          **≥99.9%** |
-| Post migration        |          **≥99.9%** |
-| Comment migration     |          **≥99.9%** |
-| Broken media          |           **<0.1%** |
-| Automated test        |  **Core flow ≥80%** |
-| Responsive            | **100% core pages** |
-| Code reviewed         |         **100% PR** |
-
----
-
-# 32. Scope Control
-
-Karena ini proyek magang 3 bulan, **scope creep adalah musuh utama**.
-
-Gunakan aturan:
-
 ```text
-P0 belum selesai
-        ↓
-Tidak boleh menambah P2
-```
-
-Dan:
-
-```text
-Feature baru
-     ↓
-Apakah P0?
-     │
- YES → masuk sprint
-     │
- NO
-     ↓
-Masuk backlog
-```
-
----
-
-# 33. Risiko Utama
-
-| Risiko                   | Level     | Mitigasi                         |
-| ------------------------ | --------- | -------------------------------- |
-| Database legacy kompleks | 🔴 High   | Audit Week 1                     |
-| Password legacy          | 🔴 High   | Lazy migration                   |
-| Data relationship rusak  | 🔴 High   | Preserve ID + validation         |
-| UI terlalu banyak revisi | 🟠 Medium | Design freeze per sprint         |
-| Backend jadi bottleneck  | 🔴 High   | Daffa owner backend core         |
-| Hadist jadi bottleneck   | 🔴 High   | Delegasikan coding               |
-| Feature terlalu banyak   | 🔴 High   | P0/P1/P2                         |
-| Migration terlambat      | 🔴 High   | Prototype migration sejak Week 2 |
-| Bug akhir proyek         | 🟠 Medium | Testing setiap sprint            |
-
----
-
-# 34. Aturan Khusus untuk Kamu sebagai Tech Lead
-
-Ini saya kasih bagian khusus karena **kamu berpotensi jadi bottleneck terbesar**.
-
-Jangan:
-
-```text
-Daffa → "Hadist, ini error"
-Akmal → "Hadist, ini API"
-Giska → "Hadist, backend belum"
-Bima → "Hadist, desain berubah"
-Ifan → "Hadist, UX gimana?"
-```
-
-lalu kamu mengerjakan semuanya.
-
-Gunakan:
-
-```text
-Technical Decision
-        ↓
-Tech Lead
-
-Backend Implementation
-        ↓
-Daffa + Hadist
-
-Frontend
-        ↓
-Akmal + Giska
-
-UI/UX
-        ↓
-Bima + Ifan
-```
-
-Kamu turun tangan **ketika diperlukan**, bukan menjadi operator semua pekerjaan.
-
----
-
-# 35. Arsitektur Target
-
-Target Laravel:
-
-```text
-app/
-├── Http/
-│   ├── Controllers/
-│   ├── Requests/
-│   └── Middleware/
-│
-├── Models/
-│
-├── Services/
-│   ├── Auth/
-│   ├── Social/
-│   ├── Messaging/
-│   └── Migration/
-│
-├── Policies/
-│
-├── Notifications/
-│
-├── Jobs/
-│
-└── Console/
-    └── Commands/
-        └── Jcow/
-```
-
-Database:
-
-```text
-Laravel DB
-├── users
-├── profiles
-├── posts
-├── comments
-├── reactions
-├── friendships
-├── follows
-├── notifications
-├── conversations
-├── messages
-├── groups
-├── group_members
-├── events
-├── event_members
-└── media
-```
-
----
-
-# 36. Target Akhir
-
-Pada akhir 3 bulan, arsitektur yang diharapkan:
-
-```text
-                        INTERNET
+                         INTERNET
+                            │
+                            ▼
+                          NGINX
+                            │
+                            ▼
+                 ┌────────────────────┐
+                 │     Laravel 13     │
+                 │      Monolith      │
+                 └─────────┬──────────┘
                            │
-                           ▼
-                         NGINX
-                           │
-                           ▼
-                    ┌──────────────┐
-                    │ Laravel 13   │
-                    └──────┬───────┘
-                           │
-          ┌────────────────┼────────────────┐
-          ▼                ▼                ▼
-     Controllers       Services          Jobs
-          │                │                │
-          └────────────────┼────────────────┘
-                           ▼
-                       Eloquent
-                           │
-                           ▼
-                         MySQL
-                           │
-              ┌────────────┴────────────┐
-              │                         │
-         Laravel DB               Legacy DB
-                                      │
-                                  Migration
+                ┌──────────┴───────────┐
+                │                      │
+                ▼                      ▼
+           Controllers               Blade
+                │
+                ▼
+             Services
+                │
+                ▼
+           Repositories
+                │
+                ▼
+              Models
+                │
+                ▼
+              MySQL
 ```
 
-Legacy DB **hanya digunakan selama migration**, bukan sebagai dependency permanen.
-
----
-
-# 37. Milestone Besar
+Database target mencakup domain utama:
 
 ```text
-MILESTONE 1
-Week 1–2
-Foundation
-          ↓
-MILESTONE 2
-Week 3–4
-Auth + User
-          ↓
-MILESTONE 3
-Week 5–6
-Social Core
-          ↓
-MILESTONE 4
-Week 7–8
-Communication + P1
-          ↓
-MILESTONE 5
-Week 9
-Migration
-          ↓
-MILESTONE 6
-Week 10
-Integration
-          ↓
-MILESTONE 7
-Week 11
-QA
-          ↓
-MILESTONE 8
-Week 12
-UAT + Production
+users
+profiles
+posts
+comments
+reactions
+friendships
+follows
+notifications
+conversations
+messages
+groups
+group_members
+events
+event_members
+media
 ```
+
+Domain database tersebut juga sudah tercantum dalam PRD awal. 
 
 ---
 
-# 38. Kesimpulan Pembagian
+# 31. Final Architecture Decision
 
-**Daffa** menjaga agar Laravel punya fondasi backend yang sehat.
+**Architecture resmi proyek:**
 
-**Hadist** memastikan keseluruhan sistem punya arah teknis yang benar dan menangani migration/integration.
+> **Layered Monolithic Architecture menggunakan Laravel 13 dengan Controller, Service, Repository, Model, dan Blade View.**
 
-**Akmal** membangun core interface.
+### Responsibility final
 
-**Giska** membangun social interaction dan feature integration.
+```text
+┌──────────────────────────────────┐
+│             VIEW                 │
+│        Blade / Presentation      │
+└────────────────┬─────────────────┘
+                 ▲
+                 │
+┌────────────────┴─────────────────┐
+│          CONTROLLER              │
+│        HTTP / Request             │
+└────────────────┬─────────────────┘
+                 │
+                 ▼
+┌──────────────────────────────────┐
+│            SERVICE               │
+│         Business Logic           │
+└────────────────┬─────────────────┘
+                 │
+                 ▼
+┌──────────────────────────────────┐
+│          REPOSITORY              │
+│          Data Access             │
+└────────────────┬─────────────────┘
+                 │
+                 ▼
+┌──────────────────────────────────┐
+│             MODEL               │
+│           Eloquent               │
+└────────────────┬─────────────────┘
+                 │
+                 ▼
+┌──────────────────────────────────┐
+│             MySQL                │
+└──────────────────────────────────┘
+```
 
-**Bima** memastikan seluruh aplikasi punya bahasa visual yang konsisten.
-
-**Ifan** memastikan aplikasi tidak hanya bagus dilihat, tetapi juga enak digunakan.
-
-Dan **Tech Lead bukan "boss coding"**. Peranmu adalah memastikan keenam pekerjaan tersebut bertemu menjadi **satu produk**, bukan enam project kecil yang kebetulan memakai Git repository yang sama.
-
-Untuk kondisi JCow yang kamu upload—**113 PHP files, 51 tabel, dan banyak module legacy**—saya menilai target **12 minggu ini feasible untuk modernisasi P0 + sebagian besar P1**, tetapi **tidak realistis menjanjikan seluruh module JCow selesai sempurna dalam 12 minggu**. Karena itu P0/P1/P2 di atas sebaiknya dijadikan **scope resmi PRD**, bukan sekadar saran.
+**Perubahan terpenting dari PRD lama:** sebelumnya arsitektur target mencantumkan `Controllers → Models → Services` tetapi belum mendefinisikan Repository sebagai layer eksplisit.  Sekarang **Repository menjadi layer resmi**, dengan Daffa sebagai owner utama Data Access Layer dan Hadist sebagai owner arsitektur/integrasi. Ini membuat pembagian kerja 2 Backend kalian jauh lebih jelas dan mengurangi kemungkinan semua query, business logic, dan integration numpuk di satu orang.
