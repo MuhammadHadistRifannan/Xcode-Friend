@@ -3,27 +3,18 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Carbon\Carbon;
 
-class Comment extends Model
+class Like extends Model
 {
-    protected $table = 'jcow_comments';
+    protected $table = 'jcow_liked';
     public $timestamps = false;
     protected $fillable = [
-        'target_id',
         'uid',
-        'message',
-        'created',
         'stream_id'
     ];
 
     public function user()
     {
         return $this->belongsTo(User::class, 'uid', 'id');
-    }
-
-    public function getCreatedAtAttribute()
-    {
-        return Carbon::createFromTimestamp($this->created);
     }
 }

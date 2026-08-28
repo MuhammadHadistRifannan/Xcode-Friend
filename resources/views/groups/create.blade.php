@@ -1,131 +1,52 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-    
-    <!-- Header Section -->
-    <div class="mb-8">
-        <div class="text-xs text-gray-500 font-medium mb-1 uppercase tracking-widest">PAGES > CREATE</div>
-        <h1 class="text-3xl font-bold text-gray-900">CREATE A GROUP</h1>
-        <p class="text-sm text-gray-600 mt-1">Establish your presence on the X-CODE network.</p>
-    </div>
-
-    <div class="grid grid-cols-12 gap-8">
-        
-        <!-- Left Column: Main Form (col-span-9) -->
-        <div class="col-span-12 lg:col-span-9">
-            <div class="bg-white border border-gray-200 rounded-lg p-8 shadow-sm">
-                <form action="#" method="POST" class="space-y-6">
-                    
-                    <!-- Group Address -->
-                    <div>
-                        <label class="block text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">GROUP ADDRESS</label>
-                        <div class="flex rounded-md border border-gray-300 overflow-hidden bg-gray-50">
-                            <span class="px-4 py-2 text-sm text-gray-500 border-r border-gray-300">https://friends.xcode.co.id/index.php?p=group/</span>
-                            <input type="text" placeholder="your-group-url" class="flex-1 px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-red-500 bg-white">
-                        </div>
-                        <p class="text-xs text-gray-500 mt-2 italic">(0-9, a-z). Example: your-group-url</p>
-                    </div>
-
-                    <!-- Group Name -->
-                    <div>
-                        <label class="block text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">GROUP NAME</label>
-                        <input type="text" placeholder="Enter group name" class="w-full border border-gray-300 rounded-md px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-red-500">
-                    </div>
-
-                    <!-- Visible & Membership (Grid) -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Visible -->
-                        <div>
-                            <label class="block text-xs font-bold text-gray-900 uppercase tracking-wider mb-3">VISIBLE</label>
-                            <div class="flex gap-6">
-                                <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="visibility" value="public" checked class="text-red-600 focus:ring-red-500">
-                                    <span class="text-sm text-gray-700">Public</span>
-                                </label>
-                                <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="visibility" value="private" class="text-red-600 focus:ring-red-500">
-                                    <span class="text-sm text-gray-700">Private</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- Membership -->
-                        <div>
-                            <label class="block text-xs font-bold text-gray-900 uppercase tracking-wider mb-3">MEMBERSHIP</label>
-                            <div class="flex gap-6">
-                                <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="membership" value="free" checked class="text-red-600 focus:ring-red-500">
-                                    <span class="text-sm text-gray-700">Free to join</span>
-                                </label>
-                                <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="membership" value="approval" class="text-red-600 focus:ring-red-500">
-                                    <span class="text-sm text-gray-700">Need approval</span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Group Description -->
-                    <div>
-                        <label class="block text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">GROUP DESCRIPTION (OPTIONAL)</label>
-                        <textarea rows="4" placeholder="Describe your group's purpose..." class="w-full border border-gray-300 rounded-md px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-red-500 resize-none"></textarea>
-                    </div>
-
-                    <!-- Submit Button -->
-                    <div class="pt-4">
-                        <button type="submit" class="w-full bg-[#b91c1c] hover:bg-red-800 text-white font-bold py-3 px-4 rounded-md uppercase tracking-wider text-sm transition-colors shadow-sm flex justify-center items-center gap-2">
-                            AJUKAN <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-                    
-                </form>
-            </div>
+<div class="max-w-2xl mx-auto py-10 px-4">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="bg-gray-50 px-8 py-5 border-b border-gray-200">
+            <h2 class="text-xl font-bold text-gray-800">Buat Grup Baru</h2>
         </div>
 
-        <!-- Right Column: Sidebar Info (col-span-3) -->
-        <div class="col-span-12 lg:col-span-3 space-y-6">
-            
-            <!-- Card 1: Guidelines -->
-            <div class="bg-gray-50 border border-gray-200 rounded-lg p-5">
-                <h3 class="text-sm font-bold text-gray-900 mb-4">Creation Guidelines</h3>
-                <ul class="space-y-3 text-xs text-gray-600">
-                    <li class="flex items-start gap-2">
-                        <i data-lucide="check-circle-2" class="w-4 h-4 text-red-600 shrink-0"></i>
-                        <span>Ensure URL is unique and alphanumeric.</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <i data-lucide="check-circle-2" class="w-4 h-4 text-red-600 shrink-0"></i>
-                        <span>Public groups are indexed in search.</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <i data-lucide="check-circle-2" class="w-4 h-4 text-red-600 shrink-0"></i>
-                        <span>Private groups require direct invite links.</span>
-                    </li>
-                </ul>
-            </div>
-
-            <!-- Card 2: System Status -->
-            <div class="bg-white border border-gray-200 rounded-lg p-5">
-                <h3 class="text-sm font-bold text-gray-900 mb-4 border-b border-gray-100 pb-2">System Status</h3>
-                <div class="space-y-3 text-xs font-medium">
-                    <div class="flex justify-between items-center">
-                        <span class="text-gray-500">API Endpoint</span>
-                        <span class="text-red-600 font-bold">ONLINE</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-gray-500">Latency</span>
-                        <span class="text-gray-900">42ms</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-gray-500">Cluster</span>
-                        <span class="text-gray-900 uppercase">XC-Alpha-0</span>
-                    </div>
+        <div class="p-8">
+            @if($errors->any())
+                <div class="bg-red-50 text-red-600 p-4 rounded-lg mb-6 text-sm">
+                    <ul class="list-disc pl-5">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
                 </div>
-            </div>
-            
-        </div>
+            @endif
 
+            <form action="{{ route('groups.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+                @csrf
+                
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Nama Grup</label>
+                    <input type="text" name="name" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors" value="{{ old('name') }}" required>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Alamat Grup / URI</label>
+                    <input type="text" name="uri" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors" value="{{ old('uri') }}" required>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Deskripsi</label>
+                    <textarea name="description" rows="4" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors">{{ old('description') }}</textarea>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Logo Grup (Opsional)</label>
+                    <input type="file" name="logo" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" accept="image/*">
+                </div>
+
+                <div class="flex justify-end gap-3 pt-6 mt-6 border-t border-gray-100">
+                    <a href="{{ route('groups.browse') }}" class="px-5 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors">Batal</a>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-medium shadow-sm transition-colors">Simpan Grup</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 @endsection

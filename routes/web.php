@@ -106,8 +106,31 @@ Route::get('/foto/{id}', [PhotoController::class, 'show'])->name('foto.show');
 // ==========================================
 // 7. GROUPS ROUTES
 // ==========================================
-Route::get('/groups', [GroupController::class, 'index'])->name('groups.index');
-Route::get('/groups/create', [GroupController::class, 'create'])->name('groups.create');
+Route::middleware('auth')->group(function () {
+    // Custom Browse & Mine
+    Route::get('/groups/browse', [GroupController::class, 'browse'])->name('groups.browse');
+    Route::get('/groups/mine', [GroupController::class, 'mine'])->name('groups.mine');
+    
+    // Join & Leave Group
+    Route::post('/groups/{group}/join', [GroupController::class, 'join'])->name('groups.join');
+    Route::post('/groups/{group}/leave', [GroupController::class, 'leave'])->name('groups.leave');
+    
+    // Member Management
+    Route::get('/groups/{group}/members', [GroupController::class, 'members'])->name('groups.members');
+    Route::delete('/groups/{group}/members/{uid}', [GroupController::class, 'kickMember'])->name('groups.members.kick');
+    
+    // Pending Approval Management
+    Route::get('/groups/{group}/pending', [GroupController::class, 'pending'])->name('groups.pending');
+    Route::post('/groups/{group}/approve', [GroupController::class, 'approve'])->name('groups.approve');
+
+    // Stream (Wall Post)
+    Route::post('/groups/{id}/stream', [GroupController::class, 'postStream'])->name('groups.stream');
+    Route::post('/stream/{id}/like', [GroupController::class, 'likeStream'])->name('stream.like');
+    Route::post('/stream/{id}/comment', [GroupController::class, 'commentStream'])->name('stream.comment');
+
+    // CRUD Resource Utama
+    Route::resource('groups', GroupController::class);
+});
 
 // ==========================================
 // 8. OTHER ROUTES

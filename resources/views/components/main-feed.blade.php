@@ -40,7 +40,7 @@
                 <button class="hover:text-gray-600 font-bold text-xs">&lt; &gt;</button>
             </div>
             <button class="bg-[#b91c1c] hover:bg-red-800 text-white text-xs font-bold px-6 py-2 rounded flex items-center gap-2 transition-colors">
-                TRANSMIT <i data-lucide="send" class="w-3 h-3"></i>
+                UNGGAH <i data-lucide="send" class="w-3 h-3"></i>
             </button>
         </div>
     </div>

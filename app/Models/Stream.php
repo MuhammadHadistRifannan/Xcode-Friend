@@ -28,6 +28,14 @@ class Stream extends Model
     // Relasi: 1 Postingan memiliki banyak Likes
     public function likedBy()
     {
-        return $this->hasMany(Liked::class, 'stream_id', 'id');
+        return $this->hasMany(Like::class, 'stream_id', 'id');
+    }
+
+    /**
+     * Accessor: konversi UNIX 'created' ke Carbon agar bisa pakai diffForHumans()
+     */
+    public function getCreatedAtAttribute()
+    {
+        return \Carbon\Carbon::createFromTimestamp($this->created);
     }
 }
