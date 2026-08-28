@@ -6,9 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Friend extends Model
 {
-    protected $fillable = [
-        'user_id',
-        'friend_id',
-        'status'
-    ];
+    protected $table = 'jcow_friends';
+    public $timestamps = false;
+    protected $fillable = ['uid', 'fid', 'created'];
 }

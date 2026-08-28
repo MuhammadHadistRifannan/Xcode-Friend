@@ -57,6 +57,7 @@ return new class extends Migration
             $table->text('settings')->nullable();
             $table->string('var1', 255)->nullable();
             $table->string('var2', 255)->nullable();
+            $table->rememberToken();
             $table->string('var3', 255)->nullable();
             $table->string('var4', 255)->nullable();
             $table->string('var5', 255)->nullable();
