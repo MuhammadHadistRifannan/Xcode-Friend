@@ -18,26 +18,37 @@
         </div>
 
         <div class="flex gap-2 mb-4">
-            <button class="flex-1 flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-sm font-medium py-2 rounded-md transition-colors">
-                <i data-lucide="thumbs-up" class="w-4 h-4"></i> Menyukai
-            </button>
-            <button class="flex-1 flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-sm font-medium py-2 rounded-md transition-colors">
-                <i data-lucide="thumbs-down" class="w-4 h-4"></i> Tidak suka
-            </button>
+            @if($profile['isLiked'])
+                <!-- Form UNLIKE -->
+                <form action="{{ route('pages.unlike', $profile['id']) }}" method="POST" class="flex-1">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="w-full flex items-center justify-center gap-2 bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm font-medium py-2 rounded-md transition-colors">
+                        <i data-lucide="thumbs-down" class="w-4 h-4"></i> Unlike
+                    </button>
+                </form>
+            @else
+                <!-- Form LIKE -->
+                <form action="{{ route('pages.like', $profile['id']) }}" method="POST" class="flex-1">
+                    @csrf
+                    <button type="submit" class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 rounded-md transition-colors shadow-sm">
+                        <i data-lucide="thumbs-up" class="w-4 h-4 text-white"></i> Like Page
+                    </button>
+                </form>
+            @endif
         </div>
 
         <div class="rounded-lg overflow-hidden mb-4 border border-gray-200 aspect-square">
             <img src="{{ $profile['coverUrl'] }}" alt="Cover" class="w-full h-full object-cover">
         </div>
 
+        @if($profile['isOwner'])
         <div class="space-y-2">
-            <button class="w-full bg-[#b91c1c] hover:bg-red-800 text-white text-sm font-medium py-2 rounded-md transition-colors flex items-center justify-center gap-2">
-                <span class="w-4 h-4 border-2 border-white rounded-sm opacity-80"></span> Edit page profile
-            </button>
-            <button class="w-full bg-[#b91c1c] hover:bg-red-800 text-white text-sm font-medium py-2 rounded-md transition-colors flex items-center justify-center gap-2">
-                <span class="w-4 h-4 border-2 border-white rounded-sm opacity-80"></span> Edit page Logo
-            </button>
+            <a href="{{ route('pages.edit', $profile['id']) }}" class="w-full bg-[#b91c1c] hover:bg-red-800 text-white text-sm font-medium py-2 rounded-md transition-colors flex items-center justify-center gap-2">
+                <i data-lucide="settings" class="w-4 h-4"></i> Edit Page (Profile & Logo)
+            </a>
         </div>
+        @endif
     </div>
 
     <!-- Description -->

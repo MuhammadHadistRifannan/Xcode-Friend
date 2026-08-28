@@ -10,7 +10,7 @@
         <div class="hidden md:flex items-center gap-6 ml-4 text-sm text-gray-300">
             <a href="#" class="hover:text-white transition-colors">Beranda</a>
             <a href="#" class="hover:text-white transition-colors">Telusur</a>
-            <a href="#" class="hover:text-white transition-colors">Video</a>
+            <a href="{{ route('videos.public') }}" class="hover:text-white transition-colors">Video</a>
             <a href="{{ route('pages.index') }}" class="text-red-600 font-medium">Pages</a>
             <!-- Dropdown Container -->
             <div class="relative group py-2">

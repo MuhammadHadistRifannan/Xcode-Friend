@@ -2,77 +2,137 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-    
-    <!-- Header Section -->
-    <div class="mb-8">
-        <div class="text-xs text-gray-500 font-medium mb-1 uppercase tracking-widest">PAGES > CREATE</div>
-        <h1 class="text-3xl font-bold text-gray-900">CREATE A PAGE</h1>
-        <p class="text-sm text-gray-600 mt-1">Establish your presence on the X-CODE network.</p>
+
+    <!-- Breadcrumb -->
+    <div class="text-xs text-gray-500 font-medium mb-1 uppercase tracking-widest">
+        PAGES &rsaquo; CREATE
     </div>
+    <h1 class="text-3xl font-bold text-gray-900 mb-1">CREATE A PAGE</h1>
+    <p class="text-sm text-gray-600 mt-1 mb-8">Establish your presence on the X-CODE network.</p>
 
     <div class="grid grid-cols-12 gap-8">
-        
-        <!-- Left Column: Main Form (col-span-9) -->
+
+        <!-- =============================== -->
+        <!-- Left Column: Form (col-span-9)  -->
+        <!-- =============================== -->
         <div class="col-span-12 lg:col-span-9">
             <div class="bg-white border border-gray-200 rounded-lg p-8 shadow-sm">
-                <form action="#" method="POST" class="space-y-6">
-                    
-                    <!-- Page Address -->
+                <form action="{{ route('pages.store') }}" method="POST" class="space-y-6">
+                    @csrf
+
+                    <!-- PAGE ADDRESS (URI / Slug) -->
                     <div>
-                        <label class="block text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">PAGE ADDRESS</label>
-                        <div class="flex rounded-md border border-gray-300 overflow-hidden bg-gray-50">
-                            <span class="px-4 py-2 text-sm text-gray-500 border-r border-gray-300">https://friends.xcode.co.id/index.php?p=page/</span>
-                            <input type="text" placeholder="your-page-url" class="flex-1 px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-red-500 bg-white">
+                        <label for="uri" class="block text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">
+                            PAGE ADDRESS
+                        </label>
+                        <div class="flex rounded-md border {{ $errors->has('uri') ? 'border-red-400' : 'border-gray-300' }} overflow-hidden bg-gray-50">
+                            <span class="px-4 py-2 text-sm text-gray-500 border-r border-gray-300 whitespace-nowrap">
+                                friends.xcode.co.id/pages/
+                            </span>
+                            <input
+                                type="text"
+                                id="uri"
+                                name="uri"
+                                value="{{ old('uri') }}"
+                                placeholder="yourpagename"
+                                class="flex-1 px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-red-500 bg-white"
+                            >
                         </div>
-                        <p class="text-xs text-gray-500 mt-2 italic">(0-9, a-z). Example: your-custom-name</p>
+                        @error('uri')
+                            <p class="text-xs text-red-600 mt-1 flex items-center gap-1">
+                                <i data-lucide="alert-circle" class="w-3 h-3"></i> {{ $message }}
+                            </p>
+                        @else
+                            <p class="text-xs text-gray-500 mt-2 italic">
+                                Hanya angka (0-9) dan huruf kecil (a-z). Min. 6 karakter. Contoh: <strong>mycoolpage</strong>
+                            </p>
+                        @enderror
                     </div>
 
-                    <!-- Page Name -->
+                    <!-- PAGE NAME -->
                     <div>
-                        <label class="block text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">PAGE NAME</label>
-                        <input type="text" placeholder="Enter the display name for your page" class="w-full border border-gray-300 rounded-md px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-red-500">
+                        <label for="name" class="block text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">
+                            PAGE NAME
+                        </label>
+                        <input
+                            type="text"
+                            id="name"
+                            name="name"
+                            value="{{ old('name') }}"
+                            placeholder="Nama tampilan halaman kamu"
+                            class="w-full border {{ $errors->has('name') ? 'border-red-400' : 'border-gray-300' }} rounded-md px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-red-500"
+                        >
+                        @error('name')
+                            <p class="text-xs text-red-600 mt-1 flex items-center gap-1">
+                                <i data-lucide="alert-circle" class="w-3 h-3"></i> {{ $message }}
+                            </p>
+                        @enderror
                     </div>
 
-                    <!-- Page Description -->
+                    <!-- PAGE DESCRIPTION (Optional) -->
                     <div>
-                        <label class="block text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">PAGE DESCRIPTION (OPTIONAL)</label>
-                        <textarea rows="4" placeholder="Briefly describe what this page is about..." class="w-full border border-gray-300 rounded-md px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-red-500 resize-none"></textarea>
+                        <label for="description" class="block text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">
+                            PAGE DESCRIPTION <span class="font-normal text-gray-400">(OPSIONAL)</span>
+                        </label>
+                        <textarea
+                            id="description"
+                            name="description"
+                            rows="4"
+                            placeholder="Deskripsikan halaman kamu secara singkat..."
+                            class="w-full border {{ $errors->has('description') ? 'border-red-400' : 'border-gray-300' }} rounded-md px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-red-500 resize-none"
+                        >{{ old('description') }}</textarea>
+                        @error('description')
+                            <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
 
-                    <!-- Submit Button -->
+                    <!-- Submit -->
                     <div class="pt-4">
-                        <button type="submit" class="w-full bg-[#b91c1c] hover:bg-red-800 text-white font-bold py-3 px-4 rounded-md uppercase tracking-wider text-sm transition-colors shadow-sm flex justify-center items-center gap-2">
-                            AJUKAN <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        <button
+                            type="submit"
+                            class="w-full bg-[#b91c1c] hover:bg-red-800 text-white font-bold py-3 px-4 rounded-md uppercase tracking-wider text-sm transition-colors shadow-sm flex justify-center items-center gap-2"
+                        >
+                            BUAT HALAMAN <i data-lucide="arrow-right" class="w-4 h-4"></i>
                         </button>
                     </div>
-                    
+
                 </form>
             </div>
         </div>
 
-        <!-- Right Column: Sidebar Info (col-span-3) -->
+        <!-- ================================= -->
+        <!-- Right Column: Sidebar (col-span-3)-->
+        <!-- ================================= -->
         <div class="col-span-12 lg:col-span-3 space-y-6">
-            
-            <!-- Card 1: Guidelines -->
+
+            <!-- Creation Guidelines -->
             <div class="bg-gray-50 border border-gray-200 rounded-lg p-5">
-                <h3 class="text-sm font-bold text-gray-900 mb-4">Creation Guidelines</h3>
+                <h3 class="text-sm font-bold text-gray-900 mb-4">Panduan Pembuatan</h3>
                 <ul class="space-y-3 text-xs text-gray-600">
                     <li class="flex items-start gap-2">
-                        <i data-lucide="check-circle-2" class="w-4 h-4 text-red-600 shrink-0"></i>
-                        <span>Unique URL required</span>
+                        <i data-lucide="check-circle-2" class="w-4 h-4 text-red-600 shrink-0 mt-0.5"></i>
+                        <span>URL unik — tidak bisa dipakai dua kali</span>
                     </li>
                     <li class="flex items-start gap-2">
-                        <i data-lucide="check-circle-2" class="w-4 h-4 text-red-600 shrink-0"></i>
-                        <span>Alphanumeric characters only</span>
+                        <i data-lucide="check-circle-2" class="w-4 h-4 text-red-600 shrink-0 mt-0.5"></i>
+                        <span>URL hanya huruf kecil dan angka, tanpa spasi atau simbol</span>
                     </li>
                     <li class="flex items-start gap-2">
-                        <i data-lucide="check-circle-2" class="w-4 h-4 text-red-600 shrink-0"></i>
-                        <span>Public visibility by default</span>
+                        <i data-lucide="check-circle-2" class="w-4 h-4 text-red-600 shrink-0 mt-0.5"></i>
+                        <span>Minimum 6 karakter untuk URL</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i data-lucide="check-circle-2" class="w-4 h-4 text-red-600 shrink-0 mt-0.5"></i>
+                        <span>Visibilitas publik secara default</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i data-lucide="image" class="w-4 h-4 text-red-600 shrink-0 mt-0.5"></i>
+                        <span>Logo bisa diupload setelah halaman dibuat</span>
                     </li>
                 </ul>
             </div>
 
-            <!-- Card 2: System Info -->
+            <!-- System Info -->
             <div class="bg-white border border-gray-200 rounded-lg p-5">
                 <h3 class="text-sm font-bold text-gray-900 mb-4 border-b border-gray-100 pb-2">System Info</h3>
                 <div class="space-y-3 text-xs font-medium">
@@ -86,9 +146,8 @@
                     </div>
                 </div>
             </div>
-            
-        </div>
 
+        </div>
     </div>
 </div>
 @endsection

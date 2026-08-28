@@ -11,48 +11,54 @@
 
         <!-- BAGIAN TENGAH: Menu Navigasi -->
         <div class="hidden md:flex absolute left-1/2 transform -translate-x-1/2 items-center space-x-8 text-[13px] font-medium text-neutral-400 mt-1">
-            <a href="#" class="hover:text-white transition">Beranda</a>
+            <a href="{{ route('beranda') }}" class="{{ request()->routeIs('beranda') ? 'text-red-600' : 'hover:text-white' }} transition">Beranda</a>
             <a href="#" class="hover:text-white transition">Telusur</a>
-            <a href="#" class="hover:text-white transition">Video</a>
-            <a href="#" class="hover:text-white transition">Pages</a>
+            <a href="{{ route('videos.public') }}" class="{{ request()->routeIs('videos.*') || request()->routeIs('video.*') ? 'text-red-600' : 'hover:text-white' }} transition">Video</a>
+            <a href="{{ route('pages.index') }}" class="{{ request()->routeIs('pages.*') || request()->routeIs('my-pages.*') ? 'text-red-600' : 'hover:text-white' }} transition">Pages</a>
 
             @auth
             <!-- Dropdown My Apps -->
             <div class="relative group py-4">
-                <button class="flex items-center text-red-600 hover:text-red-500 transition font-semibold cursor-pointer outline-none">
+                @php
+                    $isMyAppActive = request()->is('dasbor') || request()->routeIs('foto.*') || request()->routeIs('video.*') || request()->routeIs('undang.*') || request()->routeIs('desain-profil.*') || request()->routeIs('my-pages.*') || request()->routeIs('groups.*');
+                @endphp
+                <button class="flex items-center {{ $isMyAppActive ? 'text-red-600' : 'text-neutral-400' }} hover:text-red-500 transition font-semibold cursor-pointer outline-none">
                     My Apps
                     <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
 
-                <div class="absolute left-1/2 transform -translate-x-1/2 mt-4 w-48 bg-[#1A1A1A] border border-neutral-800 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 p-1.5 z-50">
-                    <a href="#" class="flex items-center gap-3 px-3 py-2.5 bg-[#990000] text-white rounded-md mb-1 hover:bg-red-800 transition">
-                        <svg class="w-4 h-4 opacity-90" fill="currentColor" viewBox="0 0 20 20"><path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
-                        <span class="text-xs font-semibold">Dasbor</span>
-                    </a>
-                    <a href="#" class="flex items-center gap-3 px-3 py-2.5 text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-md transition group/item">
-                        <svg class="w-4 h-4 opacity-70 group-hover/item:opacity-100 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                        <span class="text-xs">Foto</span>
-                    </a>
-                    <a href="#" class="flex items-center gap-3 px-3 py-2.5 text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-md transition group/item">
-                        <svg class="w-4 h-4 opacity-70 group-hover/item:opacity-100 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                        <span class="text-xs">Video</span>
-                    </a>
-                    <a href="#" class="flex items-center gap-3 px-3 py-2.5 text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-md transition group/item">
-                        <svg class="w-4 h-4 opacity-70 group-hover/item:opacity-100 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
-                        <span class="text-xs">Undang</span>
-                    </a>
-                    <a href="#" class="flex items-center gap-3 px-3 py-2.5 text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-md transition group/item">
-                        <svg class="w-4 h-4 opacity-70 group-hover/item:opacity-100 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <span class="text-xs">Desain Profil</span>
-                    </a>
-                    <a href="#" class="flex items-center gap-3 px-3 py-2.5 text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-md transition group/item">
-                        <svg class="w-4 h-4 opacity-70 group-hover/item:opacity-100 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                        <span class="text-xs">My Pages</span>
-                    </a>
-                    <a href="#" class="flex items-center gap-3 px-3 py-2.5 text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-md transition group/item">
-                        <svg class="w-4 h-4 opacity-70 group-hover/item:opacity-100 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                        <span class="text-xs">Groups</span>
-                    </a>
+                <!-- Jembatan Hover -->
+                <div class="absolute left-1/2 transform -translate-x-1/2 top-[80%] pt-4 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                    <div class="bg-[#1A1A1A] border border-neutral-800 rounded-lg shadow-2xl p-1.5 flex flex-col gap-1">
+                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 {{ request()->is('dasbor') ? 'bg-[#990000] text-white' : 'text-neutral-300 hover:text-white hover:bg-neutral-800' }} rounded-md transition group/item">
+                            <svg class="w-4 h-4 {{ request()->is('dasbor') ? 'opacity-90' : 'opacity-70 group-hover/item:opacity-100 transition' }}" fill="currentColor" viewBox="0 0 20 20"><path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                            <span class="text-xs font-semibold">Dasbor</span>
+                        </a>
+                        <a href="{{ route('foto.index') }}" class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('foto.*') ? 'bg-[#990000] text-white' : 'text-neutral-300 hover:text-white hover:bg-neutral-800' }} rounded-md transition group/item">
+                            <svg class="w-4 h-4 {{ request()->routeIs('foto.*') ? 'opacity-90' : 'opacity-70 group-hover/item:opacity-100 transition' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            <span class="text-xs">Foto</span>
+                        </a>
+                        <a href="{{ route('video.index') }}" class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('video.*') ? 'bg-[#990000] text-white' : 'text-neutral-300 hover:text-white hover:bg-neutral-800' }} rounded-md transition group/item">
+                            <svg class="w-4 h-4 {{ request()->routeIs('video.*') ? 'opacity-90' : 'opacity-70 group-hover/item:opacity-100 transition' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            <span class="text-xs">Video</span>
+                        </a>
+                        <a href="{{ route('undang.index') }}" class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('undang.*') ? 'bg-[#990000] text-white' : 'text-neutral-300 hover:text-white hover:bg-neutral-800' }} rounded-md transition group/item">
+                            <svg class="w-4 h-4 {{ request()->routeIs('undang.*') ? 'opacity-90' : 'opacity-70 group-hover/item:opacity-100 transition' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+                            <span class="text-xs">Undang</span>
+                        </a>
+                        <a href="{{ route('desain-profil.index') }}" class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('desain-profil.*') ? 'bg-[#990000] text-white' : 'text-neutral-300 hover:text-white hover:bg-neutral-800' }} rounded-md transition group/item">
+                            <svg class="w-4 h-4 {{ request()->routeIs('desain-profil.*') ? 'opacity-90' : 'opacity-70 group-hover/item:opacity-100 transition' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <span class="text-xs">Desain Profil</span>
+                        </a>
+                        <a href="{{ route('my-pages.index') }}" class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('my-pages.*') ? 'bg-[#990000] text-white' : 'text-neutral-300 hover:text-white hover:bg-neutral-800' }} rounded-md transition group/item">
+                            <svg class="w-4 h-4 {{ request()->routeIs('my-pages.*') ? 'opacity-90' : 'opacity-70 group-hover/item:opacity-100 transition' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            <span class="text-xs">My Pages</span>
+                        </a>
+                        <a href="{{ route('groups.index') }}" class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('groups.*') ? 'bg-[#990000] text-white' : 'text-neutral-300 hover:text-white hover:bg-neutral-800' }} rounded-md transition group/item">
+                            <svg class="w-4 h-4 {{ request()->routeIs('groups.*') ? 'opacity-90' : 'opacity-70 group-hover/item:opacity-100 transition' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                            <span class="text-xs">Groups</span>
+                        </a>
+                    </div>
                 </div>
             </div>
             @endauth
@@ -77,6 +83,10 @@
                     <a href="#" class="hover:text-white transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg></a>
                 </div>
             @endauth
+
+            <a href="{{ route('admin.login') }}" class="bg-red-600 hover:bg-red-700 text-white text-[10px] font-bold px-2 py-1 rounded flex items-center gap-1 transition-colors shadow-sm">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg> ADMIN
+            </a>
 
             <!-- Tombol Profile & Dropdown (Sistem HOVER murni tanpa JS) -->
             <div class="relative ml-2 group">

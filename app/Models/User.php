@@ -33,7 +33,6 @@ class User extends Authenticatable
         ];
     }
 
-
     // Tambahkan relasi ini di dalam class User
     public function streams()
     {
@@ -53,5 +52,32 @@ class User extends Authenticatable
     public function following()
     {
         return $this->hasMany(Follower::class, 'uid', 'id');
+    }
+
+    // =========================================================================
+    // RELASI PAGES
+    // =========================================================================
+
+    /**
+     * Pages yang dibuat oleh user ini.
+     * jcow_pages.uid → users.id
+     */
+    public function createdPages(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Page::class, 'uid');
+    }
+
+    /**
+     * Pages yang disukai (liked/followed) oleh user ini.
+     * Pivot: jcow_page_users (uid = user id, pid = page id)
+     */
+    public function likedPages(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(
+            Page::class,
+            'jcow_page_users', // tabel pivot
+            'uid',             // FK dari sisi User di pivot
+            'pid'              // FK dari sisi Page di pivot
+        );
     }
 }
