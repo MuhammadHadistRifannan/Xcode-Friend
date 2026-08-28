@@ -51,6 +51,12 @@ class AuthController extends Controller
             'gender' => ['required', 'in:0,1,2'],
             'country' => ['required', 'string'],
             'about_me' => ['nullable', 'string'],
+        ], [
+            // Kustomisasi pesan error dalam Bahasa Indonesia
+            'email.unique' => 'Alamat email ini sudah terdaftar.',
+            'username.unique' => 'Username ini sudah digunakan oleh orang lain.',
+            'username.regex' => 'Username hanya boleh berisi huruf dan angka tanpa spasi.',
+            'password.min' => 'Password harus memiliki minimal 6 karakter.',
         ]);
 
         $user = User::create([
@@ -77,7 +83,8 @@ class AuthController extends Controller
         ]);
 
         Auth::login($user);
-        return redirect('/beranda');
+        // Alihkan ke halaman login dengan membawa pesan sukses
+        return redirect('/login')->with('success', 'Registrasi berhasil! Silakan masuk menggunakan akun baru Anda.');
     }
 
     public function logout(Request $request)
@@ -85,7 +92,7 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect('/login');
+        return redirect('/');
     }
 
 
