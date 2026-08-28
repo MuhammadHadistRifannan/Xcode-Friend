@@ -51,16 +51,18 @@ Route::middleware('guest')->group(function () {
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 
 Route::get('/dev-login/bima', function () {
-    $user = App\Models\User::where('email', 'bima@xcode.test')->first() ?? App\Models\User::first();
+    // Memaksa login menggunakan User urutan pertama (ID 1)
+    $user = App\Models\User::find(1); 
     Auth::login($user);
-    return redirect()->route('messages.index')->with('success', 'Berhasil login sebagai Bima!');
+    return redirect()->route('messages.index');
 });
 
 Route::get('/dev-login/giska', function () {
-    $user = App\Models\User::where('email', 'giska@xcode.test')->first();
+    // Memaksa login menggunakan User urutan kedua (ID 2)
+    $user = App\Models\User::find(2); 
     if ($user) {
         Auth::login($user);
         return redirect()->route('messages.index');
     }
-    return 'User Giska belum ditemukan di database! Jalankan tinker dulu.';
+    return 'Akun ID 2 tidak ada di database! Coba ganti angka find(2) menjadi find(3).';
 });

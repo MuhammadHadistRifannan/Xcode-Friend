@@ -14,7 +14,7 @@
     @include('layouts.partials.navbar')
 
     <!-- Konten Utama -->
-    <main class="flex-grow flex items-center justify-center py-10 px-4 sm:px-6 lg:px-8">
+    <main class="flex-grow w-full py-10">
         @yield('content')
     </main>
 
