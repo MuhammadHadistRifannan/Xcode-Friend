@@ -2,57 +2,56 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password'])]
-#[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
+    // 1. Arahkan ke tabel sumber asli JCow
+    protected $table = 'jcow_accounts';
+
+    // 2. Matikan timestamps bawaan karena legacy menggunakan Unix Timestamp (integer)
+    public $timestamps = false;
+
+    // 3. Sesuaikan kolom pengisian massal dengan field jcow_accounts
+    protected $fillable = [
+        'username', 'fullname', 'email', 'password', 'created', 'lastlogin'
+    ];
+
+    protected $hidden = [
+        'password', 'token', 'jcowsess'
+    ];
+
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
     }
 
-    // --- RELASI PERTEMANAN ---
+    // 4. Accessor: Menjembatani $user->name di UI agar membaca $user->fullname dari Database
+    public function getNameAttribute()
+    {
+        return $this->fullname;
+    }
+
+    // --- RELASI PERTEMANAN (Legacy: jcow_friends) ---
     public function friends()
     {
-        return $this->belongsToMany(User::class, 'friends', 'user_id', 'friend_id')
-                    ->wherePivot('status', 'accepted')
-                    ->withTimestamps();
+        return $this->belongsToMany(User::class, 'jcow_friends', 'uid', 'fid');
     }
 
-    public function friendRequests()
-    {
-        return $this->belongsToMany(User::class, 'friends', 'friend_id', 'user_id')
-                    ->wherePivot('status', 'pending')
-                    ->withTimestamps();
-    }
-
-    // --- RELASI PESAN ---
+    // --- RELASI PESAN (Legacy: jcow_messages) ---
     public function sentMessages()
     {
-        return $this->hasMany(Message::class, 'sender_id');
+        return $this->hasMany(Message::class, 'from_id');
     }
 
     public function receivedMessages()
     {
-        return $this->hasMany(Message::class, 'receiver_id');
+        return $this->hasMany(Message::class, 'to_id');
     }
 }

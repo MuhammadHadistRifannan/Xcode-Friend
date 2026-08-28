@@ -12,53 +12,60 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('jcow_accounts', function (Blueprint $table) {
-            $table->id();
-            $table->bigInteger('fbid');
+            // Menggunakan integer biasa (int 11) agar cocok dengan relasi 'uid' di tabel lain
+            $table->integer('id', true);
+
+            $table->bigInteger('fbid')->default(0);
             $table->string('email', 120)->default('');
-            $table->integer('lastact')->default('0');
-            $table->integer('created')->default('0');
+            $table->integer('lastact')->default(0);
+            $table->integer('created')->default(0);
             $table->string('username', 25);
             $table->string('fullname', 30);
-            $table->string('password', 32);
-            $table->tinyInteger('level')->default('0');
-            $table->integer('points');
-            $table->string('avatar', 50);
-            $table->tinyText('signature');
-            $table->text('blurbs');
-            $table->tinyInteger('profile_permission')->default('0');
-            $table->string('location', 100);
-            $table->integer('lastlogin');
-            $table->string('ipaddress', 30);
-            $table->string('chpass', 10);
-            $table->tinyInteger('disabled');
-            $table->text('intr');
-            $table->tinyInteger('gender');
-            $table->text('about_me');
-            $table->integer('birthyear');
-            $table->tinyInteger('birthmonth');
-            $table->tinyInteger('birthday');
-            $table->tinyInteger('hide_age');
-            $table->string('reg_code', 8);
-            $table->integer('forum_posts');
-            $table->tinyInteger('featured');
-            $table->string('roles', 255);
-            $table->string('country', 50);
-            $table->string('locale', 50);
-            $table->string('state', 50);
-            $table->char('jcowsess', 12);
-            $table->string('token', 32);
-            $table->integer('wall_id');
-            $table->integer('followers');
-            $table->text('settings');
-            $table->string('var1', 255);
-            $table->string('var2', 255);
-            $table->string('var3', 255);
-            $table->string('var4', 255);
-            $table->string('var5', 255);
-            $table->string('var6', 255);
-            $table->string('var7', 255);
-            $table->string('pass', 32);
-            $table->tinyInteger('hide_me');
+
+            // Password tanpa batasan panjang karakter agar cukup untuk algoritma Bcrypt Laravel (60 karakter)
+            $table->string('password');
+
+            $table->tinyInteger('level')->default(0);
+            $table->integer('points')->default(0);
+            $table->string('avatar', 50)->nullable();
+            $table->tinyText('signature')->nullable();
+            $table->text('blurbs')->nullable();
+            $table->tinyInteger('profile_permission')->default(0);
+            $table->string('location', 100)->nullable();
+            $table->integer('lastlogin')->default(0);
+            $table->string('ipaddress', 30)->nullable();
+            $table->string('chpass', 10)->nullable();
+            $table->tinyInteger('disabled')->default(0);
+            $table->text('intr')->nullable();
+            $table->tinyInteger('gender')->default(0);
+            $table->text('about_me')->nullable();
+            $table->integer('birthyear')->default(0);
+            $table->tinyInteger('birthmonth')->default(0);
+            $table->tinyInteger('birthday')->default(0);
+            $table->tinyInteger('hide_age')->default(0);
+            $table->string('reg_code', 8)->nullable();
+            $table->integer('forum_posts')->default(0);
+            $table->tinyInteger('featured')->default(0);
+            $table->string('roles', 255)->nullable();
+            $table->string('country', 50)->nullable();
+            $table->string('locale', 50)->nullable();
+            $table->string('state', 50)->nullable();
+            $table->char('jcowsess', 12)->nullable();
+            $table->string('token', 32)->nullable();
+            $table->integer('wall_id')->default(0);
+            $table->integer('followers')->default(0);
+            $table->text('settings')->nullable();
+            $table->string('var1', 255)->nullable();
+            $table->string('var2', 255)->nullable();
+            $table->string('var3', 255)->nullable();
+            $table->string('var4', 255)->nullable();
+            $table->string('var5', 255)->nullable();
+            $table->string('var6', 255)->nullable();
+            $table->string('var7', 255)->nullable();
+            $table->string('pass', 32)->nullable();
+            $table->tinyInteger('hide_me')->default(0);
+
+            // Indexes
             $table->index(['username'], 'jcow_accounts_username');
             $table->index(['lastlogin'], 'jcow_accounts_lastlogin');
             $table->index(['email'], 'jcow_accounts_email');
