@@ -6,38 +6,42 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use App\Models\Stream;
-use App\Models\Comment;
-use App\Models\Friend;
 
 class AuthController extends Controller
 {
-    // Memproses Login
+    // =====================================
+    // MEMPROSES LOGIN
+    // =====================================
     public function authenticate(Request $request)
     {
-        $request->validate([
-            'login' => ['required', 'string'], // Bisa Email atau Username
-            'password' => ['required'],
+        $credentials = $request->validate([
+            'login' => ['required', 'string'],
+            'password' => ['required', 'string'],
         ]);
 
-        $loginType = filter_var($request->login, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+        // Cek apakah user mencentang tombol "Remember me"
+        $remember = $request->has('remember');
 
-        if (Auth::attempt([$loginType => $request->login, 'password' => $request->password], $request->has('remember'))) {
+        // Tentukan apakah input 'login' itu berupa email atau username
+        $fieldType = filter_var($request->login, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+
+        // Coba lakukan login ke sistem
+        if (Auth::attempt([$fieldType => $request->login, 'password' => $request->password], $remember)) {
             $request->session()->regenerate();
 
-            // Update timestamp legacy saat berhasil login
-            $user = Auth::user();
-            $user->lastlogin = time();
-            $user->ipaddress = $request->ip();
-            $user->save();
-
+            // Jika berhasil, alihkan ke Dashboard (Beranda)
             return redirect()->intended('/beranda');
         }
 
-        return back()->withErrors(['login' => 'Email/Username atau Password salah.'])->onlyInput('login');
+        // Jika gagal login (sandi/email salah)
+        return back()->withErrors([
+            'login' => 'Email/Username atau Password salah.',
+        ])->onlyInput('login');
     }
 
-    // Memproses Registrasi
+    // =====================================
+    // MEMPROSES REGISTRASI
+    // =====================================
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -52,17 +56,18 @@ class AuthController extends Controller
             'country' => ['required', 'string'],
             'about_me' => ['nullable', 'string'],
         ], [
-            // Kustomisasi pesan error dalam Bahasa Indonesia
+            // Kustomisasi pesan error validasi dalam Bahasa Indonesia
             'email.unique' => 'Alamat email ini sudah terdaftar.',
             'username.unique' => 'Username ini sudah digunakan oleh orang lain.',
             'username.regex' => 'Username hanya boleh berisi huruf dan angka tanpa spasi.',
             'password.min' => 'Password harus memiliki minimal 6 karakter.',
         ]);
 
-        $user = User::create([
+        // Simpan data User ke database
+        User::create([
             'email' => $validated['email'],
             'username' => $validated['username'],
-            'password' => Hash::make($validated['password']),
+            'password' => Hash::make($validated['password']), // Enkripsi sandi dengan Bcrypt
             'fullname' => $validated['fullname'],
             'birthyear' => $validated['birthyear'],
             'birthmonth' => $validated['birthmonth'],
@@ -71,6 +76,8 @@ class AuthController extends Controller
             'country' => $validated['country'],
             'about_me' => $validated['about_me'] ?? '',
             'hide_age' => $request->has('hide_age') ? 1 : 0,
+            
+            // Kolom Legacy JCow (Default/Bawaan)
             'created' => time(),
             'lastlogin' => time(),
             'ipaddress' => $request->ip(),
@@ -82,38 +89,21 @@ class AuthController extends Controller
             'var5' => '', 'var6' => '', 'var7' => '', 'pass' => '', 'hide_me' => 0,
         ]);
 
-        Auth::login($user);
-        // Alihkan ke halaman login dengan membawa pesan sukses
+        // Alihkan ke halaman login dengan membawa pesan sukses (TIDAK ADA Auth::login disini)
         return redirect('/login')->with('success', 'Registrasi berhasil! Silakan masuk menggunakan akun baru Anda.');
     }
 
+    // =====================================
+    // MEMPROSES LOGOUT
+    // =====================================
     public function logout(Request $request)
     {
         Auth::logout();
+        
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+        
+        // Alihkan ke Landing Page Guest setelah logout
         return redirect('/');
-    }
-
-
-    // Pastikan di bagian atas sudah ada: use App\Models\Stream; use App\Models\Comment; use App\Models\Friend;
-
-    public function showLoginForm()
-    {
-        // Mengambil statistik global
-        $stats = [
-            'activities' => Stream::count(),
-            'members' => User::count(),
-            'friendships' => Friend::count(),
-            'comments' => Comment::count(),
-        ];
-
-        // 4 User yang terakhir login
-        $recentLogins = User::where('avatar', '!=', '')->orderBy('lastlogin', 'desc')->take(4)->get();
-
-        // Mengambil Feed Publik
-        $publicStreams = Stream::with(['user', 'comments.user'])->orderBy('created', 'desc')->take(5)->get();
-
-        return view('auth.login', compact('stats', 'recentLogins', 'publicStreams'));
     }
 }

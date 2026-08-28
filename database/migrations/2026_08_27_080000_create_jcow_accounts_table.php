@@ -63,6 +63,7 @@ return new class extends Migration
             $table->string('var6', 255)->nullable();
             $table->string('var7', 255)->nullable();
             $table->string('pass', 32)->nullable();
+            $table->rememberToken();
             $table->tinyInteger('hide_me')->default(0);
 
             // Indexes
