@@ -4,91 +4,86 @@
 <div class="pt-10 pb-6 bg-[#fafafa]">
     <div class="w-full px-4 lg:px-20 mx-auto flex flex-col lg:flex-row gap-6 lg:gap-12">
 
-        <!-- KONTEN KIRI: Lihat Pesan -->
+        <!-- KONTEN KIRI: Form Buat Pesan -->
         <div class="w-full lg:w-[80%] bg-[#f6f3f3] rounded-[24px] flex flex-col min-h-[650px] shadow-sm">
             
             <!-- Breadcrumb -->
             <div class="px-8 pt-8">
-                <div class="flex items-center gap-2 text-xs text-gray-500 mb-2">
-                    <a href="{{ route('beranda') }}" class="hover:text-gray-700 transition">HOME</a>
-                    <span>›</span>
-                    <span class="text-gray-700 font-medium">MESSAGE</span>
+                <nav class="flex items-center gap-2 text-xs text-gray-500 mb-6">
+                    <a href="{{ route('beranda') }}" class="hover:text-gray-700">HOME</a>
+                    <span>/</span>
+                    <a href="{{ route('messages.index') }}" class="hover:text-gray-700">MESSAGE</a>
+                    <span>/</span>
+                    <span class="text-gray-900 font-medium">BUAT SEBUAH PESAN</span>
+                </nav>
+
+                <h1 class="text-2xl font-bold text-gray-900 mb-6">BUAT SEBUAH PESAN</h1>
+
+                <!-- Tabs -->
+                <div class="flex space-x-8 border-b border-gray-300/60 mb-[-1px]">
+                    <a href="{{ route('messages.index') }}" class="pb-3 text-sm font-medium text-gray-500 hover:text-gray-800 border-b-2 border-transparent transition">KOTAK MASUK</a>
+                    <a href="{{ route('messages.outbox') }}" class="pb-3 text-sm font-medium text-gray-500 hover:text-gray-800 border-b-2 border-transparent transition">KOTAK KELUAR</a>
                 </div>
-                <h1 class="text-2xl font-bold text-gray-900 mb-4">LIHAT PESAN</h1>
             </div>
 
-            <!-- Tabs -->
-            <div class="px-8">
-                <div class="flex space-x-8 border-b border-gray-300/60">
-                    <a href="{{ route('messages.index') }}" class="pb-3 text-sm font-bold {{ ($type ?? 'inbox') === 'inbox' ? 'text-[#b71c1c] border-b-2 border-[#b71c1c]' : 'text-gray-500 hover:text-gray-800 border-b-2 border-transparent' }} transition">
-                        KOTAK MASUK
+            <!-- Form -->
+            <form action="{{ route('messages.store') }}" method="POST" class="px-8 py-6 flex-grow">
+                @csrf
+                
+                <!-- Tujuan -->
+                <div class="mb-6">
+                    <label for="recipient_id" class="block text-sm font-bold text-gray-900 mb-2">TUJUAN</label>
+                    <select name="recipient_id" id="recipient_id" 
+                        class="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:ring-[#b71c1c] focus:border-[#b71c1c] outline-none shadow-sm @error('recipient_id') border-red-500 @enderror">
+                        <option value="">Penerima...</option>
+                        @foreach($users as $user)
+                            <option value="{{ $user->id }}" {{ old('recipient_id', $toId ?? null) == $user->id ? 'selected' : '' }}>
+                                {{ $user->fullname }} (@{{ $user->username }})
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('recipient_id')
+                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Subyek -->
+                <div class="mb-6">
+                    <label for="subject" class="block text-sm font-bold text-gray-900 mb-2">SUBYEK (OPSIONAL)</label>
+                    <input type="text" name="subject" id="subject" value="{{ old('subject') }}"
+                        placeholder="Title of your message..."
+                        class="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:ring-[#b71c1c] focus:border-[#b71c1c] outline-none shadow-sm @error('subject') border-red-500 @enderror">
+                    @error('subject')
+                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Pesan -->
+                <div class="mb-6">
+                    <label for="message" class="block text-sm font-bold text-gray-900 mb-2">PESAN</label>
+                    <textarea name="message" id="message" rows="12"
+                        placeholder="Type your message here..."
+                        class="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:ring-[#b71c1c] focus:border-[#b71c1c] outline-none shadow-sm resize-none @error('message') border-red-500 @enderror">{{ old('message') }}</textarea>
+                    @error('message')
+                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex justify-end gap-3 mt-auto">
+                    <a href="{{ route('messages.index') }}" 
+                        class="px-8 py-2.5 border border-gray-300 rounded-[10px] text-sm font-bold text-gray-700 hover:bg-gray-50 transition">
+                        BATAL
                     </a>
-                    <a href="{{ route('messages.outbox') }}" class="pb-3 text-sm font-bold {{ ($type ?? '') === 'outbox' ? 'text-[#b71c1c] border-b-2 border-[#b71c1c]' : 'text-gray-500 hover:text-gray-800 border-b-2 border-transparent' }} transition">
-                        KOTAK KELUAR
-                    </a>
+                    <button type="submit" 
+                        class="bg-[#b71c1c] hover:bg-red-800 text-white px-8 py-2.5 rounded-[10px] text-sm font-bold transition flex items-center gap-2">
+                        KIRIM
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                        </svg>
+                    </button>
                 </div>
-            </div>
-
-            <!-- Pesan -->
-            <div class="px-8 py-6 flex-grow">
-                <div class="bg-white rounded-[14px] shadow-sm overflow-hidden">
-                    <!-- Header Pesan -->
-                    <div class="px-8 pt-8 pb-4">
-                        <h2 class="text-xl font-bold text-gray-900 mb-2">{{ $message->subject ?: 'Tanpa Subjek' }}</h2>
-                        <div class="flex items-center gap-4 text-xs text-gray-500">
-                            <div class="flex items-center gap-1">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                                </svg>
-                                <span>{{ $type === 'inbox' ? 'From:' : 'To:' }} <strong class="text-gray-700">{{ $otherUser->fullname ?? 'Unknown' }}</strong></span>
-                            </div>
-                            <div class="flex items-center gap-1">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                </svg>
-                                <span>{{ \Carbon\Carbon::createFromTimestamp($message->created)->format('M jS Y, g:i a') }}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Garis Pemisah -->
-                    <div class="px-8">
-                        <hr class="border-gray-200">
-                    </div>
-
-                    <!-- Isi Pesan -->
-                    <div class="px-8 py-6">
-                        <p class="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{{ $message->message }}</p>
-                    </div>
-
-                    <!-- Garis Pemisah -->
-                    <div class="px-8">
-                        <hr class="border-gray-200">
-                    </div>
-
-                    <!-- Tombol Aksi -->
-                    <div class="px-8 py-6 flex justify-end gap-3">
-                        <form action="{{ route('messages.destroy', $message->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus pesan ini?')">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="flex items-center gap-2 px-5 py-2.5 border border-gray-300 rounded-[10px] text-sm font-bold text-gray-700 hover:bg-gray-50 transition">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                </svg>
-                                HAPUS
-                            </button>
-                        </form>
-                        @if($type === 'inbox')
-                            <a href="{{ route('messages.create') }}?to={{ $otherUser->id }}" class="flex items-center gap-2 px-5 py-2.5 bg-[#b71c1c] hover:bg-red-800 text-white rounded-[10px] text-sm font-bold transition">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path>
-                                </svg>
-                                BALAS
-                            </a>
-                        @endif
-                    </div>
-                </div>
-            </div>
+            </form>
         </div>
 
         <!-- KONTEN KANAN: Sidebar -->
@@ -141,6 +136,18 @@
                         </a>
                     </li>
                 </ul>
+            </div>
+
+            <div class="bg-[#faecec] p-8 rounded-[24px] shadow-sm">
+                <p class="text-[11px] font-black text-[#8b1818] uppercase tracking-wider mb-4">System Status</p>
+                <div class="flex items-center gap-3 mb-6">
+                    <span class="w-2.5 h-2.5 bg-[#10b981] rounded-full"></span>
+                    <span class="text-[13px] font-bold text-gray-900">All Systems Operational</span>
+                </div>
+                <div class="flex justify-between text-[11px] font-bold text-gray-600 pt-4 border-t border-red-900/10">
+                    <span>Uptime: 99.99%</span>
+                    <span>Latency: 24ms</span>
+                </div>
             </div>
         </div>
 

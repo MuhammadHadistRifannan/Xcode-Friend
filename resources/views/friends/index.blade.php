@@ -4,95 +4,85 @@
 <div class="pt-10 pb-6 bg-[#fafafa]">
     <div class="w-full px-4 lg:px-20 mx-auto flex flex-col lg:flex-row gap-6 lg:gap-12">
 
-        <!-- KONTEN KIRI: Lihat Pesan -->
+        <!-- KONTEN KIRI: Daftar Teman -->
         <div class="w-full lg:w-[80%] bg-[#f6f3f3] rounded-[24px] flex flex-col min-h-[650px] shadow-sm">
             
-            <!-- Breadcrumb -->
+            <!-- Header -->
             <div class="px-8 pt-8">
-                <div class="flex items-center gap-2 text-xs text-gray-500 mb-2">
-                    <a href="{{ route('beranda') }}" class="hover:text-gray-700 transition">HOME</a>
-                    <span>›</span>
-                    <span class="text-gray-700 font-medium">MESSAGE</span>
-                </div>
-                <h1 class="text-2xl font-bold text-gray-900 mb-4">LIHAT PESAN</h1>
-            </div>
-
-            <!-- Tabs -->
-            <div class="px-8">
-                <div class="flex space-x-8 border-b border-gray-300/60">
-                    <a href="{{ route('messages.index') }}" class="pb-3 text-sm font-bold {{ ($type ?? 'inbox') === 'inbox' ? 'text-[#b71c1c] border-b-2 border-[#b71c1c]' : 'text-gray-500 hover:text-gray-800 border-b-2 border-transparent' }} transition">
-                        KOTAK MASUK
-                    </a>
-                    <a href="{{ route('messages.outbox') }}" class="pb-3 text-sm font-bold {{ ($type ?? '') === 'outbox' ? 'text-[#b71c1c] border-b-2 border-[#b71c1c]' : 'text-gray-500 hover:text-gray-800 border-b-2 border-transparent' }} transition">
-                        KOTAK KELUAR
-                    </a>
+                <div class="flex flex-col sm:flex-row justify-between items-end border-b border-gray-300/60">
+                    <div class="flex space-x-8 w-full sm:w-[60%] mb-[-1px]">
+                        <a href="{{ route('friends.index') }}" class="pb-3 text-sm font-bold text-[#b71c1c] border-b-2 border-[#b71c1c]">TEMAN</a>
+                        <a href="{{ route('friends.requests') }}" class="pb-3 text-sm font-medium text-gray-500 hover:text-gray-800 border-b-2 border-transparent transition">PERMINTAAN PERTEMANAN</a>
+                    </div>
                 </div>
             </div>
 
-            <!-- Pesan -->
+            <!-- Daftar Teman -->
             <div class="px-8 py-6 flex-grow">
-                <div class="bg-white rounded-[14px] shadow-sm overflow-hidden">
-                    <!-- Header Pesan -->
-                    <div class="px-8 pt-8 pb-4">
-                        <h2 class="text-xl font-bold text-gray-900 mb-2">{{ $message->subject ?: 'Tanpa Subjek' }}</h2>
-                        <div class="flex items-center gap-4 text-xs text-gray-500">
-                            <div class="flex items-center gap-1">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                                </svg>
-                                <span>{{ $type === 'inbox' ? 'From:' : 'To:' }} <strong class="text-gray-700">{{ $otherUser->fullname ?? 'Unknown' }}</strong></span>
+                @if($friends->count() > 0)
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        @foreach($friends as $friend)
+                            <div class="bg-white rounded-[14px] p-4 flex items-center gap-4 shadow-sm hover:shadow-md transition">
+                                <div class="w-12 h-12 rounded-full bg-[#f4dada] flex items-center justify-center text-[#b71c1c] font-bold text-lg">
+                                    {{ substr($friend->fullname, 0, 1) }}
+                                </div>
+                                <div class="flex-grow min-w-0">
+                                    <p class="text-sm font-bold text-gray-900 truncate">{{ $friend->fullname }}</p>
+                                    <p class="text-xs text-gray-500 truncate">@{{ $friend->username }}</p>
+                                </div>
+                                <form action="{{ route('friends.unfriend', $friend->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus pertemanan?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-xs text-gray-400 hover:text-red-500 transition" title="Hapus Teman">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                        </svg>
+                                    </button>
+                                </form>
                             </div>
-                            <div class="flex items-center gap-1">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                </svg>
-                                <span>{{ \Carbon\Carbon::createFromTimestamp($message->created)->format('M jS Y, g:i a') }}</span>
-                            </div>
-                        </div>
+                        @endforeach
                     </div>
-
-                    <!-- Garis Pemisah -->
-                    <div class="px-8">
-                        <hr class="border-gray-200">
+                @else
+                    <div class="text-center py-20">
+                        <p class="text-gray-400 text-sm">Belum ada teman.</p>
                     </div>
-
-                    <!-- Isi Pesan -->
-                    <div class="px-8 py-6">
-                        <p class="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{{ $message->message }}</p>
-                    </div>
-
-                    <!-- Garis Pemisah -->
-                    <div class="px-8">
-                        <hr class="border-gray-200">
-                    </div>
-
-                    <!-- Tombol Aksi -->
-                    <div class="px-8 py-6 flex justify-end gap-3">
-                        <form action="{{ route('messages.destroy', $message->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus pesan ini?')">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="flex items-center gap-2 px-5 py-2.5 border border-gray-300 rounded-[10px] text-sm font-bold text-gray-700 hover:bg-gray-50 transition">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                </svg>
-                                HAPUS
-                            </button>
-                        </form>
-                        @if($type === 'inbox')
-                            <a href="{{ route('messages.create') }}?to={{ $otherUser->id }}" class="flex items-center gap-2 px-5 py-2.5 bg-[#b71c1c] hover:bg-red-800 text-white rounded-[10px] text-sm font-bold transition">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path>
-                                </svg>
-                                BALAS
-                            </a>
-                        @endif
-                    </div>
-                </div>
+                @endif
             </div>
         </div>
 
         <!-- KONTEN KANAN: Sidebar -->
         <div class="w-full lg:w-[15%] space-y-6">
+            <!-- Suggested Friends -->
+            <div class="bg-white p-8 rounded-[24px] shadow-sm">
+                <h3 class="text-[15px] font-bold text-gray-900 mb-4">Saran Pertemanan</h3>
+                @if($suggestions->count() > 0)
+                    <ul class="space-y-4">
+                        @foreach($suggestions as $suggestion)
+                            <li class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-[#f4dada] flex items-center justify-center text-[#b71c1c] font-bold text-sm">
+                                    {{ substr($suggestion->fullname, 0, 1) }}
+                                </div>
+                                <div class="flex-grow min-w-0">
+                                    <p class="text-xs font-bold text-gray-900 truncate">{{ $suggestion->fullname }}</p>
+                                    <p class="text-[10px] text-gray-500 truncate">@{{ $suggestion->username }}</p>
+                                </div>
+                                <form action="{{ route('friends.sendRequest') }}" method="POST">
+                                    @csrf
+                                    <input type="hidden" name="uid" value="{{ $suggestion->id }}">
+                                    <button type="submit" class="text-[#b71c1c] hover:text-red-800 transition" title="Kirim Permintaan">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                        </svg>
+                                    </button>
+                                </form>
+                            </li>
+                        @endforeach
+                    </ul>
+                @else
+                    <p class="text-xs text-gray-400">Tidak ada saran saat ini.</p>
+                @endif
+            </div>
+
             <div class="bg-white p-8 rounded-[24px] shadow-sm flex flex-col items-center">
                 <p class="text-[13px] font-bold text-gray-900 mb-2">Google Reviews</p>
                 <div class="flex text-[#ffc107] mb-2 gap-1">

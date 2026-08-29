@@ -16,10 +16,29 @@ Route::get('/', [HomeController::class, 'guest'])->name('home.guest');
 Route::get('/beranda', [HomeController::class, 'index'])->middleware('auth')->name('beranda');
 
 Route::middleware('auth')->group(function () {
+    // Messages
     Route::get('/messages', [App\Http\Controllers\MessageController::class, 'index'])->name('messages.index');
     Route::get('/messages/outbox', [App\Http\Controllers\MessageController::class, 'outbox'])->name('messages.outbox');
-    Route::get('/messages/{user}', [App\Http\Controllers\MessageController::class, 'show'])->name('messages.show');
-    Route::post('/messages/{user}', [App\Http\Controllers\MessageController::class, 'store'])->name('messages.store');
+    Route::get('/messages/create', [App\Http\Controllers\MessageController::class, 'create'])->name('messages.create');
+    Route::post('/messages', [App\Http\Controllers\MessageController::class, 'store'])->name('messages.store');
+    Route::get('/messages/{id}', [App\Http\Controllers\MessageController::class, 'show'])->name('messages.show');
+    Route::delete('/messages/{id}', [App\Http\Controllers\MessageController::class, 'destroy'])->name('messages.destroy');
+    Route::post('/messages/bulk-delete', [App\Http\Controllers\MessageController::class, 'bulkDelete'])->name('messages.bulkDelete');
+
+    // Friends
+    Route::get('/friends', [App\Http\Controllers\FriendController::class, 'index'])->name('friends.index');
+    Route::get('/friends/requests', [App\Http\Controllers\FriendController::class, 'requests'])->name('friends.requests');
+    Route::post('/friends/request', [App\Http\Controllers\FriendController::class, 'sendRequest'])->name('friends.sendRequest');
+    Route::post('/friends/accept/{userId}', [App\Http\Controllers\FriendController::class, 'accept'])->name('friends.accept');
+    Route::post('/friends/reject/{userId}', [App\Http\Controllers\FriendController::class, 'reject'])->name('friends.reject');
+    Route::delete('/friends/unfriend/{userId}', [App\Http\Controllers\FriendController::class, 'unfriend'])->name('friends.unfriend');
+
+    // Notifications
+    Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{id}/read', [App\Http\Controllers\NotificationController::class, 'markRead'])->name('notifications.markRead');
+    Route::post('/notifications/read-all', [App\Http\Controllers\NotificationController::class, 'markAllRead'])->name('notifications.markAllRead');
+    Route::delete('/notifications/{id}', [App\Http\Controllers\NotificationController::class, 'destroy'])->name('notifications.destroy');
+    Route::get('/notifications/unread-count', [App\Http\Controllers\NotificationController::class, 'unreadCount'])->name('notifications.unreadCount');
 });
 
 // ==========================================

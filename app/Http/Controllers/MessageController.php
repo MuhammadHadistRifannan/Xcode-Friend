@@ -2,109 +2,116 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Message;
-use App\Models\User;
+use App\Services\MessageService;
+use App\Http\Requests\SendMessageRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB; // Tambahkan facade DB
+use Illuminate\Support\Facades\DB;
 
 class MessageController extends Controller
 {
-    // 1. Kotak Masuk (Pesan yang DITERIMA)
-    public function index()
+    public function __construct(
+        private MessageService $messageService
+    ) {}
+
+    public function index(Request $request)
     {
-        $messages = Message::where('to_id', Auth::id())
-                           ->with('sender')
-                           ->orderBy('created', 'desc')
-                           ->get();
-        
+        $userId = Auth::id();
+
+        if ($keyword = $request->input('search')) {
+            $messages = $this->messageService->search($userId, $keyword, 'inbox');
+        } else {
+            $messages = $this->messageService->getInbox($userId);
+        }
+
         return view('messages.index', compact('messages'));
     }
 
-    // 2. Kotak Keluar (Pesan yang DIKIRIM)
-    public function outbox()
+    public function outbox(Request $request)
     {
-        $messages = Message::where('from_id', Auth::id())
-                           ->with('receiver')
-                           ->orderBy('created', 'desc')
-                           ->get();
+        $userId = Auth::id();
+
+        if ($keyword = $request->input('search')) {
+            $messages = $this->messageService->search($userId, $keyword, 'outbox');
+        } else {
+            $messages = $this->messageService->getOutbox($userId);
+        }
 
         return view('messages.outbox', compact('messages'));
     }
 
-    // 3. Menampilkan detail pesan
-    public function show(User $user)
+    public function create(Request $request)
     {
-        $authId = Auth::id();
+        $users = DB::table('jcow_accounts')
+            ->where('id', '!=', Auth::id())
+            ->where('disabled', 0)
+            ->select('id', 'fullname', 'username', 'avatar')
+            ->orderBy('fullname')
+            ->get();
 
-        $messages = Message::where(function ($query) use ($authId, $user) {
-            $query->where('from_id', $authId)->where('to_id', $user->id);
-        })->orWhere(function ($query) use ($authId, $user) {
-            $query->where('from_id', $user->id)->where('to_id', $authId);
-        })->orderBy('created', 'asc')->get();
+        $toId = $request->input('to');
 
-        $messageItem = $messages->last(); 
-
-        // Update status baca
-        Message::where('from_id', $user->id)
-                ->where('to_id', $authId)
-                ->where('hasread', 0)
-                ->update(['hasread' => 1]);
-
-        return view('messages.show', compact('user', 'messages', 'messageItem'));
+        return view('messages.create', compact('users', 'toId'));
     }
 
-    // 4. Menyimpan pesan baru / balasan
-    public function store(Request $request, User $user)
+    public function store(SendMessageRequest $request)
+    {
+        $this->messageService->send(
+            Auth::id(),
+            $request->recipient_id,
+            $request->subject,
+            $request->message
+        );
+
+        return redirect()->route('messages.outbox')->with('success', 'Pesan berhasil dikirim.');
+    }
+
+    public function show(int $id)
+    {
+        $userId = Auth::id();
+
+        $message = $this->messageService->getById($id, $userId);
+
+        if (!$message) {
+            return redirect()->route('messages.index')->with('error', 'Pesan tidak ditemukan.');
+        }
+
+        $type = $message->to_id == $userId ? 'inbox' : 'outbox';
+
+        if ($type === 'inbox') {
+            $this->messageService->markAsRead($id, $userId);
+            $otherId = $message->from_id;
+        } else {
+            $otherId = $message->to_id;
+        }
+
+        $otherUser = DB::table('jcow_accounts')->where('id', $otherId)->first();
+
+        return view('messages.show', compact('message', 'otherUser', 'type'));
+    }
+
+    public function destroy(int $id)
+    {
+        $userId = Auth::id();
+
+        $this->messageService->delete($id, $userId, 'inbox');
+
+        return redirect()->route('messages.index')->with('success', 'Pesan berhasil dihapus.');
+    }
+
+    public function bulkDelete(Request $request)
     {
         $request->validate([
-            'message' => 'required|string'
+            'ids' => 'required|array',
+            'ids.*' => 'integer',
+            'type' => 'required|in:inbox,outbox',
         ]);
 
-        $now = time(); // Menggunakan Unix Timestamp untuk kompatibilitas legacy
+        $userId = Auth::id();
+        $this->messageService->bulkDelete($request->ids, $userId, $request->type);
 
-        // Simpan ke jcow_messages (diwakili model Message)
-        Message::create([
-            'from_id' => Auth::id(),
-            'to_id' => $user->id,
-            'message' => $request->message,
-            'subject' => 'Balasan', // Default statis
-            'created' => $now,
-            'hasread' => 0,
-        ]);
+        $route = $request->type === 'outbox' ? 'messages.outbox' : 'messages.index';
 
-        // Simpan duplikat ke jcow_messages_sent agar sinkron dengan sistem lama
-        DB::table('jcow_messages_sent')->insert([
-            'from_id' => Auth::id(),
-            'to_id' => $user->id,
-            'message' => $request->message,
-            'subject' => 'Balasan',
-            'created' => $now,
-            'hasread' => 0,
-        ]);
-
-        return redirect()->route('messages.outbox');
-    }
-
-    // 5. Menghapus seluruh riwayat pesan dengan user tertentu
-    public function destroy(User $user)
-    {
-        $authId = Auth::id();
-
-        // Hapus dari jcow_messages
-        Message::where(function ($query) use ($authId, $user) {
-            $query->where('from_id', $authId)->where('to_id', $user->id);
-        })->orWhere(function ($query) use ($authId, $user) {
-            $query->where('from_id', $user->id)->where('to_id', $authId);
-        })->delete();
-
-        // Hapus dari jcow_messages_sent
-        DB::table('jcow_messages_sent')->where(function ($query) use ($authId, $user) {
-            $query->where('from_id', $authId)->where('to_id', $user->id);
-        })->orWhere(function ($query) use ($authId, $user) {
-            $query->where('from_id', $user->id)->where('to_id', $authId);
-        })->delete();
-
-        return redirect()->route('messages.index');
+        return redirect()->route($route)->with('success', 'Pesan berhasil dihapus.');
     }
 }
