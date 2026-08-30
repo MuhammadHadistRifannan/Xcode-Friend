@@ -41,6 +41,11 @@
                     <input type="file" name="logo" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" accept="image/*">
                 </div>
 
+                <div class="flex items-center gap-3">
+                    <input type="checkbox" name="is_private" id="is_private" class="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500" {{ old('is_private') ? 'checked' : '' }}>
+                    <label for="is_private" class="text-sm font-medium text-gray-700">Grup Privat (Memerlukan persetujuan admin untuk bergabung)</label>
+                </div>
+
                 <div class="flex justify-end gap-3 pt-6 mt-6 border-t border-gray-100">
                     <a href="{{ route('groups.browse') }}" class="px-5 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors">Batal</a>
                     <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-medium shadow-sm transition-colors">Simpan Grup</button>

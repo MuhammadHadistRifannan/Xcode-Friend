@@ -32,9 +32,9 @@ class Group extends Model
     {
         parent::boot();
 
-        // Global scope untuk selalu filter type = 'group'
+        // Global scope untuk selalu filter type = 'group' atau 'private_group'
         static::addGlobalScope('type', function (Builder $builder) {
-            $builder->where('type', 'group');
+            $builder->whereIn('type', ['group', 'private_group']);
         });
     }
 

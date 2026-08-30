@@ -85,6 +85,14 @@
                                         <svg class="mr-3 h-4 w-4 text-gray-400 group-hover:text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                         Menunggu Persetujuan
                                     </a>
+                                    <a href="{{ route('groups.invite', $group->id) }}" class="group flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-red-600">
+                                        <svg class="mr-3 h-4 w-4 text-gray-400 group-hover:text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+                                        Undang Pengguna
+                                    </a>
+                                    <a href="{{ route('groups.reports', $group->id) }}" class="group flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-red-600">
+                                        <svg class="mr-3 h-4 w-4 text-gray-400 group-hover:text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                        Laporan Grup
+                                    </a>
                                 </div>
                                 <div class="py-1">
                                     <form action="{{ url('groups/' . $group->id) }}" method="POST">
@@ -99,21 +107,34 @@
                             </div>
                         </div>
                     @elseif($group->members->contains(Auth::id()))
-                        <form action="{{ route('groups.leave', $group->id) }}" method="POST" class="w-full md:w-auto">
-                            @csrf
-                            <button type="submit" onclick="return confirm('Yakin ingin keluar dari grup ini?')" class="inline-flex w-full justify-center items-center gap-2 bg-gray-100 text-gray-700 border border-gray-300 hover:bg-red-600 hover:text-white hover:border-red-600 px-6 py-2.5 rounded-lg font-bold transition-all shadow-sm text-sm group focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                                <svg class="w-4 h-4 text-gray-500 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                                Keluar dari Grup
+                        <div class="flex flex-wrap gap-2 w-full md:w-auto">
+                            <form action="{{ route('groups.leave', $group->id) }}" method="POST" class="w-full md:w-auto">
+                                @csrf
+                                <button type="submit" onclick="return confirm('Yakin ingin keluar dari grup ini?')" class="inline-flex w-full justify-center items-center gap-2 bg-gray-100 text-gray-700 border border-gray-300 hover:bg-red-600 hover:text-white hover:border-red-600 px-6 py-2.5 rounded-lg font-bold transition-all shadow-sm text-sm group focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                    <svg class="w-4 h-4 text-gray-500 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                                    Keluar dari Grup
+                                </button>
+                            </form>
+                            <button type="button" onclick="openReportModal('{{ url('groups/' . $group->id) }}')" class="inline-flex w-full md:w-auto justify-center items-center gap-2 bg-yellow-100 text-yellow-700 border border-yellow-300 hover:bg-yellow-600 hover:text-white hover:border-yellow-600 px-6 py-2.5 rounded-lg font-bold transition-all shadow-sm text-sm group focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
+                                <svg class="w-4 h-4 text-yellow-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                Laporkan
                             </button>
-                        </form>
+                        </div>
                     @else
-                        <form action="{{ route('groups.join', $group->id) }}" method="POST" class="w-full md:w-auto">
+                        @if($isPending)
+                        <button disabled class="inline-flex w-full justify-center items-center gap-2 bg-gray-400 text-white border border-transparent px-8 py-2.5 rounded-lg font-bold shadow-sm text-sm cursor-not-allowed">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            Menunggu Persetujuan
+                        </button>
+                    @else
+                        <form action="{{ url('groups/' . $group->id . '/join') }}" method="POST" class="w-full md:w-auto">
                             @csrf
                             <button type="submit" class="inline-flex w-full justify-center items-center gap-2 bg-blue-600 text-white border border-transparent hover:bg-blue-700 px-8 py-2.5 rounded-lg font-bold transition-colors shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                 <svg class="w-4 h-4 text-blue-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
                                 Gabung Grup
                             </button>
                         </form>
+                    @endif
                     @endif
                 </div>
             </div>
@@ -173,19 +194,10 @@
                         <!-- File Upload Input (Shown for Photo) -->
                         <div x-show="tab === 'photo'" x-cloak class="mb-4">
                             <!-- Input Area -->
-                            <label x-show="!photoPreview" class="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center text-gray-500 hover:bg-gray-50 hover:border-red-300 transition-colors cursor-pointer">
+                            <label for="photoUpload" x-show="!photoPreview" class="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center text-gray-500 hover:bg-gray-50 hover:border-red-300 transition-colors cursor-pointer">
                                 <svg class="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
                                 <span class="text-sm font-medium">Klik untuk memilih gambar</span>
                                 <span class="text-xs text-gray-400 mt-1">JPG, PNG, GIF, WebP (max 20MB)</span>
-                                <input type="file" name="file" class="hidden" accept="image/*"
-                                    @change="
-                                        photoName = $event.target.files[0]?.name ?? null; 
-                                        if ($event.target.files[0]) {
-                                            photoPreview = URL.createObjectURL($event.target.files[0]);
-                                        } else {
-                                            photoPreview = null;
-                                        }
-                                    ">
                             </label>
                             
                             <!-- Preview Area -->
@@ -194,17 +206,18 @@
                                 <button type="button" @click="photoPreview = null; photoName = null; $refs.photoInput.value = ''" class="absolute top-2 right-2 bg-white rounded-full p-1 shadow-md hover:bg-red-50 text-gray-600 hover:text-red-600 transition-colors">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                                 </button>
-                                <!-- Kita butuh ref ini untuk mengosongkan input file -->
-                                <input type="file" name="file" x-ref="photoInput" class="hidden" accept="image/*"
-                                    @change="
-                                        photoName = $event.target.files[0]?.name ?? null; 
-                                        if ($event.target.files[0]) {
-                                            photoPreview = URL.createObjectURL($event.target.files[0]);
-                                        } else {
-                                            photoPreview = null;
-                                        }
-                                    ">
                             </div>
+                            
+                            <!-- Single File Input -->
+                            <input id="photoUpload" type="file" name="file" x-ref="photoInput" class="hidden" accept="image/*"
+                                @change="
+                                    photoName = $event.target.files[0]?.name ?? null; 
+                                    if ($event.target.files[0]) {
+                                        photoPreview = URL.createObjectURL($event.target.files[0]);
+                                    } else {
+                                        photoPreview = null;
+                                    }
+                                ">
                         </div>
 
                         <!-- Video YouTube URL Input (Shown for Video) -->
@@ -243,18 +256,67 @@
                 </div>
             </div>
             @endif
+            @if(isset($filter) && in_array($filter, ['photo', 'video']))
+                <div class="mb-4 flex flex-wrap items-center justify-between gap-3 bg-red-50 text-red-800 px-4 py-3 rounded-xl border border-red-100 shadow-sm">
+                    <span class="text-sm font-semibold flex items-center gap-2">
+                        <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                        Menampilkan unggahan dengan {{ $filter == 'photo' ? 'Foto' : 'Video' }} saja.
+                    </span>
+                    <a href="{{ route('groups.show', $group->id) }}" class="text-xs font-bold bg-white text-gray-700 px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors shadow-sm">
+                        Lihat Semua Postingan
+                    </a>
+                </div>
+            @endif
 
             <!-- Feed Postingan / Empty State -->
             <div class="max-h-[600px] overflow-y-auto pr-2 pb-4 space-y-5 scrollbar-thin scrollbar-thumb-gray-200">
                 @forelse($group->streams as $post)
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                    <div id="post-{{ $post->id }}" class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
                     <!-- Post Header: Avatar + Nama + Waktu -->
-                    <div class="flex items-start gap-3 mb-3">
-                        <img src="{{ $post->user?->avatar ? asset('storage/'.$post->user->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($post->user?->username ?? 'User').'&background=random&color=fff' }}"
-                             class="w-10 h-10 rounded-full object-cover border border-gray-200 shrink-0" alt="Avatar">
+                    <div class="flex items-start justify-between mb-3 relative" x-data="{ openOptions: false }">
+                        <div class="flex items-start gap-3">
+                            <img src="{{ $post->user?->avatar ? asset('storage/'.$post->user->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($post->user?->username ?? 'User').'&background=random&color=fff' }}"
+                                 class="w-10 h-10 rounded-full object-cover border border-gray-200 shrink-0" alt="Avatar">
+                            <div>
+                                <span class="font-bold text-gray-900 text-sm">{{ $post->user?->username ?? 'Unknown User' }}</span>
+                                <p class="text-xs text-gray-400 mt-0.5">{{ \Carbon\Carbon::createFromTimestamp($post->created)->diffForHumans() }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Tombol Opsi Postingan (Hanya untuk Admin Grup atau Pemilik Postingan) -->
+                        <!-- Tombol Opsi Postingan -->
                         <div>
-                            <span class="font-bold text-gray-900 text-sm">{{ $post->user?->username ?? 'Unknown User' }}</span>
-                            <p class="text-xs text-gray-400 mt-0.5">{{ \Carbon\Carbon::createFromTimestamp($post->created)->diffForHumans() }}</p>
+                            <button @click="openOptions = !openOptions" @click.away="openOptions = false" type="button" class="text-gray-400 hover:text-gray-600 transition p-1 rounded-full hover:bg-gray-100 focus:outline-none" title="Opsi Postingan">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                            </button>
+
+                            <!-- Dropdown Menu -->
+                            <div x-show="openOptions" style="display: none;"
+                                 x-transition:enter="transition ease-out duration-100"
+                                 x-transition:enter-start="transform opacity-0 scale-95"
+                                 x-transition:enter-end="transform opacity-100 scale-100"
+                                 x-transition:leave="transition ease-in duration-75"
+                                 x-transition:leave-start="transform opacity-100 scale-100"
+                                 x-transition:leave-end="transform opacity-0 scale-95"
+                                 class="absolute right-0 top-8 mt-1 w-36 bg-white border border-gray-200 rounded-md shadow-lg z-10 py-1">
+                                
+                                @if(Auth::id() === $group->uid || Auth::id() === $post->uid)
+                                    @if(Auth::id() === $post->uid)
+                                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 w-full text-left">Edit</a>
+                                    @endif
+                                    <form action="{{ route('stream.destroy', $post->id) }}" method="POST">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" onclick="return confirm('Hapus postingan ini?')" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 w-full text-left">
+                                            Hapus
+                                        </button>
+                                    </form>
+                                @endif
+                                
+                                <button type="button" onclick="openReportModal('{{ url('groups/' . $group->id . '#post-' . $post->id) }}')" class="block px-4 py-2 text-sm text-yellow-600 hover:bg-yellow-50 w-full text-left">
+                                    Laporkan
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -308,15 +370,66 @@
                     @if($post->comments->count() > 0)
                         <div class="bg-gray-50 rounded-lg p-4 mt-3 space-y-3 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
                             @foreach($post->comments as $comment)
-                                <div class="flex gap-2">
+                                <div class="flex gap-2" id="comment-{{ $comment->id }}">
                                     <img src="{{ $comment->user?->avatar ? asset('storage/'.$comment->user->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($comment->user?->username ?? 'User').'&background=random&color=fff' }}"
                                          class="w-8 h-8 rounded-full object-cover shrink-0 border border-gray-200" alt="Avatar">
-                                    <div>
-                                        <div class="bg-white px-3 py-2 rounded-2xl border border-gray-100 shadow-sm text-sm">
-                                            <span class="font-bold text-gray-900">{{ $comment->user?->username ?? 'Unknown' }}</span>
-                                            <span class="text-gray-700 ml-1">{{ $comment->message }}</span>
+                                    <div x-data="{ editing: false, openCommentOptions: false }">
+                                        <div class="flex items-center gap-2 group">
+                                            <!-- Tampilan Komentar Biasa -->
+                                            <div x-show="!editing" class="bg-white px-3 py-2 rounded-2xl border border-gray-100 shadow-sm text-sm">
+                                                <span class="font-bold text-gray-900">{{ $comment->user?->username ?? 'Unknown' }}</span>
+                                                <span class="text-gray-700 ml-1">{{ $comment->message }}</span>
+                                            </div>
+
+                                            <!-- Form Edit Komentar -->
+                                            <form x-show="editing" style="display: none;" action="{{ route('comment.update', $comment->id) }}" method="POST" class="flex gap-2 w-full max-w-sm">
+                                                @csrf
+                                                @method('PUT')
+                                                <input type="text" name="message" value="{{ $comment->message }}" class="flex-1 rounded-full bg-white border border-red-300 focus:ring-2 focus:ring-red-100 text-sm px-3 py-1 outline-none" required>
+                                                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white rounded-full px-3 py-1 text-xs font-bold transition-colors">Simpan</button>
+                                                <button type="button" @click="editing = false" class="bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full px-3 py-1 text-xs font-bold transition-colors">Batal</button>
+                                            </form>
+
+                                            <div class="relative" x-show="!editing">
+                                                <button @click="openCommentOptions = !openCommentOptions" @click.away="openCommentOptions = false" type="button" class="text-gray-400 hover:text-gray-600 transition p-1 rounded-full hover:bg-gray-200 focus:outline-none" title="Opsi Komentar">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                                                </button>
+                                                
+                                                <div x-show="openCommentOptions" style="display: none;"
+                                                     x-transition:enter="transition ease-out duration-100"
+                                                     x-transition:enter-start="transform opacity-0 scale-95"
+                                                     x-transition:enter-end="transform opacity-100 scale-100"
+                                                     x-transition:leave="transition ease-in duration-75"
+                                                     x-transition:leave-start="transform opacity-100 scale-100"
+                                                     x-transition:leave-end="transform opacity-0 scale-95"
+                                                     class="absolute left-0 top-6 mt-1 w-24 bg-white border border-gray-200 rounded-md shadow-lg z-20 py-1">
+                                                    
+                                                    @if(Auth::id() === $comment->uid)
+                                                    <button type="button" @click="editing = true; openCommentOptions = false" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 hover:text-gray-900 w-full text-left">Edit</button>
+                                                    @endif
+                                                    
+                                                    @if(Auth::id() === $comment->uid || Auth::id() === $group->uid)
+                                                    <form action="{{ route('comment.destroy', $comment->id) }}" method="POST">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" onclick="return confirm('Hapus komentar ini?')" class="block px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 w-full text-left">
+                                                            Hapus
+                                                        </button>
+                                                    </form>
+                                                    @endif
+
+                                                    <button type="button" onclick="openReportModal('{{ url('groups/' . $group->id . '#comment-' . $comment->id) }}')" class="block px-3 py-1.5 text-xs text-yellow-600 hover:bg-yellow-50 w-full text-left">
+                                                        Laporkan
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <p class="text-[10px] text-gray-400 mt-1 ml-2">{{ $comment->createdAt->diffForHumans() }}</p>
+                                        <div class="flex items-center gap-3 mt-1 ml-2">
+                                            <p class="text-[10px] text-gray-400">{{ $comment->createdAt->diffForHumans() }}</p>
+                                            @if($isMember)
+                                            <button type="button" onclick="const inp = document.getElementById('comment-input-{{ $post->id }}'); if(inp) { inp.value = '@' + '{{ addslashes($comment->user?->username ?? 'Unknown') }}' + ' '; inp.focus(); }" class="text-[10px] text-gray-500 font-semibold hover:text-red-600 transition-colors">Balas</button>
+                                            @endif
+                                        </div>
                                     </div>
                                 </div>
                             @endforeach
@@ -327,7 +440,7 @@
                     @if($isMember)
                     <form action="{{ route('stream.comment', $post->id) }}" method="POST" class="mt-3 flex gap-2">
                         @csrf
-                        <input type="text" name="message" placeholder="Tulis komentar..." required
+                        <input type="text" name="message" id="comment-input-{{ $post->id }}" placeholder="Tulis komentar..." required
                                class="flex-1 rounded-full bg-gray-50 border border-gray-200 focus:bg-white focus:border-red-300 focus:ring-2 focus:ring-red-100 text-sm px-4 py-2 transition-all outline-none">
                         <button type="submit" class="bg-red-600 hover:bg-red-700 text-white rounded-full p-2 shrink-0 transition-colors flex items-center justify-center w-10 h-10 shadow-sm">
                             <svg class="w-4 h-4 transform rotate-45 -mt-0.5 -ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
@@ -378,7 +491,64 @@
                 </div>
             </div>
 
+            <!-- Kotak Media Grup -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="px-5 py-4 border-b border-gray-100 flex justify-between items-center">
+                    <h3 class="font-bold text-gray-900 text-sm tracking-wide uppercase">Media Grup</h3>
+                </div>
+                <div class="p-4 flex gap-3">
+                    <a href="{{ route('groups.show', ['group' => $group->id, 'filter' => 'photo']) }}" class="flex-1 bg-red-50 hover:bg-red-100 text-red-700 font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors border border-red-100 shadow-sm text-sm">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        Foto
+                    </a>
+                    <a href="{{ route('groups.show', ['group' => $group->id, 'filter' => 'video']) }}" class="flex-1 bg-red-50 hover:bg-red-100 text-red-700 font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors border border-red-100 shadow-sm text-sm">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                        Video
+                    </a>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
+
+<!-- Report Modal -->
+<div id="reportModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-lg w-full max-w-md overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+            <h3 class="font-bold text-gray-800 text-lg">Laporkan Konten</h3>
+            <button type="button" onclick="closeReportModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <form action="{{ route('reports.store') }}" method="POST">
+            @csrf
+            <div class="p-6 space-y-4">
+                <input type="hidden" name="url" id="reportUrl" value="">
+                
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Alasan Laporan</label>
+                    <textarea name="message" rows="4" required class="w-full rounded-lg border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 text-sm" placeholder="Jelaskan alasan mengapa Anda melaporkan konten ini..."></textarea>
+                </div>
+                <p class="text-xs text-gray-500">Laporan Anda bersifat anonim dan akan ditinjau oleh administrator.</p>
+            </div>
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
+                <button type="button" onclick="closeReportModal()" class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors">Batal</button>
+                <button type="submit" class="px-4 py-2 bg-red-600 border border-transparent rounded-lg text-sm font-bold text-white hover:bg-red-700 shadow-sm transition-colors">Kirim Laporan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openReportModal(url) {
+        document.getElementById('reportUrl').value = url;
+        document.getElementById('reportModal').classList.remove('hidden');
+    }
+    
+    function closeReportModal() {
+        document.getElementById('reportModal').classList.add('hidden');
+    }
+</script>
+
 @endsection

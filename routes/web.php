@@ -60,6 +60,8 @@ Route::get('/admin/modules', [AdminController::class, 'modules'])->name('admin.m
 Route::get('/admin/menu', [AdminController::class, 'menu'])->name('admin.menu');
 Route::get('/admin/user-roles', [AdminController::class, 'userRoles'])->name('admin.user-roles');
 Route::get('/admin/translate', [AdminController::class, 'translate'])->name('admin.translate');
+Route::get('/admin/reports', [AdminController::class, 'reports'])->name('admin.reports');
+Route::patch('/admin/reports/{id}/resolve', [AdminController::class, 'reportsResolve'])->name('admin.reports.resolve');
 
 // ==========================================
 // 4. PAGES ROUTES
@@ -119,14 +121,29 @@ Route::middleware('auth')->group(function () {
     Route::get('/groups/{group}/members', [GroupController::class, 'members'])->name('groups.members');
     Route::delete('/groups/{group}/members/{uid}', [GroupController::class, 'kickMember'])->name('groups.members.kick');
     
+    // Group Reports
+    Route::get('/groups/{group}/reports', [GroupController::class, 'reports'])->name('groups.reports');
+    Route::patch('/groups/{group}/reports/{id}/resolve', [GroupController::class, 'reportsResolve'])->name('groups.reports.resolve');
+    
+    // Group Invites
+    Route::get('/groups/{group}/invite', [GroupController::class, 'invite'])->name('groups.invite');
+    Route::post('/groups/{group}/invite', [GroupController::class, 'sendInvite'])->name('groups.sendInvite');
+    
     // Pending Approval Management
     Route::get('/groups/{group}/pending', [GroupController::class, 'pending'])->name('groups.pending');
     Route::post('/groups/{group}/approve', [GroupController::class, 'approve'])->name('groups.approve');
 
     // Stream (Wall Post)
     Route::post('/groups/{id}/stream', [GroupController::class, 'postStream'])->name('groups.stream');
+    
+    // Reports
+    Route::post('/report', [\App\Http\Controllers\ReportController::class, 'store'])->name('reports.store');
+    
     Route::post('/stream/{id}/like', [GroupController::class, 'likeStream'])->name('stream.like');
     Route::post('/stream/{id}/comment', [GroupController::class, 'commentStream'])->name('stream.comment');
+    Route::delete('/stream/{id}', [GroupController::class, 'destroyStream'])->name('stream.destroy');
+    Route::put('/comment/{id}', [GroupController::class, 'updateComment'])->name('comment.update');
+    Route::delete('/comment/{id}', [GroupController::class, 'destroyComment'])->name('comment.destroy');
 
     // CRUD Resource Utama
     Route::resource('groups', GroupController::class);

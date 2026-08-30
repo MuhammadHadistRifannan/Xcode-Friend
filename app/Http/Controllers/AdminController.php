@@ -94,4 +94,16 @@ class AdminController extends Controller
     {
         return view('admin.translate');
     }
+
+    public function reports()
+    {
+        $reports = \App\Models\Report::with('user')->orderBy('created', 'desc')->get();
+        return view('admin.reports', compact('reports'));
+    }
+
+    public function reportsResolve($id)
+    {
+        \App\Models\Report::where('id', $id)->update(['hasread' => 1]);
+        return back()->with('success', 'Laporan telah ditandai sebagai telah diselesaikan.');
+    }
 }

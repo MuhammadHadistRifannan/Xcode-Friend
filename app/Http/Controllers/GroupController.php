@@ -55,7 +55,7 @@ class GroupController extends Controller
         $data = $request->only(['uri', 'name']);
         $data['description'] = $request->input('description', ''); // NOT NULL in DB
         $data['uid'] = Auth::id();
-        $data['type'] = 'group';
+        $data['type'] = $request->has('is_private') ? 'private_group' : 'group';
         $data['updated'] = time();
         $data['views'] = 0;
         $data['users'] = 1;
@@ -81,17 +81,29 @@ class GroupController extends Controller
 
     public function show(Group $group)
     {
+        $filter = request()->query('filter');
+
         $group->load([
             'creator',
             'members' => function ($query) {
-                $query->take(5);
+                $query->take(6);
             },
-            'streams.user', // Eager load postingan wall beserta data posternya
+            'streams' => function ($query) use ($filter) {
+                if ($filter === 'photo') {
+                    $query->where('attachment', '!=', '')
+                          ->where('attachment', 'not like', 'youtube:%');
+                } elseif ($filter === 'video') {
+                    $query->where('attachment', 'like', 'youtube:%');
+                }
+                $query->with('user');
+                $query->orderBy('created', 'desc');
+            },
         ]);
         
-        $isMember = $group->members()->where('uid', Auth::id())->exists();
+        $isMember = $group->uid === Auth::id() || $group->members()->where('uid', Auth::id())->exists();
+        $isPending = $group->type === 'private_group' && $group->pendingMembers()->where('uid', Auth::id())->exists();
         
-        return view('groups.show', compact('group', 'isMember'));
+        return view('groups.show', compact('group', 'isMember', 'isPending', 'filter'));
     }
 
     public function postStream(Request $request, $id)
@@ -141,6 +153,26 @@ class GroupController extends Controller
         return redirect()->route('groups.show', $id)->with('success', 'Postingan berhasil diunggah!');
     }
 
+    public function destroyStream($id)
+    {
+        $stream = Stream::findOrFail($id);
+        $group = Group::findOrFail($stream->wall_id);
+
+        // Hanya admin grup atau pemilik post yang bisa menghapus
+        if (Auth::id() !== $group->uid && Auth::id() !== $stream->uid) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // Hapus attachment file lokal jika ada
+        if ($stream->attachment && !str_starts_with($stream->attachment, 'youtube:')) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($stream->attachment);
+        }
+
+        $stream->delete();
+
+        return back()->with('success', 'Postingan berhasil dihapus.');
+    }
+
     public function likeStream($id)
     {
         $stream = Stream::findOrFail($id);
@@ -177,6 +209,41 @@ class GroupController extends Controller
 
         return back()->with('success', 'Komentar berhasil ditambahkan!');
     }
+    public function updateComment(Request $request, $id)
+    {
+        $request->validate([
+            'message' => 'required|string|max:1000'
+        ]);
+
+        $comment = Comment::findOrFail($id);
+
+        // Hanya pembuat komentar yang bisa mengedit komentar
+        if (Auth::id() !== $comment->uid) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $comment->update([
+            'message' => $request->message
+        ]);
+
+        return back()->with('success', 'Komentar berhasil diedit.');
+    }
+
+    public function destroyComment($id)
+    {
+        $comment = Comment::findOrFail($id);
+        $stream = Stream::findOrFail($comment->stream_id);
+        $group = Group::findOrFail($stream->wall_id);
+
+        // Hanya pembuat komentar atau admin grup yang bisa menghapus komentar
+        if (Auth::id() !== $comment->uid && Auth::id() !== $group->uid) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $comment->delete();
+
+        return back()->with('success', 'Komentar berhasil dihapus.');
+    }
 
     public function edit(Group $group)
     {
@@ -197,6 +264,7 @@ class GroupController extends Controller
 
         $data = $request->only(['name']);
         $data['description'] = $request->input('description', '');
+        $data['type'] = $request->has('is_private') ? 'private_group' : 'group';
         $data['updated'] = time();
 
         if ($request->hasFile('logo')) {
@@ -214,6 +282,28 @@ class GroupController extends Controller
 
     public function join(Group $group)
     {
+        if ($group->type === 'private_group') {
+            // Cek apakah user sudah diundang oleh admin grup
+            $isInvited = DB::table('jcow_messages')
+                ->where('uid', Auth::id())
+                ->where('fid', $group->uid)
+                ->where('title', 'Undangan Grup: ' . $group->name)
+                ->exists();
+
+            if (!$isInvited) {
+                // Cek apakah sudah pending
+                if (!$group->pendingMembers()->where('uid', Auth::id())->exists()) {
+                    DB::table('jcow_group_members_pending')->insert([
+                        'uid' => Auth::id(),
+                        'gid' => $group->id,
+                        'created' => time(),
+                        'ignored' => 0
+                    ]);
+                }
+                return back()->with('success', 'Permintaan bergabung telah dikirim dan menunggu persetujuan admin.');
+            }
+        }
+
         if (!$group->members()->where('uid', Auth::id())->exists()) {
             $group->members()->attach(Auth::id());
         }
@@ -294,6 +384,45 @@ class GroupController extends Controller
         return back()->with('success', 'Member di-kick dan post dihapus.');
     }
     
+    public function invite(Group $group)
+    {
+        if ($group->uid !== Auth::id()) abort(403);
+
+        $existingMemberIds = $group->members()->pluck('users.id')->toArray();
+        $pendingMemberIds = $group->pendingMembers()->pluck('users.id')->toArray();
+        $excludeIds = array_merge([Auth::id()], $existingMemberIds, $pendingMemberIds);
+        
+        $users = \App\Models\User::whereNotIn('id', $excludeIds)->get();
+        
+        return view('groups.invite', compact('group', 'users'));
+    }
+
+    public function sendInvite(Request $request, Group $group)
+    {
+        if ($group->uid !== Auth::id()) abort(403);
+
+        $request->validate([
+            'uids' => 'required|array',
+            'uids.*' => 'exists:jcow_accounts,id'
+        ]);
+
+        $message = "Halo! Saya mengundang Anda untuk bergabung ke grup: " . $group->name . ". Silakan klik link ini untuk melihat: " . url('groups/' . $group->id);
+        
+        foreach ($request->uids as $uid) {
+            DB::table('jcow_messages')->insert([
+                'uid' => $uid,
+                'fid' => Auth::id(),
+                'title' => 'Undangan Grup: ' . $group->name,
+                'message' => $message,
+                'hasread' => 0,
+                'created' => time(),
+                'replyto' => 0
+            ]);
+        }
+        
+        return redirect()->route('groups.show', $group->id)->with('success', 'Undangan berhasil dikirim ke ' . count($request->uids) . ' pengguna.');
+    }
+
     public function destroy(Group $group)
     {
         if ($group->uid !== Auth::id()) abort(403);
@@ -311,5 +440,30 @@ class GroupController extends Controller
         $group->delete();
 
         return redirect()->route('groups.mine')->with('success', 'Grup berhasil dibongkar secara permanen.');
+    }
+
+    public function reports(Group $group)
+    {
+        if ($group->uid !== Auth::id()) abort(403);
+
+        $reports = \App\Models\Report::where('url', 'LIKE', '%groups/' . $group->id . '%')
+            ->with('user')
+            ->orderBy('created', 'desc')
+            ->get();
+            
+        return view('groups.reports', compact('group', 'reports'));
+    }
+
+    public function reportsResolve(Group $group, $id)
+    {
+        if ($group->uid !== Auth::id()) abort(403);
+
+        $report = \App\Models\Report::where('id', $id)
+            ->where('url', 'LIKE', '%groups/' . $group->id . '%')
+            ->firstOrFail();
+            
+        $report->update(['hasread' => 1]);
+        
+        return back()->with('success', 'Laporan telah ditandai sebagai diselesaikan.');
     }
 }

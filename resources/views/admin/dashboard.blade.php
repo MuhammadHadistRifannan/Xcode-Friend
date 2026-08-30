@@ -139,6 +139,15 @@
                             <p class="text-[11px] text-gray-500 leading-tight">Review, edit, or ban user accounts...</p>
                         </a>
 
+                        <!-- Tool 7: Reports -->
+                        <a href="{{ route('admin.reports') }}" class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:border-red-300 hover:shadow-md transition-all group cursor-pointer block">
+                            <div class="text-red-500 bg-red-50 w-10 h-10 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+                            </div>
+                            <h3 class="font-bold text-gray-900 text-sm mb-1 group-hover:text-red-600 transition-colors">Reports</h3>
+                            <p class="text-[11px] text-gray-500 leading-tight">Review and resolve user reports...</p>
+                        </a>
+
                     </div>
                 </div>
 

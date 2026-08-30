@@ -35,8 +35,12 @@ class HomeController extends Controller
                             ->take(4)
                             ->get();
 
-        // Ambil Feed Komunitas (Global)
+        // Ambil Feed Komunitas (Global) - Mengecualikan postingan grup
         $publicStreams = Stream::with(['user', 'comments.user'])
+                            ->where(function($query) {
+                                $query->where('app', '!=', 'group')
+                                      ->orWhereNull('app');
+                            })
                             ->orderBy('created', 'desc')
                             ->take(5)
                             ->get();
@@ -55,8 +59,12 @@ class HomeController extends Controller
         $followingCount = $user->following()->count();
         $followerCount = $user->followers()->count();
 
-        // Ambil Feed Berita
+        // Ambil Feed Berita (Mengecualikan postingan grup)
         $streams = Stream::with(['user', 'comments.user'])
+                    ->where(function($query) {
+                        $query->where('app', '!=', 'group')
+                              ->orWhereNull('app');
+                    })
                     ->orderBy('created', 'desc')
                     ->paginate(12);
 
