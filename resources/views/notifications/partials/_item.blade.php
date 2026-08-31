@@ -34,6 +34,17 @@
         <p class="text-xs text-gray-500 truncate">{!! $notification->message !!}</p>
     </div>
     
-    <!-- Time -->
-    <span class="text-xs text-gray-400 flex-shrink-0">{{ \Carbon\Carbon::createFromTimestamp($notification->created)->diffForHumans() }}</span>
+    <!-- Time + Delete -->
+    <div class="flex items-center gap-2 flex-shrink-0">
+        <span class="text-xs text-gray-400">{{ \Carbon\Carbon::createFromTimestamp($notification->created)->diffForHumans() }}</span>
+        <form action="{{ route('notifications.destroy', $notification->id) }}" method="POST" onsubmit="return confirm('Hapus notifikasi ini?')">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="p-1 text-gray-400 hover:text-red-600 transition" title="Hapus">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </form>
+    </div>
 </div>

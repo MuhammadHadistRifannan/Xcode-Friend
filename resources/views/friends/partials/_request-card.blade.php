@@ -5,7 +5,7 @@
             {{ substr($req->fullname, 0, 1) }}
         </div>
         <div class="flex-grow">
-            <p class="text-sm font-bold text-gray-900">@{{ $req->username }}</p>
+                <p class="text-sm font-bold text-gray-900">{{ $req->username }}</p>
             <p class="text-xs text-gray-500">INCOMING HANDSHAKE REQUEST</p>
             @if($req->msg)
                 <p class="text-xs text-gray-600 mt-1 italic">"{{ $req->msg }}"</p>

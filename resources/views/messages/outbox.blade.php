@@ -171,12 +171,6 @@
         csrf.value = '{{ csrf_token() }}';
         form.appendChild(csrf);
         
-        const method = document.createElement('input');
-        method.type = 'hidden';
-        method.name = '_method';
-        method.value = 'DELETE';
-        form.appendChild(method);
-        
         const type = document.createElement('input');
         type.type = 'hidden';
         type.name = 'type';

@@ -39,6 +39,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/notifications/read-all', [App\Http\Controllers\NotificationController::class, 'markAllRead'])->name('notifications.markAllRead');
     Route::delete('/notifications/{id}', [App\Http\Controllers\NotificationController::class, 'destroy'])->name('notifications.destroy');
     Route::get('/notifications/unread-count', [App\Http\Controllers\NotificationController::class, 'unreadCount'])->name('notifications.unreadCount');
+
+    // Telusur (Browse Members)
+    Route::get('/telusur', [App\Http\Controllers\TelusurController::class, 'index'])->name('telusur.index');
 });
 
 // ==========================================
