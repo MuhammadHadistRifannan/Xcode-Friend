@@ -55,8 +55,14 @@ class HomeController extends Controller
         $followingCount = $user->following()->count();
         $followerCount = $user->followers()->count();
 
-        // Ambil Feed Berita
+        // Dapatkan ID user yang diikuti
+        $followingIds = $user->following()->pluck('fid')->toArray();
+        $followingIds[] = $user->id; // Tambahkan ID sendiri
+
+        // Ambil Feed Berita (Postingan Sendiri + Teman/Following)
+        // TODO: Tambahkan logika postingan grup saat pekerjaan Ipan sudah digabungkan
         $streams = Stream::with(['user', 'comments.user'])
+                    ->whereIn('uid', $followingIds)
                     ->orderBy('created', 'desc')
                     ->paginate(12);
 

@@ -44,7 +44,7 @@
 
             <!-- Profile Info Menu -->
             <div class="bg-white rounded-xl shadow-sm border border-neutral-200 py-3">
-                <a href="#" class="flex items-center px-5 py-3 hover:bg-neutral-50 transition border-b border-neutral-100 group">
+                <a href="{{ route('profile.show', auth()->user()->username) }}" class="flex items-center px-5 py-3 hover:bg-neutral-50 transition border-b border-neutral-100 group">
                     <svg class="w-5 h-5 text-neutral-400 mr-3 group-hover:text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                     <span class="text-sm font-semibold text-neutral-700">Profilku</span>
                 </a>
@@ -95,17 +95,93 @@
             <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
                 <h3 class="text-xs font-bold text-neutral-800 uppercase border-l-4 border-red-700 pl-2 mb-4">BAGI CEPAT</h3>
 
-                <div class="flex space-x-6 mb-3 border-b border-neutral-100 pb-2">
-                    <button class="flex items-center text-xs font-bold text-red-700"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg> Status</button>
-                    <button class="flex items-center text-xs font-medium text-neutral-500 hover:text-red-700 transition"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg> Upload Image</button>
-                    <button class="flex items-center text-xs font-medium text-neutral-500 hover:text-red-700 transition"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg> Upload Video</button>
+                <!-- Tabs -->
+                <div class="flex space-x-6 mb-4 border-b border-neutral-100 pb-2">
+                    <button type="button" onclick="switchTab('status')" id="tab-btn-status" class="flex items-center text-xs font-bold text-red-700 pb-2 border-b-2 border-red-700 transition">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg> Status
+                    </button>
+                    <button type="button" onclick="switchTab('unggah')" id="tab-btn-unggah" class="flex items-center text-xs font-medium text-neutral-500 hover:text-red-700 pb-2 transition">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg> Unggah
+                    </button>
+                    <button type="button" onclick="switchTab('video')" id="tab-btn-video" class="flex items-center text-xs font-medium text-neutral-500 hover:text-red-700 pb-2 transition">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg> Video
+                    </button>
                 </div>
 
-                <form action="#" method="POST">
+                <!-- Form Bagi Cepat -->
+                <form action="{{ route('stream.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
-                    <textarea name="message" rows="3" placeholder="What's happening..." class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-red-700 transition resize-none"></textarea>
-                    <div class="flex justify-end mt-3">
-                        <button type="submit" class="bg-[#990000] text-white font-bold tracking-wider px-6 py-2 rounded-md text-xs hover:bg-red-800 transition shadow">BAGIKAN</button>
+                    
+                    <!-- TAB CONTENT: STATUS -->
+                    <div id="tab-content-status">
+                        <textarea name="message" rows="3" placeholder="What's happening..." class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-red-700 transition resize-none"></textarea>
+                    </div>
+
+                    <!-- TAB CONTENT: UNGGAH -->
+                    <div id="tab-content-unggah" class="hidden bg-neutral-50 p-4 border border-neutral-200 rounded-lg space-y-4">
+                        {{-- Album ID akan terhubung ke sistem album yang dibuat Ipan --}}
+                        <input type="hidden" name="album_id" id="photo-album-id" value="0">
+
+                        <div class="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 mt-2">
+                            <label class="text-xs text-neutral-600 w-24">Pilih Foto:</label>
+                            <input type="file" name="photo" id="photo-input-home" accept="image/*" onchange="previewPhotoHome(event)" class="flex-1 text-sm text-neutral-500 file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100">
+                        </div>
+                        
+                        <div class="flex justify-end items-center space-x-2 mt-2 pt-2 border-t border-neutral-200">
+                            <label class="text-xs text-neutral-600">Privasi:</label>
+                            <select name="privacy" class="bg-white border border-neutral-300 rounded px-2 py-1 text-xs focus:outline-none focus:border-red-700">
+                                <option value="public">Siapapun</option>
+                                <option value="friends">Teman</option>
+                                <option value="private">Hanya Saya</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- TAB CONTENT: VIDEO -->
+                    <div id="tab-content-video" class="hidden bg-neutral-50 p-4 border border-neutral-200 rounded-lg space-y-4">
+                        <div class="text-xs font-medium text-red-600 mb-2">please insert a video URL</div>
+                        {{-- Album video akan terhubung ke sistem album yang dibuat Ipan --}}
+                        <input type="hidden" name="video_album_id" id="video-album-id" value="0">
+                        
+                        <div class="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                            <label class="text-xs text-neutral-600 w-24">Judul Video:</label>
+                            <input type="text" name="video_title" class="flex-1 bg-white border border-neutral-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-red-700">
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row sm:items-start space-y-2 sm:space-y-0 sm:space-x-4">
+                            <label class="text-xs text-neutral-600 w-24 mt-1">Deskripsi:</label>
+                            <textarea name="video_desc" rows="2" class="flex-1 bg-white border border-neutral-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-red-700 resize-none"></textarea>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 mt-2">
+                            <label class="text-xs text-neutral-600 w-24">tanda:</label>
+                            <input type="text" name="video_tags" placeholder="(Dipisahkan dengan koma)" class="flex-1 bg-white border border-neutral-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-red-700">
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 mt-2">
+                            <label class="text-xs text-neutral-600 w-24">Sumber video:</label>
+                            <input type="text" name="video_url" placeholder="http://www.youtube.com/watch?v=" class="flex-1 bg-white border border-neutral-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-red-700">
+                        </div>
+                        
+                        <div class="flex justify-end items-center space-x-2 mt-2 pt-2 border-t border-neutral-200">
+                            <label class="text-xs text-neutral-600">Privasi:</label>
+                            <select name="video_privacy" class="bg-white border border-neutral-300 rounded px-2 py-1 text-xs focus:outline-none focus:border-red-700">
+                                <option value="public">Siapapun</option>
+                                <option value="friends">Teman</option>
+                                <option value="private">Hanya Saya</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="photo-preview-container-home" class="hidden mt-3 relative inline-block">
+                        <img id="photo-preview-home" src="#" class="h-20 rounded-md border border-neutral-200 object-cover">
+                        <button type="button" onclick="clearPhotoHome()" class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full p-1 shadow hover:bg-red-700"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                    </div>
+                    
+
+
+                    <div class="flex justify-end mt-4">
+                        <button type="submit" class="bg-[#990000] text-white font-bold px-6 py-2 rounded shadow-sm text-sm hover:bg-red-800 transition">Bagikan</button>
                     </div>
                 </form>
             </div>
@@ -116,8 +192,8 @@
             @forelse ($streams as $stream)
                 <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
                     <div class="flex items-center space-x-3 mb-2">
-                        <div class="w-10 h-10 rounded-full bg-neutral-100 flex items-center justify-center border border-neutral-200 text-neutral-400">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                        <div class="w-10 h-10 rounded-full bg-neutral-100 overflow-hidden flex-shrink-0 border border-neutral-200">
+                            <img src="{{ $stream->user->avatar ? asset('storage/avatars/'.$stream->user->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($stream->user->fullname ?? 'Unknown').'&background=E5E5E5' }}" class="w-full h-full object-cover">
                         </div>
                         <div>
                             <h4 class="text-sm font-bold text-neutral-900">{{ $stream->user->fullname ?? 'Unknown User' }} <span class="font-normal text-neutral-500">joined</span></h4>
@@ -129,13 +205,77 @@
                         <p class="text-sm text-neutral-800 mb-4 ml-13">{{ $stream->message }}</p>
                     @endif
 
+                    @if($stream->type == 2 && $stream->attachment)
+                        @php $att = json_decode($stream->attachment, true); @endphp
+                        @if(isset($att['photo']))
+                        <div class="mb-4 ml-13 rounded-xl overflow-hidden border border-neutral-200">
+                            <img src="{{ asset('storage/posts/' . $att['photo']) }}" class="w-full h-auto" alt="Post Photo">
+                        </div>
+                        @endif
+                    @endif
+                    
+                    @if($stream->type == 3 && $stream->attachment)
+                        @php $att = json_decode($stream->attachment, true); @endphp
+                        @if(isset($att['video_url']))
+                            @php
+                                $videoUrl = $att['video_url'];
+                                $embedUrl = '';
+                                if (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i', $videoUrl, $matches)) {
+                                    $embedUrl = 'https://www.youtube.com/embed/' . $matches[1];
+                                }
+                            @endphp
+                            <div class="mb-4 ml-13 rounded-xl overflow-hidden border border-neutral-200">
+                                @if($embedUrl)
+                                    <iframe src="{{ $embedUrl }}" class="w-full h-[300px]" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                                @else
+                                    <a href="{{ $videoUrl }}" target="_blank" class="text-blue-600 hover:underline flex items-center p-3 bg-neutral-50"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Tonton Video</a>
+                                @endif
+                            </div>
+                        @endif
+                    @endif
+
                     <div class="flex items-center space-x-4 ml-13 mt-3">
-                        <button class="flex items-center text-xs text-neutral-500 hover:text-red-700 transition font-medium">
-                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg> Komentar
+                        <button type="button" onclick="document.getElementById('comment-form-home-{{ $stream->id }}').classList.toggle('hidden')" class="flex items-center text-xs text-neutral-500 hover:text-red-700 transition font-medium">
+                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg> <span id="comments-count-{{ $stream->id }}">{{ $stream->comments->count() ?? 0 }}</span>&nbsp;Komentar
                         </button>
-                        <button class="flex items-center text-xs text-neutral-500 hover:text-red-700 transition font-medium">
-                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.514"></path></svg> Suka
-                        </button>
+                        <form action="{{ route('like.toggle', $stream->id) }}" method="POST" class="form-like">
+                            @csrf
+                            <button type="submit" class="flex items-center text-xs text-neutral-500 hover:text-red-700 transition font-medium">
+                                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.514"></path></svg> <span id="like-count-{{ $stream->id }}">{{ $stream->likes }}</span>&nbsp;Suka
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Comment Section -->
+                    <div id="comment-form-home-{{ $stream->id }}" class="hidden mt-3 pt-3 border-t border-neutral-100 ml-13">
+                        <div id="comments-list-{{ $stream->id }}">
+                            @foreach($stream->comments as $comment)
+                                <div class="flex items-start space-x-2 mb-3">
+                                    <div class="w-8 h-8 rounded-full bg-neutral-200 overflow-hidden flex-shrink-0">
+                                        <img src="https://ui-avatars.com/api/?name={{ urlencode($comment->user->fullname ?? 'Unknown') }}&background=E5E5E5" class="w-full h-full">
+                                    </div>
+                                    <div class="bg-neutral-50 p-2.5 rounded-lg flex-1 text-sm">
+                                        <span class="font-bold text-neutral-900">{{ $comment->user->fullname ?? 'Unknown' }}</span>
+                                        @php 
+                                            // Parse Mentions
+                                            $parsedMessage = htmlspecialchars($comment->message);
+                                            $parsedMessage = preg_replace('/@([a-zA-Z0-9_]+)/', '<a href="/@$1" class="text-blue-600 hover:underline">@$1</a>', $parsedMessage);
+                                        @endphp
+                                        <p class="text-neutral-700 mt-1">{!! $parsedMessage !!}</p>
+                                        <button type="button" onclick="replyTo('{{ $stream->id }}', '{{ $comment->user->username ?? 'user' }}')" class="text-[10px] text-neutral-500 font-semibold hover:text-red-700 mt-1 uppercase tracking-wider">Reply</button>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                        
+                        <form action="{{ route('comment.store', $stream->id) }}" method="POST" class="flex space-x-2 form-comment" data-stream-id="{{ $stream->id }}">
+                            @csrf
+                            <div class="w-8 h-8 rounded-full bg-neutral-200 overflow-hidden flex-shrink-0">
+                                <img src="{{ auth()->user()->avatar ? asset('storage/avatars/'.auth()->user()->avatar) : 'https://ui-avatars.com/api/?name='.urlencode(auth()->user()->fullname).'&background=E5E5E5' }}" class="w-full h-full">
+                            </div>
+                            <input type="text" name="message" id="comment-input-{{ $stream->id }}" required placeholder="Tulis komentar..." class="flex-1 bg-neutral-50 border border-neutral-200 rounded-full px-4 text-sm focus:outline-none focus:border-red-700">
+                            <button type="submit" class="text-red-700 font-bold text-sm px-2">Kirim</button>
+                        </form>
                     </div>
                 </div>
             @empty
@@ -198,4 +338,139 @@
 
     </div>
 </div>
+
+<script>
+function switchTab(tabName) {
+    // Sembunyikan semua konten tab
+    document.getElementById('tab-content-status').classList.add('hidden');
+    document.getElementById('tab-content-unggah').classList.add('hidden');
+    document.getElementById('tab-content-video').classList.add('hidden');
+
+    // Kembalikan gaya tombol tab ke default (abu-abu)
+    const tabs = ['status', 'unggah', 'video'];
+    tabs.forEach(t => {
+        const btn = document.getElementById('tab-btn-' + t);
+        btn.classList.remove('text-red-700', 'font-bold', 'border-red-700', 'border-b-2');
+        btn.classList.add('text-neutral-500', 'font-medium');
+    });
+
+    // Tampilkan konten tab yang aktif
+    document.getElementById('tab-content-' + tabName).classList.remove('hidden');
+
+    // Ubah gaya tombol tab yang aktif (merah dan bold)
+    const activeBtn = document.getElementById('tab-btn-' + tabName);
+    activeBtn.classList.remove('text-neutral-500', 'font-medium');
+    activeBtn.classList.add('text-red-700', 'font-bold', 'border-red-700', 'border-b-2');
+}
+
+function previewPhotoHome(event) {
+    const input = event.target;
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('photo-preview-home').src = e.target.result;
+            document.getElementById('photo-preview-container-home').classList.remove('hidden');
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+function clearPhotoHome() {
+    document.getElementById('photo-input-home').value = '';
+    document.getElementById('photo-preview-container-home').classList.add('hidden');
+    document.getElementById('photo-preview-home').src = '#';
+}
+
+
+
+// Function to handle Reply
+function replyTo(streamId, username) {
+    input.value = '@' + username + ' ';
+    input.focus();
+}
+
+// AJAX Handling
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // AJAX for Likes
+    document.querySelectorAll('.form-like').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const url = this.action;
+            const formData = new FormData(this);
+            const streamId = url.split('/').pop();
+
+            fetch(url, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('like-count-' + streamId).textContent = data.likes;
+                const btn = this.querySelector('button');
+                if(data.status === 'liked') {
+                    btn.classList.add('text-red-700');
+                } else {
+                    btn.classList.remove('text-red-700');
+                }
+            });
+        });
+    });
+
+    // AJAX for Comments
+    document.querySelectorAll('.form-comment').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const url = this.action;
+            const formData = new FormData(this);
+            const streamId = this.dataset.streamId;
+            const inputField = this.querySelector('input[name="message"]');
+
+            fetch(url, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.status === 'success') {
+                    // Update comment count
+                    document.getElementById('comments-count-' + streamId).textContent = data.comments_count;
+                    
+                    // Parse Mentions in JS
+                    let parsedMessage = data.comment.message;
+                    // Escape HTML basic
+                    parsedMessage = parsedMessage.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    // Regex for Mention
+                    parsedMessage = parsedMessage.replace(/@([a-zA-Z0-9_]+)/g, '<a href="/@$1" class="text-blue-600 hover:underline">@$1</a>');
+
+                    // Append new comment HTML
+                    const commentHtml = `
+                        <div class="flex items-start space-x-2 mb-3">
+                            <div class="w-8 h-8 rounded-full bg-neutral-200 overflow-hidden flex-shrink-0">
+                                <img src="${data.comment.user.avatar}" class="w-full h-full">
+                            </div>
+                            <div class="bg-neutral-50 p-2.5 rounded-lg flex-1 text-sm">
+                                <span class="font-bold text-neutral-900">${data.comment.user.fullname}</span>
+                                <p class="text-neutral-700 mt-1">${parsedMessage}</p>
+                                <button type="button" onclick="replyTo('${streamId}', '${data.comment.user.username}')" class="text-[10px] text-neutral-500 font-semibold hover:text-red-700 mt-1 uppercase tracking-wider">Reply</button>
+                            </div>
+                        </div>
+                    `;
+                    document.getElementById('comments-list-' + streamId).insertAdjacentHTML('beforeend', commentHtml);
+                    
+                    // Clear input
+                    inputField.value = '';
+                }
+            });
+        });
+    });
+});
+</script>
 @endsection

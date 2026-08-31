@@ -102,7 +102,7 @@
                                 <p class="text-xs text-white font-semibold truncate">{{ auth()->user()->username }}</p>
                                 <p class="text-[10px] text-neutral-500 truncate">{{ auth()->user()->email }}</p>
                             </div>
-                            <a href="#" class="block px-4 py-2 text-xs text-neutral-300 hover:bg-neutral-800 hover:text-white transition mt-1">Profil Saya</a>
+                            <a href="{{ route('profile.show', auth()->user()->username) }}" class="block px-4 py-2 text-xs text-neutral-300 hover:bg-neutral-800 hover:text-white transition mt-1">Profil Saya</a>
                             <a href="#" class="block px-4 py-2 text-xs text-neutral-300 hover:bg-neutral-800 hover:text-white transition">Pengaturan</a>
                             
                             <form method="POST" action="{{ route('logout') }}" class="block w-full text-left">

@@ -35,6 +35,11 @@ class User extends Authenticatable
 
 
     // Tambahkan relasi ini di dalam class User
+    public function profile()
+    {
+        return $this->hasOne(Profile::class, 'id', 'id')->withDefault();
+    }
+
     public function streams()
     {
         return $this->hasMany(Stream::class, 'uid', 'id');
