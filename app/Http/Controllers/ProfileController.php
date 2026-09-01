@@ -188,6 +188,7 @@ class ProfileController extends Controller
             return redirect()->route('profile.edit', ['tab' => 'sandi'])->with('success', 'Kata sandi berhasil diubah!');
         }
 
+
         return back();
     }
 }

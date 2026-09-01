@@ -6,6 +6,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\StreamController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AlbumController;
+use App\Http\Controllers\CaptchaController;
 
 // ==========================================
 // 1. AREA BERANDA / FEED
@@ -14,23 +15,26 @@ use App\Http\Controllers\AlbumController;
 // Halaman Landing Page (Statistik & Feed Publik)
 Route::get('/', [HomeController::class, 'guest'])->name('home.guest');
 
-// Halaman Dashboard 3 Kolom (Hanya bisa diakses jika sudah login)
-Route::get('/beranda', [HomeController::class, 'index'])->middleware('auth')->name('beranda');
-Route::post('/stream', [StreamController::class, 'store'])->middleware('auth')->name('stream.store');
-Route::post('/like/{stream}', [\App\Http\Controllers\LikeController::class, 'toggle'])->middleware('auth')->name('like.toggle');
-Route::post('/comment/{stream}', [\App\Http\Controllers\CommentController::class, 'store'])->middleware('auth')->name('comment.store');
-Route::get('/@{username}', [ProfileController::class, 'show'])->name('profile.show');
-Route::post('/profile/background', [ProfileController::class, 'updateBackground'])->middleware('auth')->name('profile.background.update');
-Route::get('/settings/profile', [ProfileController::class, 'edit'])->middleware('auth')->name('profile.edit');
-Route::post('/settings/profile', [ProfileController::class, 'update'])->middleware('auth')->name('profile.update');
-
-// Album API (untuk dropdown search)
 Route::middleware('auth')->group(function () {
+    Route::get('/beranda', [HomeController::class, 'index'])->name('beranda');
+    Route::post('/stream', [StreamController::class, 'store'])->name('stream.store');
+    Route::post('/like/{stream}', [\App\Http\Controllers\LikeController::class, 'toggle'])->name('like.toggle');
+    Route::post('/comment/{stream}', [\App\Http\Controllers\CommentController::class, 'store'])->name('comment.store');
+    
+    // Profil Edit (Settings)
+    Route::get('/settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::post('/settings/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/background', [ProfileController::class, 'updateBackground'])->name('profile.background.update');
+    
+    // Album API
     Route::get('/api/albums', [AlbumController::class, 'search'])->name('album.search');
     Route::post('/api/albums', [AlbumController::class, 'store'])->name('album.store');
 });
 
-// Rute Profil Pengguna (contoh: xcode-friends.com/@giska)
+// Rute Profil Pengguna (contoh: xcode-friends.com/@giska) - Bisa diakses publik
+Route::get('/@{username}', [ProfileController::class, 'show'])->name('profile.show');
+
+
 
 // ==========================================
 // 2. AREA OTENTIKASI (LOGIN & REGISTER)
@@ -63,3 +67,15 @@ Route::middleware('guest')->group(function () {
 
 // Logout (Hanya bisa ditekan jika user sedang login)
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
+
+// Captcha Image Generator
+Route::get('/captcha', [CaptchaController::class, 'generate'])->name('captcha.generate');
+
+// ==========================================
+// 3. AREA ADMIN
+// ==========================================
+Route::middleware(['auth', 'is_admin'])->group(function () {
+    Route::get('/admin', function () {
+        return '<h1>Dashboard Admin</h1><p>Selamat datang, Admin!</p><form method="POST" action="'.route('logout').'">'.csrf_field().'<button type="submit">Logout</button></form>';
+    })->name('admin.dashboard');
+});

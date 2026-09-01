@@ -42,11 +42,15 @@ class AlbumController extends Controller
             'name'        => $request->name,
             'description' => $request->description ?? '',
             'app'         => $request->type,
+            'var1'        => $request->privacy ?? 'public', // Menyimpan privasi di var1
         ]);
 
         return response()->json([
-            'id'   => $album->id,
-            'name' => $album->name,
+            'success' => true,
+            'album'   => [
+                'id'   => $album->id,
+                'name' => $album->name,
+            ]
         ], 201);
     }
 }

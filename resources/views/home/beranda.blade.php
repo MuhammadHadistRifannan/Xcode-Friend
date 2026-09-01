@@ -114,62 +114,205 @@
                     
                     <!-- TAB CONTENT: STATUS -->
                     <div id="tab-content-status">
-                        <textarea name="message" rows="3" placeholder="What's happening..." class="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-red-700 transition resize-none"></textarea>
+                        <textarea name="message" rows="3" placeholder="What's happening..." class="w-full bg-neutral-50 border border-neutral-200 rounded-2xl px-4 py-3 text-sm text-neutral-700 placeholder-neutral-400 shadow-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition resize-none"></textarea>
                     </div>
 
                     <!-- TAB CONTENT: UNGGAH -->
-                    <div id="tab-content-unggah" class="hidden bg-neutral-50 p-4 border border-neutral-200 rounded-lg space-y-4">
-                        {{-- Album ID akan terhubung ke sistem album yang dibuat Ipan --}}
-                        <input type="hidden" name="album_id" id="photo-album-id" value="0">
-
-                        <div class="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 mt-2">
-                            <label class="text-xs text-neutral-600 w-24">Pilih Foto:</label>
-                            <input type="file" name="photo" id="photo-input-home" accept="image/*" onchange="previewPhotoHome(event)" class="flex-1 text-sm text-neutral-500 file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100">
-                        </div>
+                    <div id="tab-content-unggah" class="hidden mt-4">
+                        <p id="photo-album-msg" class="text-[11px] text-green-600 mb-2 font-semibold hidden"></p>
                         
-                        <div class="flex justify-end items-center space-x-2 mt-2 pt-2 border-t border-neutral-200">
-                            <label class="text-xs text-neutral-600">Privasi:</label>
-                            <select name="privacy" class="bg-white border border-neutral-300 rounded px-2 py-1 text-xs focus:outline-none focus:border-red-700">
-                                <option value="public">Siapapun</option>
-                                <option value="friends">Teman</option>
-                                <option value="private">Hanya Saya</option>
-                            </select>
+                        <!-- STEP 1: Form Utama (UNGGAH FOTO) -->
+                        <div id="photo-album-select-mode">
+                            <div class="space-y-5 bg-white p-1">
+                                <!-- Foto Input -->
+                                <div>
+                                    <label class="text-xs font-bold text-neutral-700 block mb-2">Pilih Foto</label>
+                                    <div class="relative group">
+                                        <label for="photo-input-home" class="flex flex-col items-center justify-center w-full border-2 border-dashed border-neutral-300 hover:border-red-400 rounded-2xl bg-neutral-50 hover:bg-red-50/30 transition cursor-pointer py-6 text-center">
+                                            <svg class="w-8 h-8 text-neutral-400 group-hover:text-red-500 mb-2 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                                            <span class="text-sm font-semibold text-neutral-700 group-hover:text-red-600 transition">Klik untuk memilih foto</span>
+                                            <span class="text-[11px] text-neutral-500 mt-1">PNG, JPG, GIF hingga 10MB</span>
+                                            <input type="file" name="photos[]" id="photo-input-home" accept="image/*" onchange="previewPhotoHome(event)" class="hidden" multiple>
+                                        </label>
+                                    </div>
+                                    <div id="photo-preview-container-home" class="hidden mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
+                                    <div class="mt-3 flex space-x-2">
+                                        <button type="button" onclick="document.getElementById('photo-input-home').click()" class="inline-flex items-center bg-white border border-neutral-200 hover:border-red-200 hover:bg-red-50 text-neutral-700 hover:text-red-700 text-xs font-semibold px-4 py-2 rounded-full transition shadow-sm">
+                                            <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                            Tambah foto lainnya
+                                        </button>
+                                        <button type="button" id="btn-clear-photo" onclick="clearPhotoHome()" class="hidden inline-flex items-center bg-white border border-neutral-200 hover:border-red-200 hover:bg-red-50 text-neutral-700 hover:text-red-700 text-xs font-semibold px-4 py-2 rounded-full transition shadow-sm">
+                                            Hapus Semua
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- AREA ALBUM -->
+                                <div>
+                                    <label class="text-xs font-bold text-neutral-700 block mb-2">Pilih Album</label>
+                                    <div class="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-3">
+                                        <div class="relative w-full sm:w-56">
+                                            <select name="album_id" id="photo-album-select" class="appearance-none w-full bg-neutral-50 border border-neutral-200 text-neutral-700 text-sm rounded-xl px-4 py-2.5 pr-8 focus:bg-white focus:ring-2 focus:ring-red-500/20 focus:border-red-600 transition shadow-sm cursor-pointer">
+                                                <option value="0">-- Pilih Album --</option>
+                                            </select>
+                                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-neutral-500">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                            </div>
+                                        </div>
+                                        <span class="text-xs text-neutral-400 font-medium hidden sm:inline">atau</span>
+                                        <button type="button" onclick="toggleAlbumMode('photos', 'create')" class="inline-flex justify-center items-center bg-white border border-neutral-200 hover:border-red-200 hover:bg-red-50 text-neutral-700 hover:text-red-700 text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-sm w-full sm:w-auto">
+                                            <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                            Buat album baru
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Deskripsi Foto -->
+                                <div>
+                                    <label class="text-xs font-bold text-neutral-700 block mb-2">Deskripsi Foto</label>
+                                    <textarea name="message" rows="4" placeholder="Ceritakan momen di balik foto ini..." class="w-full bg-neutral-50 border border-neutral-200 rounded-2xl px-4 py-3 text-sm text-neutral-700 placeholder-neutral-400 shadow-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition resize-none"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- STEP 2: Next Form (Buat Album) -->
+                        <div id="photo-album-create-mode" class="hidden">
+                            <div class="bg-white border border-neutral-200 shadow-sm rounded-2xl p-6 mt-2">
+                                <div class="flex items-center mb-5 border-b border-neutral-100 pb-3">
+                                    <div class="bg-red-50 text-red-600 p-2 rounded-lg mr-3">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    </div>
+                                    <h4 class="text-sm font-bold text-neutral-800 uppercase tracking-wide">Buat Album Foto Baru</h4>
+                                </div>
+                                <div class="space-y-5 max-w-md">
+                                    <div>
+                                        <label class="text-xs font-bold text-neutral-700 block mb-2">Nama Album</label>
+                                        <input type="text" id="photo-album-new-name" placeholder="Masukkan nama album..." class="w-full bg-neutral-50 border border-neutral-200 text-neutral-700 text-sm rounded-xl px-4 py-2.5 shadow-sm focus:bg-white focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition">
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-bold text-neutral-700 block mb-2">Deskripsi Album</label>
+                                        <textarea id="photo-album-new-desc" rows="3" placeholder="Tuliskan deskripsi album..." class="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-3 text-sm text-neutral-700 placeholder-neutral-400 shadow-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition resize-none"></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-bold text-neutral-700 block mb-2">Privasi</label>
+                                        <div class="relative">
+                                            <select id="photo-album-new-privacy" class="appearance-none w-full bg-neutral-50 border border-neutral-200 text-neutral-700 text-sm rounded-xl px-4 py-2.5 pr-8 shadow-sm focus:bg-white focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition cursor-pointer">
+                                                <option value="public">Siapapun (Publik)</option>
+                                                <option value="friends">Hanya Teman</option>
+                                                <option value="private">Hanya Saya</option>
+                                            </select>
+                                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-neutral-500">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex space-x-3 pt-3">
+                                        <button type="button" onclick="toggleAlbumMode('photos', 'select')" class="flex-1 bg-white border border-neutral-200 hover:bg-neutral-50 hover:border-neutral-300 text-neutral-700 font-bold text-xs px-4 py-3 rounded-xl transition shadow-sm">Kembali</button>
+                                        <button type="button" onclick="saveNewAlbum('photos')" class="flex-1 bg-[#990000] hover:bg-red-800 text-white font-bold text-xs px-4 py-3 rounded-xl transition shadow-md">Simpan Album</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     <!-- TAB CONTENT: VIDEO -->
-                    <div id="tab-content-video" class="hidden bg-neutral-50 p-4 border border-neutral-200 rounded-lg space-y-4">
-                        <div class="text-xs font-medium text-red-600 mb-2">please insert a video URL</div>
-                        {{-- Album video akan terhubung ke sistem album yang dibuat Ipan --}}
-                        <input type="hidden" name="video_album_id" id="video-album-id" value="0">
+                    <div id="tab-content-video" class="hidden mt-4">
+                        <div class="text-[11px] font-medium text-red-600 mb-3">please insert a video URL</div>
+                        <p id="video-album-msg" class="text-[11px] text-green-600 mb-2 font-semibold hidden"></p>
                         
-                        <div class="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-                            <label class="text-xs text-neutral-600 w-24">Judul Video:</label>
-                            <input type="text" name="video_title" class="flex-1 bg-white border border-neutral-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-red-700">
+                        <!-- STEP 1: Form Utama (VIDEO) -->
+                        <div id="video-album-select-mode">
+                            <div class="space-y-5 bg-white p-1">
+                                <!-- Sumber Video -->
+                                <div>
+                                    <label class="text-xs font-bold text-neutral-700 block mb-2">Tautan Video</label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <svg class="w-4 h-4 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
+                                        </div>
+                                        <input type="text" name="video_url" placeholder="https://www.youtube.com/watch?v=..." class="w-full bg-neutral-50 border border-neutral-200 text-neutral-700 text-sm rounded-xl pl-10 pr-4 py-2.5 shadow-sm focus:bg-white focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition">
+                                    </div>
+                                </div>
+                                
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                    <!-- Judul Video -->
+                                    <div>
+                                        <label class="text-xs font-bold text-neutral-700 block mb-2">Judul Video</label>
+                                        <input type="text" name="video_title" placeholder="Ketik judul menarik..." class="w-full bg-neutral-50 border border-neutral-200 text-neutral-700 text-sm rounded-xl px-4 py-2.5 shadow-sm focus:bg-white focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition">
+                                    </div>
+                                    
+                                    <!-- Tanda (Tags) -->
+                                    <div>
+                                        <label class="text-xs font-bold text-neutral-700 block mb-2">Tags (Tanda)</label>
+                                        <input type="text" name="video_tags" placeholder="Musik, VLOG, Liburan..." class="w-full bg-neutral-50 border border-neutral-200 text-neutral-700 text-sm rounded-xl px-4 py-2.5 shadow-sm focus:bg-white focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition">
+                                    </div>
+                                </div>
+                                
+                                <!-- AREA ALBUM -->
+                                <div>
+                                    <label class="text-xs font-bold text-neutral-700 block mb-2">Pilih Album Video</label>
+                                    <div class="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-3">
+                                        <div class="relative w-full sm:w-56">
+                                            <select name="video_album_id" id="video-album-select" class="appearance-none w-full bg-neutral-50 border border-neutral-200 text-neutral-700 text-sm rounded-xl px-4 py-2.5 pr-8 focus:bg-white focus:ring-2 focus:ring-red-500/20 focus:border-red-600 transition shadow-sm cursor-pointer">
+                                                <option value="0">-- Pilih Album --</option>
+                                            </select>
+                                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-neutral-500">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                            </div>
+                                        </div>
+                                        <span class="text-xs text-neutral-400 font-medium hidden sm:inline">atau</span>
+                                        <button type="button" onclick="toggleAlbumMode('videos', 'create')" class="inline-flex justify-center items-center bg-white border border-neutral-200 hover:border-red-200 hover:bg-red-50 text-neutral-700 hover:text-red-700 text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-sm w-full sm:w-auto">
+                                            <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                            Buat album baru
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Deskripsi Video -->
+                                <div>
+                                    <label class="text-xs font-bold text-neutral-700 block mb-2">Deskripsi Singkat</label>
+                                    <textarea name="video_desc" rows="4" placeholder="Ceritakan sedikit tentang video ini..." class="w-full bg-neutral-50 border border-neutral-200 rounded-2xl px-4 py-3 text-sm text-neutral-700 placeholder-neutral-400 shadow-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition resize-none"></textarea>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="flex flex-col sm:flex-row sm:items-start space-y-2 sm:space-y-0 sm:space-x-4">
-                            <label class="text-xs text-neutral-600 w-24 mt-1">Deskripsi:</label>
-                            <textarea name="video_desc" rows="2" class="flex-1 bg-white border border-neutral-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-red-700 resize-none"></textarea>
-                        </div>
-
-                        <div class="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 mt-2">
-                            <label class="text-xs text-neutral-600 w-24">tanda:</label>
-                            <input type="text" name="video_tags" placeholder="(Dipisahkan dengan koma)" class="flex-1 bg-white border border-neutral-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-red-700">
-                        </div>
-
-                        <div class="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 mt-2">
-                            <label class="text-xs text-neutral-600 w-24">Sumber video:</label>
-                            <input type="text" name="video_url" placeholder="http://www.youtube.com/watch?v=" class="flex-1 bg-white border border-neutral-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-red-700">
-                        </div>
-                        
-                        <div class="flex justify-end items-center space-x-2 mt-2 pt-2 border-t border-neutral-200">
-                            <label class="text-xs text-neutral-600">Privasi:</label>
-                            <select name="video_privacy" class="bg-white border border-neutral-300 rounded px-2 py-1 text-xs focus:outline-none focus:border-red-700">
-                                <option value="public">Siapapun</option>
-                                <option value="friends">Teman</option>
-                                <option value="private">Hanya Saya</option>
-                            </select>
+                        <!-- STEP 2: Next Form (Buat Album Video) -->
+                        <div id="video-album-create-mode" class="hidden">
+                            <div class="bg-white border border-neutral-200 shadow-sm rounded-2xl p-6 mt-2">
+                                <div class="flex items-center mb-5 border-b border-neutral-100 pb-3">
+                                    <div class="bg-red-50 text-red-600 p-2 rounded-lg mr-3">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                    </div>
+                                    <h4 class="text-sm font-bold text-neutral-800 uppercase tracking-wide">Buat Album Video Baru</h4>
+                                </div>
+                                <div class="space-y-5 max-w-md">
+                                    <div>
+                                        <label class="text-xs font-bold text-neutral-700 block mb-2">Nama Album</label>
+                                        <input type="text" id="video-album-new-name" placeholder="Masukkan nama album..." class="w-full bg-neutral-50 border border-neutral-200 text-neutral-700 text-sm rounded-xl px-4 py-2.5 shadow-sm focus:bg-white focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition">
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-bold text-neutral-700 block mb-2">Deskripsi Album</label>
+                                        <textarea id="video-album-new-desc" rows="3" placeholder="Tuliskan deskripsi album..." class="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-3 text-sm text-neutral-700 placeholder-neutral-400 shadow-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition resize-none"></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-bold text-neutral-700 block mb-2">Privasi</label>
+                                        <div class="relative">
+                                            <select id="video-album-new-privacy" class="appearance-none w-full bg-neutral-50 border border-neutral-200 text-neutral-700 text-sm rounded-xl px-4 py-2.5 pr-8 shadow-sm focus:bg-white focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition cursor-pointer">
+                                                <option value="public">Siapapun (Publik)</option>
+                                                <option value="friends">Hanya Teman</option>
+                                                <option value="private">Hanya Saya</option>
+                                            </select>
+                                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-neutral-500">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex space-x-3 pt-3">
+                                        <button type="button" onclick="toggleAlbumMode('videos', 'select')" class="flex-1 bg-white border border-neutral-200 hover:bg-neutral-50 hover:border-neutral-300 text-neutral-700 font-bold text-xs px-4 py-3 rounded-xl transition shadow-sm">Kembali</button>
+                                        <button type="button" onclick="saveNewAlbum('videos')" class="flex-1 bg-[#990000] hover:bg-red-800 text-white font-bold text-xs px-4 py-3 rounded-xl transition shadow-md">Simpan Album</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -207,10 +350,51 @@
 
                     @if($stream->type == 2 && $stream->attachment)
                         @php $att = json_decode($stream->attachment, true); @endphp
-                        @if(isset($att['photo']))
-                        <div class="mb-4 ml-13 rounded-xl overflow-hidden border border-neutral-200">
-                            <img src="{{ asset('storage/posts/' . $att['photo']) }}" class="w-full h-auto" alt="Post Photo">
-                        </div>
+                        @if(isset($att['photos']) && is_array($att['photos']))
+                            @php 
+                                $ptCount = count($att['photos']); 
+                                $photoUrls = array_map(fn($p) => asset('storage/posts/' . $p), $att['photos']);
+                                $jsonPhotos = json_encode($photoUrls);
+                            @endphp
+                            <div class="mb-4 ml-13 rounded-xl overflow-hidden border border-neutral-200">
+                                @if($ptCount == 1)
+                                    <img src="{{ $photoUrls[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' class="w-full h-auto max-h-[500px] object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                @elseif($ptCount == 2)
+                                    <div class="grid grid-cols-2 gap-1 h-64 sm:h-80">
+                                        <img src="{{ $photoUrls[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                        <img src="{{ $photoUrls[1] }}" onclick='openLightbox({!! $jsonPhotos !!}, 1)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                    </div>
+                                @elseif($ptCount == 3)
+                                    <div class="grid grid-cols-2 gap-1 h-64 sm:h-80">
+                                        <img src="{{ $photoUrls[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                        <div class="grid grid-rows-2 gap-1 h-full">
+                                            <img src="{{ $photoUrls[1] }}" onclick='openLightbox({!! $jsonPhotos !!}, 1)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                            <img src="{{ $photoUrls[2] }}" onclick='openLightbox({!! $jsonPhotos !!}, 2)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                        </div>
+                                    </div>
+                                @elseif($ptCount >= 4)
+                                    <div class="grid grid-cols-2 gap-1 h-72 sm:h-96">
+                                        <img src="{{ $photoUrls[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                        <div class="grid grid-rows-3 gap-1 h-full">
+                                            <img src="{{ $photoUrls[1] }}" onclick='openLightbox({!! $jsonPhotos !!}, 1)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                            <img src="{{ $photoUrls[2] }}" onclick='openLightbox({!! $jsonPhotos !!}, 2)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                            <div class="relative w-full h-full" onclick='openLightbox({!! $jsonPhotos !!}, 3)'>
+                                                <img src="{{ $photoUrls[3] }}" class="w-full h-full object-cover cursor-pointer" alt="Post Photo">
+                                                @if($ptCount > 4)
+                                                <div class="absolute inset-0 bg-black/60 flex items-center justify-center cursor-pointer hover:bg-black/50 transition">
+                                                    <span class="text-white text-3xl font-bold">+{{ $ptCount - 4 }}</span>
+                                                </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+                        @elseif(isset($att['photo']))
+                            <div class="mb-4 ml-13 rounded-xl overflow-hidden border border-neutral-200">
+                                @php $singlePhoto = json_encode([asset('storage/posts/' . $att['photo'])]); @endphp
+                                <img src="{{ asset('storage/posts/' . $att['photo']) }}" onclick='openLightbox({!! $singlePhoto !!}, 0)' class="w-full h-auto cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                            </div>
                         @endif
                     @endif
                     
@@ -339,23 +523,108 @@
     </div>
 </div>
 
-<script>
-function switchTab(tabName) {
-    // Sembunyikan semua konten tab
-    document.getElementById('tab-content-status').classList.add('hidden');
-    document.getElementById('tab-content-unggah').classList.add('hidden');
-    document.getElementById('tab-content-video').classList.add('hidden');
+<!-- LIGHTBOX MODAL -->
+<div id="lightbox-modal" class="fixed inset-0 z-[100] hidden bg-black/95 flex flex-col justify-center items-center backdrop-blur-sm">
+    <!-- Close -->
+    <button type="button" onclick="closeLightbox()" class="absolute top-5 right-5 text-neutral-400 hover:text-white transition cursor-pointer p-2 bg-neutral-900/50 rounded-full">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+    </button>
+    
+    <!-- Prev -->
+    <button type="button" onclick="prevLightboxImage()" class="absolute left-4 sm:left-10 text-neutral-400 hover:text-white transition p-3 bg-neutral-900/50 rounded-full hover:scale-110">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+    </button>
+    
+    <!-- Next -->
+    <button type="button" onclick="nextLightboxImage()" class="absolute right-4 sm:right-10 text-neutral-400 hover:text-white transition p-3 bg-neutral-900/50 rounded-full hover:scale-110">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+    </button>
+    
+    <!-- Main Image Container -->
+    <div class="relative max-w-5xl w-full px-16 flex justify-center items-center h-[85vh]">
+        <img id="lightbox-img" src="" class="max-w-full max-h-full object-contain transition-opacity duration-200 shadow-2xl rounded-sm opacity-0">
+    </div>
+    
+    <!-- Counter -->
+    <div id="lightbox-counter" class="absolute bottom-6 bg-black/50 px-4 py-1.5 rounded-full text-white text-xs font-semibold tracking-wider"></div>
+</div>
 
-    // Kembalikan gaya tombol tab ke default (abu-abu)
+<script>
+    // Lightbox Logic
+    let lightboxImages = [];
+    let lightboxCurrentIndex = 0;
+
+    window.openLightbox = function(images, index) {
+        lightboxImages = images;
+        lightboxCurrentIndex = index;
+        updateLightbox();
+        document.getElementById('lightbox-modal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden'; // cegah scroll background
+    }
+    window.closeLightbox = function() {
+        document.getElementById('lightbox-modal').classList.add('hidden');
+        document.body.style.overflow = 'auto'; // kembalikan scroll
+    }
+    window.prevLightboxImage = function() {
+        lightboxCurrentIndex = (lightboxCurrentIndex > 0) ? lightboxCurrentIndex - 1 : lightboxImages.length - 1;
+        updateLightbox();
+    }
+    window.nextLightboxImage = function() {
+        lightboxCurrentIndex = (lightboxCurrentIndex < lightboxImages.length - 1) ? lightboxCurrentIndex + 1 : 0;
+        updateLightbox();
+    }
+    window.updateLightbox = function() {
+        const img = document.getElementById('lightbox-img');
+        img.style.opacity = '0'; // fade out
+        setTimeout(() => {
+            img.src = lightboxImages[lightboxCurrentIndex];
+            img.style.opacity = '1'; // fade in
+            
+            const counter = document.getElementById('lightbox-counter');
+            if (lightboxImages.length > 1) {
+                counter.textContent = (lightboxCurrentIndex + 1) + ' / ' + lightboxImages.length;
+                counter.classList.remove('hidden');
+            } else {
+                counter.classList.add('hidden'); // Sembunyikan counter kalau cuma 1 foto
+            }
+        }, 150);
+    }
+
+    // Keyboard support (Escape, Left, Right arrow)
+    document.addEventListener('keydown', function(e) {
+        const modal = document.getElementById('lightbox-modal');
+        if (!modal.classList.contains('hidden')) {
+            if (e.key === 'Escape') closeLightbox();
+            if (e.key === 'ArrowLeft') prevLightboxImage();
+            if (e.key === 'ArrowRight') nextLightboxImage();
+        }
+    });
+
+function switchTab(tabName) {
     const tabs = ['status', 'unggah', 'video'];
+    
     tabs.forEach(t => {
+        // Sembunyikan konten tab
+        const content = document.getElementById('tab-content-' + t);
+        content.classList.add('hidden');
+        
+        // Nonaktifkan input agar tidak menimpa name yang sama saat disubmit
+        const inputs = content.querySelectorAll('input, textarea, select');
+        inputs.forEach(input => input.disabled = true);
+
+        // Kembalikan gaya tombol tab ke default (abu-abu)
         const btn = document.getElementById('tab-btn-' + t);
         btn.classList.remove('text-red-700', 'font-bold', 'border-red-700', 'border-b-2');
         btn.classList.add('text-neutral-500', 'font-medium');
     });
 
     // Tampilkan konten tab yang aktif
-    document.getElementById('tab-content-' + tabName).classList.remove('hidden');
+    const activeContent = document.getElementById('tab-content-' + tabName);
+    activeContent.classList.remove('hidden');
+    
+    // Aktifkan kembali input di tab yang aktif
+    const activeInputs = activeContent.querySelectorAll('input, textarea, select');
+    activeInputs.forEach(input => input.disabled = false);
 
     // Ubah gaya tombol tab yang aktif (merah dan bold)
     const activeBtn = document.getElementById('tab-btn-' + tabName);
@@ -363,21 +632,39 @@ function switchTab(tabName) {
     activeBtn.classList.add('text-red-700', 'font-bold', 'border-red-700', 'border-b-2');
 }
 
+// Inisialisasi tab saat halaman pertama dimuat
+document.addEventListener('DOMContentLoaded', function() {
+    switchTab('status');
+});
+
 function previewPhotoHome(event) {
     const input = event.target;
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            document.getElementById('photo-preview-home').src = e.target.result;
-            document.getElementById('photo-preview-container-home').classList.remove('hidden');
-        }
-        reader.readAsDataURL(input.files[0]);
+    const container = document.getElementById('photo-preview-container-home');
+    const clearBtn = document.getElementById('btn-clear-photo');
+    container.innerHTML = '';
+    
+    if (input.files && input.files.length > 0) {
+        container.classList.remove('hidden');
+        clearBtn.classList.remove('hidden');
+        
+        Array.from(input.files).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.className = 'w-full h-24 object-cover rounded-xl border border-neutral-200 shadow-sm';
+                container.appendChild(img);
+            }
+            reader.readAsDataURL(file);
+        });
     }
 }
 function clearPhotoHome() {
     document.getElementById('photo-input-home').value = '';
-    document.getElementById('photo-preview-container-home').classList.add('hidden');
-    document.getElementById('photo-preview-home').src = '#';
+    const container = document.getElementById('photo-preview-container-home');
+    container.innerHTML = '';
+    container.classList.add('hidden');
+    document.getElementById('btn-clear-photo').classList.add('hidden');
 }
 
 
@@ -471,6 +758,103 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     });
+    // ==========================================
+    // ALBUM MANAGEMENT (Fetch, Toggle Mode, Create)
+    // ==========================================
+
+    function fetchAlbums(type, selectId) {
+        fetch(`/api/albums?type=${type}`)
+            .then(res => res.json())
+            .then(data => {
+                const select = document.getElementById(selectId);
+                select.innerHTML = '<option value="0">-- Pilih Album --</option>';
+                data.forEach(album => {
+                    const option = document.createElement('option');
+                    option.value = album.id;
+                    option.textContent = album.name;
+                    select.appendChild(option);
+                });
+            });
+    }
+
+    // Load album saat pertama kali
+    fetchAlbums('photos', 'photo-album-select');
+    fetchAlbums('videos', 'video-album-select');
+
+    // Fungsi toggle mode (Pilih <-> Buat Baru)
+    window.toggleAlbumMode = function(type, mode) {
+        const prefix = type === 'photos' ? 'photo' : 'video';
+        const selectMode = document.getElementById(`${prefix}-album-select-mode`);
+        const createMode = document.getElementById(`${prefix}-album-create-mode`);
+        
+        if (mode === 'create') {
+            selectMode.classList.add('hidden');
+            createMode.classList.remove('hidden');
+            document.getElementById(`${prefix}-album-new-name`).focus();
+        } else {
+            createMode.classList.add('hidden');
+            selectMode.classList.remove('hidden');
+            document.getElementById(`${prefix}-album-new-name`).value = '';
+            document.getElementById(`${prefix}-album-new-desc`).value = '';
+            document.getElementById(`${prefix}-album-new-privacy`).value = 'public';
+        }
+    }
+
+    // Fungsi simpan album baru via AJAX
+    window.saveNewAlbum = function(type) {
+        const prefix = type === 'photos' ? 'photo' : 'video';
+        const inputName = document.getElementById(`${prefix}-album-new-name`);
+        const inputDesc = document.getElementById(`${prefix}-album-new-desc`);
+        const inputPrivacy = document.getElementById(`${prefix}-album-new-privacy`);
+        const msgEl = document.getElementById(`${prefix}-album-msg`);
+
+        const valName = inputName.value.trim();
+        if(!valName) {
+            msgEl.textContent = "Nama album tidak boleh kosong!";
+            msgEl.classList.remove('hidden', 'text-green-600');
+            msgEl.classList.add('text-red-600');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('name', valName);
+        formData.append('description', inputDesc.value.trim());
+        formData.append('privacy', inputPrivacy.value);
+        formData.append('type', type);
+        formData.append('_token', '{{ csrf_token() }}');
+
+        fetch('{{ route("album.store") }}', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.success) {
+                // Tampilkan sukses
+                msgEl.textContent = `Album '${data.album.name}' berhasil dibuat!`;
+                msgEl.classList.remove('hidden', 'text-red-600');
+                msgEl.classList.add('text-green-600');
+                
+                // Fetch ulang dropdown & kembali ke mode select
+                fetchAlbums(type, `${prefix}-album-select`);
+                
+                setTimeout(() => {
+                    toggleAlbumMode(type, 'select');
+                    msgEl.classList.add('hidden');
+                    // Pilih album yang baru dibuat (opsional, karena fetchAlbums asinkron)
+                    setTimeout(() => {
+                        const select = document.getElementById(`${prefix}-album-select`);
+                        if(select) select.value = data.album.id;
+                    }, 500);
+                }, 1500);
+            } else {
+                msgEl.textContent = "Gagal membuat album.";
+                msgEl.classList.remove('hidden', 'text-green-600');
+                msgEl.classList.add('text-red-600');
+            }
+        });
+    }
+
 });
 </script>
 @endsection

@@ -51,22 +51,74 @@
             
             <!-- Kartu Identitas -->
             <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5 text-center relative">
-                <div class="w-24 h-24 mx-auto rounded-full bg-neutral-100 border border-neutral-200 mb-3 overflow-hidden">
+                <!-- Avatar -->
+                <div class="w-24 h-24 mx-auto rounded-full bg-neutral-100 border-2 border-neutral-200 mb-3 overflow-hidden shadow">
                     <img src="{{ $profileUser->avatar ? asset('storage/avatars/' . $profileUser->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($profileUser->fullname).'&background=E5E5E5&size=128' }}" alt="Avatar" class="w-full h-full object-cover">
                 </div>
-                
-                <p class="text-xs text-neutral-500 mb-4">Terakhir dilihat: Today, 01:00 am<br>1 Followers</p>
-                
-                <div class="grid grid-cols-2 gap-3 mb-4">
-                    <button class="flex items-center justify-center text-xs font-semibold text-neutral-700 bg-neutral-50 border border-neutral-200 py-1.5 rounded hover:bg-neutral-100 transition"><svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg> Ikuti</button>
-                    <button class="flex items-center justify-center text-xs font-semibold text-neutral-700 bg-neutral-50 border border-neutral-200 py-1.5 rounded hover:bg-neutral-100 transition"><svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg> Pesan</button>
-                    <button class="flex items-center justify-center text-xs font-semibold text-neutral-700 bg-neutral-50 border border-neutral-200 py-1.5 rounded hover:bg-neutral-100 transition"><svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg> Tambah Teman</button>
-                    <button class="flex items-center justify-center text-xs font-semibold text-neutral-700 bg-neutral-50 border border-neutral-200 py-1.5 rounded hover:bg-neutral-100 transition"><svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg> Blokir</button>
-                </div>
+
+                @if(auth()->check() && auth()->user()->id !== $profileUser->id)
+                    {{-- Profil Teman: Tampilkan nama + jabatan --}}
+                    <h3 class="text-sm font-bold text-neutral-900 leading-tight">{{ $profileUser->fullname }}</h3>
+                    @if($profileUser->about_me)
+                        <p class="text-[11px] text-neutral-500 mt-0.5 mb-3">{{ Str::limit($profileUser->about_me, 40) }}</p>
+                    @else
+                        <p class="text-[11px] text-neutral-500 mt-0.5 mb-3">Anggota Xcode-Friends</p>
+                    @endif
+
+                    <p class="text-[10px] text-neutral-400 mb-4">
+                        Terakhir dilihat: {{ $profileUser->last_active ? \Carbon\Carbon::createFromTimestamp($profileUser->last_active)->diffForHumans() : 'Baru saja' }}
+                        <br>
+                        <span class="font-semibold text-neutral-600">{{ $profileUser->followers ?? 1 }}</span> Followers
+                    </p>
+
+                    {{-- Tombol Aksi Teman --}}
+                    <div class="grid grid-cols-2 gap-2 mb-4">
+                        <button id="btn-ikuti" class="flex items-center justify-center text-xs font-semibold text-neutral-700 bg-neutral-50 border border-neutral-200 py-1.5 rounded hover:bg-red-50 hover:text-red-700 hover:border-red-200 transition">
+                            <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+                            Ikuti
+                        </button>
+                        <a href="/pesan/{{ $profileUser->username }}" class="flex items-center justify-center text-xs font-semibold text-neutral-700 bg-neutral-50 border border-neutral-200 py-1.5 rounded hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 transition">
+                            <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+                            Pesan
+                        </a>
+                        <button class="flex items-center justify-center text-xs font-semibold text-neutral-700 bg-neutral-50 border border-neutral-200 py-1.5 rounded hover:bg-green-50 hover:text-green-700 hover:border-green-200 transition">
+                            <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                            Tambah Teman
+                        </button>
+                        <button class="flex items-center justify-center text-xs font-semibold text-neutral-700 bg-neutral-50 border border-neutral-200 py-1.5 rounded hover:bg-red-50 hover:text-red-700 hover:border-red-200 transition">
+                            <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
+                            Blokir
+                        </button>
+                    </div>
+
+                @else
+                    {{-- Profil Sendiri: Hanya tampilkan status --}}
+                    <p class="text-xs text-neutral-500 mb-4">Terakhir dilihat: Today, 01:00 am<br>{{ $profileUser->followers ?? 1 }} Followers</p>
+
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <button class="flex items-center justify-center text-xs font-semibold text-neutral-700 bg-neutral-50 border border-neutral-200 py-1.5 rounded hover:bg-neutral-100 transition">
+                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+                            Ikuti
+                        </button>
+                        <button class="flex items-center justify-center text-xs font-semibold text-neutral-700 bg-neutral-50 border border-neutral-200 py-1.5 rounded hover:bg-neutral-100 transition">
+                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+                            Pesan
+                        </button>
+                        <button class="flex items-center justify-center text-xs font-semibold text-neutral-700 bg-neutral-50 border border-neutral-200 py-1.5 rounded hover:bg-neutral-100 transition">
+                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                            Tambah Teman
+                        </button>
+                        <button class="flex items-center justify-center text-xs font-semibold text-neutral-700 bg-neutral-50 border border-neutral-200 py-1.5 rounded hover:bg-neutral-100 transition">
+                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
+                            Blokir
+                        </button>
+                    </div>
+                @endif
 
                 @if(auth()->check() && auth()->user()->id === $profileUser->id)
                     <a href="{{ route('profile.edit') }}" class="flex items-center justify-center w-full text-xs font-bold text-neutral-700 bg-white border border-neutral-200 py-2 rounded shadow-sm hover:bg-neutral-50 transition mb-4">
-                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg> EDIT PROFIL
+                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                        EDIT PROFIL
                     </a>
                 @endif
 
@@ -124,6 +176,27 @@
                     <a href="#" class="text-[9px] font-bold text-red-700 hover:underline">Lihat Semua</a>
                 </div>
                 <div class="bg-neutral-50 border border-neutral-100 rounded text-center py-4 text-xs text-neutral-400">No following yet</div>
+            </div>
+
+            <!-- Teman -->
+            <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
+                <div class="flex justify-between items-center mb-3">
+                    <h4 class="text-[11px] font-bold text-neutral-800 uppercase tracking-wider">TEMAN</h4>
+                    <a href="#" class="text-[9px] font-bold text-red-700 hover:underline">Lihat Semua</a>
+                </div>
+                <div class="bg-neutral-50 border border-neutral-100 rounded text-center py-4 text-xs text-neutral-400">No friends yet</div>
+            </div>
+
+            <!-- Groups -->
+            <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
+                <h4 class="text-[11px] font-bold text-neutral-800 uppercase tracking-wider mb-3">GROUPS</h4>
+                <div class="bg-neutral-50 border border-neutral-100 rounded text-center py-4 text-xs text-neutral-400">No groups yet</div>
+            </div>
+
+            <!-- Pages -->
+            <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
+                <h4 class="text-[11px] font-bold text-neutral-800 uppercase tracking-wider mb-3">PAGES</h4>
+                <div class="bg-neutral-50 border border-neutral-100 rounded text-center py-4 text-xs text-neutral-400">No pages yet</div>
             </div>
         </div>
 
@@ -230,11 +303,13 @@
                     <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
                         <div class="flex justify-between items-start mb-3">
                             <div class="flex items-center space-x-3">
-                                <div class="w-10 h-10 rounded-full bg-neutral-100 overflow-hidden border border-neutral-200">
+                                <a href="/{{ $stream->user->username ?? '#' }}" class="w-10 h-10 rounded-full bg-neutral-100 overflow-hidden border border-neutral-200 hover:ring-2 hover:ring-red-700 transition flex-shrink-0">
                                     <img src="{{ $stream->user->avatar ? asset('storage/avatars/'.$stream->user->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($stream->user->fullname ?? 'Unknown').'&background=E5E5E5' }}" class="w-full h-full object-cover">
-                                </div>
+                                </a>
                                 <div>
-                                    <h4 class="text-sm font-bold text-neutral-900">{{ $stream->user->fullname ?? 'Unknown User' }}</h4>
+                                    <h4 class="text-sm font-bold text-neutral-900">
+                                        <a href="/{{ $stream->user->username ?? '#' }}" class="hover:text-red-700 transition">{{ $stream->user->fullname ?? 'Unknown User' }}</a>
+                                    </h4>
                                     <p class="text-[11px] text-neutral-400">{{ \Carbon\Carbon::createFromTimestamp($stream->created)->diffForHumans() }}</p>
                                 </div>
                             </div>
@@ -245,10 +320,51 @@
 
                         @if($stream->type == 2 && $stream->attachment)
                             @php $att = json_decode($stream->attachment, true); @endphp
-                            @if(isset($att['photo']))
-                            <div class="mb-4 rounded-xl overflow-hidden border border-neutral-200">
-                                <img src="{{ asset('storage/posts/' . $att['photo']) }}" class="w-full h-auto" alt="Post Photo">
-                            </div>
+                            @if(isset($att['photos']) && is_array($att['photos']))
+                                @php 
+                                    $ptCount = count($att['photos']); 
+                                    $photoUrls = array_map(fn($p) => asset('storage/posts/' . $p), $att['photos']);
+                                    $jsonPhotos = json_encode($photoUrls);
+                                @endphp
+                                <div class="mb-4 rounded-xl overflow-hidden border border-neutral-200">
+                                    @if($ptCount == 1)
+                                        <img src="{{ $photoUrls[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' class="w-full h-auto max-h-[500px] object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                    @elseif($ptCount == 2)
+                                        <div class="grid grid-cols-2 gap-1 h-64 sm:h-80">
+                                            <img src="{{ $photoUrls[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                            <img src="{{ $photoUrls[1] }}" onclick='openLightbox({!! $jsonPhotos !!}, 1)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                        </div>
+                                    @elseif($ptCount == 3)
+                                        <div class="grid grid-cols-2 gap-1 h-64 sm:h-80">
+                                            <img src="{{ $photoUrls[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                            <div class="grid grid-rows-2 gap-1 h-full">
+                                                <img src="{{ $photoUrls[1] }}" onclick='openLightbox({!! $jsonPhotos !!}, 1)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                                <img src="{{ $photoUrls[2] }}" onclick='openLightbox({!! $jsonPhotos !!}, 2)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                            </div>
+                                        </div>
+                                    @elseif($ptCount >= 4)
+                                        <div class="grid grid-cols-2 gap-1 h-72 sm:h-96">
+                                            <img src="{{ $photoUrls[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                            <div class="grid grid-rows-3 gap-1 h-full">
+                                                <img src="{{ $photoUrls[1] }}" onclick='openLightbox({!! $jsonPhotos !!}, 1)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                                <img src="{{ $photoUrls[2] }}" onclick='openLightbox({!! $jsonPhotos !!}, 2)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                                <div class="relative w-full h-full" onclick='openLightbox({!! $jsonPhotos !!}, 3)'>
+                                                    <img src="{{ $photoUrls[3] }}" class="w-full h-full object-cover cursor-pointer" alt="Post Photo">
+                                                    @if($ptCount > 4)
+                                                    <div class="absolute inset-0 bg-black/60 flex items-center justify-center cursor-pointer hover:bg-black/50 transition">
+                                                        <span class="text-white text-3xl font-bold">+{{ $ptCount - 4 }}</span>
+                                                    </div>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
+                            @elseif(isset($att['photo']))
+                                <div class="mb-4 rounded-xl overflow-hidden border border-neutral-200">
+                                    @php $singlePhoto = json_encode([asset('storage/posts/' . $att['photo'])]); @endphp
+                                    <img src="{{ asset('storage/posts/' . $att['photo']) }}" onclick='openLightbox({!! $singlePhoto !!}, 0)' class="w-full h-auto cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                </div>
                             @endif
                         @endif
                         
@@ -338,11 +454,14 @@
                     <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
                         <div class="flex justify-between items-start mb-3">
                             <div class="flex items-center space-x-3">
-                                <div class="w-10 h-10 rounded-full bg-neutral-100 overflow-hidden border border-neutral-200">
-                                    <img src="https://ui-avatars.com/api/?name={{ urlencode($stream->user->fullname ?? 'Unknown') }}&background=E5E5E5" class="w-full h-full">
-                                </div>
+                                <a href="/{{ $stream->user->username ?? '#' }}" class="w-10 h-10 rounded-full bg-neutral-100 overflow-hidden border border-neutral-200 hover:ring-2 hover:ring-red-700 transition flex-shrink-0">
+                                    <img src="{{ $stream->user->avatar ? asset('storage/avatars/'.$stream->user->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($stream->user->fullname ?? 'Unknown').'&background=E5E5E5' }}" class="w-full h-full object-cover">
+                                </a>
                                 <div>
-                                    <h4 class="text-sm font-bold text-neutral-900">{{ $stream->user->fullname ?? 'Unknown User' }} <span class="font-normal text-neutral-500">Mendaftar / Menyukai</span></h4>
+                                    <h4 class="text-sm font-bold text-neutral-900">
+                                        <a href="/{{ $stream->user->username ?? '#' }}" class="hover:text-red-700 transition">{{ $stream->user->fullname ?? 'Unknown User' }}</a>
+                                        <span class="font-normal text-neutral-500">Mendaftar / Menyukai</span>
+                                    </h4>
                                     <p class="text-[11px] text-neutral-400"><svg class="w-3 h-3 inline pb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg> {{ \Carbon\Carbon::createFromTimestamp($stream->created)->format('M jS Y, g:i a') }}</p>
                                 </div>
                             </div>
@@ -625,5 +744,72 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+</script>
+
+<!-- LIGHTBOX MODAL -->
+<div id="lightbox-modal" class="fixed inset-0 z-[100] hidden bg-black/95 flex flex-col justify-center items-center backdrop-blur-sm">
+    <button type="button" onclick="closeLightbox()" class="absolute top-5 right-5 text-neutral-400 hover:text-white transition cursor-pointer p-2 bg-neutral-900/50 rounded-full">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+    </button>
+    <button type="button" onclick="prevLightboxImage()" class="absolute left-4 sm:left-10 text-neutral-400 hover:text-white transition p-3 bg-neutral-900/50 rounded-full hover:scale-110">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+    </button>
+    <button type="button" onclick="nextLightboxImage()" class="absolute right-4 sm:right-10 text-neutral-400 hover:text-white transition p-3 bg-neutral-900/50 rounded-full hover:scale-110">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+    </button>
+    <div class="relative max-w-5xl w-full px-16 flex justify-center items-center h-[85vh]">
+        <img id="lightbox-img" src="" class="max-w-full max-h-full object-contain transition-opacity duration-200 shadow-2xl rounded-sm opacity-0">
+    </div>
+    <div id="lightbox-counter" class="absolute bottom-6 bg-black/50 px-4 py-1.5 rounded-full text-white text-xs font-semibold tracking-wider"></div>
+</div>
+
+<script>
+    let lightboxImages = [];
+    let lightboxCurrentIndex = 0;
+
+    window.openLightbox = function(images, index) {
+        lightboxImages = images;
+        lightboxCurrentIndex = index;
+        updateLightbox();
+        document.getElementById('lightbox-modal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+    window.closeLightbox = function() {
+        document.getElementById('lightbox-modal').classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    }
+    window.prevLightboxImage = function() {
+        lightboxCurrentIndex = (lightboxCurrentIndex > 0) ? lightboxCurrentIndex - 1 : lightboxImages.length - 1;
+        updateLightbox();
+    }
+    window.nextLightboxImage = function() {
+        lightboxCurrentIndex = (lightboxCurrentIndex < lightboxImages.length - 1) ? lightboxCurrentIndex + 1 : 0;
+        updateLightbox();
+    }
+    window.updateLightbox = function() {
+        const img = document.getElementById('lightbox-img');
+        img.style.opacity = '0'; 
+        setTimeout(() => {
+            img.src = lightboxImages[lightboxCurrentIndex];
+            img.style.opacity = '1'; 
+            
+            const counter = document.getElementById('lightbox-counter');
+            if (lightboxImages.length > 1) {
+                counter.textContent = (lightboxCurrentIndex + 1) + ' / ' + lightboxImages.length;
+                counter.classList.remove('hidden');
+            } else {
+                counter.classList.add('hidden');
+            }
+        }, 150);
+    }
+
+    document.addEventListener('keydown', function(e) {
+        const modal = document.getElementById('lightbox-modal');
+        if (!modal.classList.contains('hidden')) {
+            if (e.key === 'Escape') closeLightbox();
+            if (e.key === 'ArrowLeft') prevLightboxImage();
+            if (e.key === 'ArrowRight') nextLightboxImage();
+        }
+    });
 </script>
 @endsection
