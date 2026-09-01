@@ -3,120 +3,119 @@
 @section('title', 'Telusur')
 
 @section('content')
-<div class="pt-10 pb-6 bg-[#fafafa]">
+<div class="pb-6 bg-[#fafafa]">
     <div class="w-full px-4 lg:px-20 mx-auto flex flex-col lg:flex-row gap-6 lg:gap-12">
 
         <!-- KONTEN KIRI: Telusur -->
-        <div class="w-full lg:w-[80%] bg-[#f6f3f3] rounded-[24px] flex flex-col min-h-[650px] shadow-sm">
+        <div class="w-full lg:w-[80%] flex flex-col">
 
             <!-- Header -->
-            <div class="px-8 pt-8 pb-4">
-                <h1 class="text-2xl font-bold text-gray-900 border-b-2 border-[#b71c1c] pb-3 inline-block">TELUSUR</h1>
+            <div class="mb-6">
+                <h1 class="text-2xl font-extrabold text-gray-900 border-b-2 border-[#b71c1c] pb-3 inline-block tracking-tight" style="font-family: 'Montserrat', sans-serif;">TELUSUR</h1>
             </div>
 
             <!-- Filter Members -->
-            <div class="px-8 pb-6">
-                <div class="bg-white rounded-[14px] p-6 shadow-sm">
-                    <div class="flex items-center gap-2 mb-4">
-                        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
-                        </svg>
-                        <h2 class="text-sm font-bold text-gray-900">Filter Members</h2>
+            <div class="bg-white rounded-[14px] p-6 shadow-sm mb-6">
+                <div class="flex items-center gap-2 mb-4">
+                    <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                    </svg>
+                    <h2 class="text-sm font-bold text-gray-900">Filter Members</h2>
+                </div>
+
+                <form method="GET" action="{{ route('telusur.index') }}" id="filterForm">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                        <!-- Jenis Kelamin -->
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">JENIS KELAMIN</label>
+                            <select name="gender" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-white focus:ring-[#b71c1c] outline-none">
+                                <option value="all" {{ ($filters['gender'] ?? '') == 'all' || !isset($filters['gender']) ? 'selected' : '' }}>Keduanya</option>
+                                <option value="1" {{ ($filters['gender'] ?? '') == '1' ? 'selected' : '' }}>Cowok</option>
+                                <option value="0" {{ ($filters['gender'] ?? '') == '0' ? 'selected' : '' }}>Cewek</option>
+                            </select>
+                        </div>
+
+                        <!-- Umur -->
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">UMUR</label>
+                            <div class="flex items-center gap-2">
+                                <input type="number" name="umur_min" value="{{ $filters['umur_min'] ?? '' }}" placeholder="Min" min="0" max="120" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-white focus:ring-[#b71c1c] outline-none">
+                                <span class="text-gray-400 text-sm">s/d</span>
+                                <input type="number" name="umur_max" value="{{ $filters['umur_max'] ?? '' }}" placeholder="Max" min="0" max="120" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-white focus:ring-[#b71c1c] outline-none">
+                            </div>
+                        </div>
+
+                        <!-- Status -->
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">STATUS</label>
+                            <select name="status" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-white focus:ring-[#b71c1c] outline-none">
+                                <option value="all" {{ ($filters['status'] ?? '') == 'all' || !isset($filters['status']) ? 'selected' : '' }}>Semua Status</option>
+                                <option value="Jomblo" {{ ($filters['status'] ?? '') == 'Jomblo' ? 'selected' : '' }}>Jomblo</option>
+                                <option value="TTM" {{ ($filters['status'] ?? '') == 'TTM' ? 'selected' : '' }}>TTM</option>
+                                <option value="Pacaran" {{ ($filters['status'] ?? '') == 'Pacaran' ? 'selected' : '' }}>Pacaran</option>
+                                <option value="Menikah" {{ ($filters['status'] ?? '') == 'Menikah' ? 'selected' : '' }}>Menikah</option>
+                                <option value="Tunangan" {{ ($filters['status'] ?? '') == 'Tunangan' ? 'selected' : '' }}>Tunangan</option>
+                            </select>
+                        </div>
                     </div>
 
-                    <form method="GET" action="{{ route('telusur.index') }}" id="filterForm">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                            <!-- Jenis Kelamin -->
-                            <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">JENIS KELAMIN</label>
-                                <select name="gender" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-white focus:ring-[#b71c1c] outline-none">
-                                    <option value="all" {{ ($filters['gender'] ?? '') == 'all' || !isset($filters['gender']) ? 'selected' : '' }}>Keduanya</option>
-                                    <option value="1" {{ ($filters['gender'] ?? '') == '1' ? 'selected' : '' }}>Cowok</option>
-                                    <option value="2" {{ ($filters['gender'] ?? '') == '2' ? 'selected' : '' }}>Cewek</option>
-                                </select>
-                            </div>
-
-                            <!-- Umur -->
-                            <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">UMUR</label>
-                                <div class="flex items-center gap-2">
-                                    <input type="number" name="umur_min" value="{{ $filters['umur_min'] ?? '' }}" placeholder="Min" min="0" max="120" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-white focus:ring-[#b71c1c] outline-none">
-                                    <span class="text-gray-400 text-sm">s/d</span>
-                                    <input type="number" name="umur_max" value="{{ $filters['umur_max'] ?? '' }}" placeholder="Max" min="0" max="120" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-white focus:ring-[#b71c1c] outline-none">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
+                        <!-- Lokasi -->
+                        <div class="relative">
+                            <label class="block text-xs font-bold text-gray-700 mb-1">LOKASI</label>
+                            <div id="lokasiWrapper" class="relative">
+                                <input type="text" id="lokasiInput" readonly value="{{ $filters['lokasi'] ?? '' }}" placeholder="Semua Lokasi" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-white focus:ring-[#b71c1c] focus:border-[#b71c1c] outline-none shadow-sm cursor-pointer pr-10">
+                                <input type="hidden" name="lokasi" id="lokasiValue" value="{{ $filters['lokasi'] ?? '' }}">
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                                 </div>
-                            </div>
-
-                            <!-- Status -->
-                            <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">STATUS</label>
-                                <select name="status" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-white focus:ring-[#b71c1c] outline-none">
-                                    <option value="all" {{ ($filters['status'] ?? '') == 'all' || !isset($filters['status']) ? 'selected' : '' }}>Semua Status</option>
-                                    <option value="Jomblo" {{ ($filters['status'] ?? '') == 'Jomblo' ? 'selected' : '' }}>Jomblo</option>
-                                    <option value="TTM" {{ ($filters['status'] ?? '') == 'TTM' ? 'selected' : '' }}>TTM</option>
-                                    <option value="Pacaran" {{ ($filters['status'] ?? '') == 'Pacaran' ? 'selected' : '' }}>Pacaran</option>
-                                    <option value="Menikah" {{ ($filters['status'] ?? '') == 'Menikah' ? 'selected' : '' }}>Menikah</option>
-                                    <option value="Tunangan" {{ ($filters['status'] ?? '') == 'Tunangan' ? 'selected' : '' }}>Tunangan</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
-                            <!-- Lokasi -->
-                            <div class="relative">
-                                <label class="block text-xs font-bold text-gray-700 mb-1">LOKASI</label>
-                                <div id="lokasiWrapper" class="relative">
-                                    <input type="text" id="lokasiInput" readonly value="{{ $filters['lokasi'] ?? '' }}" placeholder="Semua Lokasi" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-white focus:ring-[#b71c1c] focus:border-[#b71c1c] outline-none shadow-sm cursor-pointer pr-10">
-                                    <input type="hidden" name="lokasi" id="lokasiValue" value="{{ $filters['lokasi'] ?? '' }}">
-                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                <div id="lokasiDropdown" class="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto hidden">
+                                    <div class="px-4 py-2 border-b border-gray-100 sticky top-0 bg-white">
+                                        <input type="text" id="lokasiSearch" placeholder="Cari lokasi..." class="w-full text-sm outline-none">
                                     </div>
-                                    <div id="lokasiDropdown" class="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto hidden">
-                                        <div class="px-4 py-2 border-b border-gray-100 sticky top-0 bg-white">
-                                            <input type="text" id="lokasiSearch" placeholder="Cari lokasi..." class="w-full text-sm outline-none">
-                                        </div>
-                                        <div id="lokasiList" class="py-1">
-                                            @foreach($locations as $loc)
-                                                <div class="lokasi-option px-4 py-2.5 text-sm cursor-pointer hover:bg-[#f4dada] hover:text-[#b71c1c] transition {{ ($filters['lokasi'] ?? '') == $loc ? 'bg-[#f4dada] text-[#b71c1c] font-bold' : 'text-gray-700' }}" data-value="{{ $loc }}">{{ $loc }}</div>
-                                            @endforeach
-                                        </div>
+                                    <div id="lokasiList" class="py-1">
+                                        @foreach($locations as $loc)
+                                            <div class="lokasi-option px-4 py-2.5 text-sm cursor-pointer hover:bg-[#f4dada] hover:text-[#b71c1c] transition {{ ($filters['lokasi'] ?? '') == $loc ? 'bg-[#f4dada] text-[#b71c1c] font-bold' : 'text-gray-700' }}" data-value="{{ $loc }}">{{ $loc }}</div>
+                                        @endforeach
                                     </div>
                                 </div>
                             </div>
-
-                            <!-- Diutur Berdasarkan + Tombol -->
-                            <div class="flex gap-3">
-                                <div class="flex-1">
-                                    <label class="block text-xs font-bold text-gray-700 mb-1">DIURUT BERDASARKAN</label>
-                                    <select name="sort" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-white focus:ring-[#b71c1c] outline-none">
-                                        <option value="terbaru" {{ ($filters['sort'] ?? 'terbaru') == 'terbaru' ? 'selected' : '' }}>Terbaru</option>
-                                        <option value="terakhir_aktif" {{ ($filters['sort'] ?? '') == 'terakhir_aktif' ? 'selected' : '' }}>Terakhir Aktif</option>
-                                    </select>
-                                </div>
-                                <button type="submit" class="bg-[#b71c1c] hover:bg-red-800 text-white px-8 py-2.5 rounded-xl text-sm font-bold transition self-end">
-                                    PERBARUI
-                                </button>
-                            </div>
                         </div>
-                    </form>
-                </div>
+
+                        <!-- Diutur Berdasarkan + Tombol -->
+                        <div class="flex gap-3">
+                            <div class="flex-1">
+                                <label class="block text-xs font-bold text-gray-700 mb-1">DIURUT BERDASARKAN</label>
+                                <select name="sort" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-white focus:ring-[#b71c1c] outline-none">
+                                    <option value="terbaru" {{ ($filters['sort'] ?? 'terbaru') == 'terbaru' ? 'selected' : '' }}>Terbaru</option>
+                                    <option value="terakhir_aktif" {{ ($filters['sort'] ?? '') == 'terakhir_aktif' ? 'selected' : '' }}>Terakhir Aktif</option>
+                                    <option value="paling_populer" {{ ($filters['sort'] ?? '') == 'paling_populer' ? 'selected' : '' }}>Paling Populer</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="bg-[#b71c1c] hover:bg-red-800 text-white px-8 py-2.5 rounded-xl text-sm font-bold transition self-end">
+                                PERBARUI
+                            </button>
+                        </div>
+                    </div>
+                </form>
             </div>
 
             <!-- Members Grid -->
-            <div class="px-8 pb-8 flex-grow">
+            <div class="flex-grow">
                 @if($members->count() > 0)
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="flex flex-wrap gap-4">
                         @foreach($members as $member)
                             @php
                                 $genderLabel = match($member->gender) {
                                     1 => 'Cowok',
-                                    2 => 'Cewek',
+                                    0 => 'Cewek',
                                     default => 'Keduanya',
                                 };
                                 $age = $member->birthyear > 0 ? (int) date('Y') - $member->birthyear : null;
                             @endphp
-                            <div class="bg-white rounded-[14px] p-6 shadow-sm flex flex-col items-center text-center hover:shadow-md transition">
+                            <div class="bg-white rounded-[14px] p-6 shadow-sm flex flex-col items-center text-center hover:shadow-md transition w-full max-w-[220px]">
                                 <!-- Avatar -->
-                                <div class="w-20 h-20 rounded-full bg-[#f4dada] flex items-center justify-center overflow-hidden mb-3">
+                                <div class="w-16 h-16 rounded-full bg-[#f4dada] flex items-center justify-center overflow-hidden mb-3">
                                     @if($member->avatar)
                                         <img src="{{ asset('storage/avatars/' . $member->avatar) }}" alt="{{ $member->username }}" class="w-full h-full object-cover">
                                     @else

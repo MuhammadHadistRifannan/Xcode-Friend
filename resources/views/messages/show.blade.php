@@ -1,33 +1,35 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="pt-10 pb-6 bg-[#fafafa]">
-    <div class="w-full px-4 lg:px-20 mx-auto flex flex-col lg:flex-row gap-6 lg:gap-12">
+<div class="pb-6 bg-[#fafafa]">
+    <div class="w-full px-4 lg:px-20 mx-auto">
 
-        <!-- KONTEN KIRI: Lihat Pesan -->
-        <div class="w-full lg:w-[80%] bg-[#f6f3f3] rounded-[24px] flex flex-col min-h-[650px] shadow-sm">
-            
-            <!-- Breadcrumb -->
-            <div class="px-8 pt-8">
-                <div class="flex items-center gap-2 text-xs text-gray-500 mb-2">
-                    <a href="{{ route('beranda') }}" class="hover:text-gray-700 transition">HOME</a>
-                    <span>›</span>
-                    <span class="text-gray-700 font-medium">MESSAGE</span>
-                </div>
-                <h1 class="text-2xl font-bold text-gray-900 mb-4">LIHAT PESAN</h1>
+        <!-- Breadcrumb + Header (di luar container) -->
+        <div class="mb-6">
+            <div class="flex items-center gap-2 text-xs text-gray-500 mb-2">
+                <a href="{{ route('beranda') }}" class="hover:text-gray-700 transition">HOME</a>
+                <span>›</span>
+                <span class="text-gray-700 font-medium">MESSAGE</span>
             </div>
+            <h1 class="text-2xl font-bold text-gray-900">LIHAT PESAN</h1>
+        </div>
 
-            <!-- Tabs -->
-            <div class="px-8">
-                <div class="flex space-x-8 border-b border-gray-300/60">
-                    <a href="{{ route('messages.index') }}" class="pb-3 text-sm font-bold {{ ($type ?? 'inbox') === 'inbox' ? 'text-[#b71c1c] border-b-2 border-[#b71c1c]' : 'text-gray-500 hover:text-gray-800 border-b-2 border-transparent' }} transition">
-                        KOTAK MASUK
-                    </a>
-                    <a href="{{ route('messages.outbox') }}" class="pb-3 text-sm font-bold {{ ($type ?? '') === 'outbox' ? 'text-[#b71c1c] border-b-2 border-[#b71c1c]' : 'text-gray-500 hover:text-gray-800 border-b-2 border-transparent' }} transition">
-                        KOTAK KELUAR
-                    </a>
+        <div class="flex flex-col lg:flex-row gap-6 lg:gap-12">
+
+            <!-- KONTEN KIRI: Lihat Pesan -->
+            <div class="w-full lg:w-[80%] bg-[#f6f3f3] rounded-[24px] flex flex-col min-h-[650px] shadow-sm">
+
+                <!-- Tabs -->
+                <div class="px-8 pt-8">
+                    <div class="flex space-x-8 border-b border-gray-300/60">
+                        <a href="{{ route('messages.index') }}" class="pb-3 text-sm font-bold {{ ($type ?? 'inbox') === 'inbox' ? 'text-[#b71c1c] border-b-2 border-[#b71c1c]' : 'text-gray-500 hover:text-gray-800 border-b-2 border-transparent' }} transition">
+                            KOTAK MASUK
+                        </a>
+                        <a href="{{ route('messages.outbox') }}" class="pb-3 text-sm font-bold {{ ($type ?? '') === 'outbox' ? 'text-[#b71c1c] border-b-2 border-[#b71c1c]' : 'text-gray-500 hover:text-gray-800 border-b-2 border-transparent' }} transition">
+                            KOTAK KELUAR
+                        </a>
+                    </div>
                 </div>
-            </div>
 
             <!-- Pesan -->
             <div class="px-8 py-6 flex-grow">

@@ -14,14 +14,14 @@ class MessageService
         private NotificationRepositoryInterface $notifRepo
     ) {}
 
-    public function getInbox(int $userId, int $perPage = 20)
+    public function getInbox(int $userId, int $perPage = 20, string $sort = 'terbaru', string $status = 'all')
     {
-        return $this->messageRepo->getInbox($userId, $perPage);
+        return $this->messageRepo->getInbox($userId, $perPage, $sort, $status);
     }
 
-    public function getOutbox(int $userId, int $perPage = 20)
+    public function getOutbox(int $userId, int $perPage = 20, string $sort = 'terbaru')
     {
-        return $this->messageRepo->getOutbox($userId, $perPage);
+        return $this->messageRepo->getOutbox($userId, $perPage, $sort);
     }
 
     public function getConversation(int $userId, int $otherId)

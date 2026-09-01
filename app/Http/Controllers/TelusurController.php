@@ -14,6 +14,7 @@ class TelusurController extends Controller
 
         $query = DB::table('jcow_accounts')
             ->where('disabled', 0)
+            ->where('hide_me', 0)
             ->where('id', '!=', $userId);
 
         // Filter Gender
@@ -46,6 +47,8 @@ class TelusurController extends Controller
         $sort = $request->input('sort', 'terbaru');
         if ($sort === 'terakhir_aktif') {
             $query->orderBy('lastlogin', 'desc');
+        } elseif ($sort === 'paling_populer') {
+            $query->orderBy('followers', 'desc');
         } else {
             $query->orderBy('created', 'desc');
         }
@@ -57,6 +60,7 @@ class TelusurController extends Controller
         // Ambil lokasi unik dari DB + gabungkan dengan daftar provinsi lengkap
         $dbLocations = DB::table('jcow_accounts')
             ->where('disabled', 0)
+            ->where('hide_me', 0)
             ->where('id', '!=', $userId)
             ->whereNotNull('location')
             ->where('location', '!=', '')

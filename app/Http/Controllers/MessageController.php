@@ -17,48 +17,77 @@ class MessageController extends Controller
     public function index(Request $request)
     {
         $userId = Auth::id();
+        $sort = $request->input('sort', 'terbaru');
+        $status = $request->input('status', 'all');
 
         if ($keyword = $request->input('search')) {
             $messages = $this->messageService->search($userId, $keyword, 'inbox');
         } else {
-            $messages = $this->messageService->getInbox($userId);
+            $messages = $this->messageService->getInbox($userId, 20, $sort, $status);
         }
 
-        return view('messages.index', compact('messages'));
+        $filters = compact('sort', 'status');
+
+        return view('messages.index', compact('messages', 'filters'));
     }
 
     public function outbox(Request $request)
     {
         $userId = Auth::id();
+        $sort = $request->input('sort', 'terbaru');
 
         if ($keyword = $request->input('search')) {
             $messages = $this->messageService->search($userId, $keyword, 'outbox');
         } else {
-            $messages = $this->messageService->getOutbox($userId);
+            $messages = $this->messageService->getOutbox($userId, 20, $sort);
         }
 
-        return view('messages.outbox', compact('messages'));
+        $filters = compact('sort');
+
+        return view('messages.outbox', compact('messages', 'filters'));
     }
 
     public function create(Request $request)
     {
+        $userId = Auth::id();
+        $toId = $request->input('to');
+        $blocked = false;
+
+        if ($toId) {
+            $blocked = DB::table('jcow_blacks')
+                ->where('uid', $toId)
+                ->where('bid', $userId)
+                ->exists();
+        }
+
         $users = DB::table('jcow_accounts')
-            ->where('id', '!=', Auth::id())
+            ->where('id', '!=', $userId)
             ->where('disabled', 0)
             ->select('id', 'fullname', 'username', 'avatar')
             ->orderBy('fullname')
             ->get();
 
-        $toId = $request->input('to');
-
-        return view('messages.create', compact('users', 'toId'));
+        return view('messages.create', compact('users', 'toId', 'blocked'));
     }
 
     public function store(SendMessageRequest $request)
     {
+        $userId = Auth::id();
+        $recipientId = $request->recipient_id;
+
+        // Cek apakah penerima memblokir pengirim
+        $blocked = DB::table('jcow_blacks')
+            ->where('uid', $recipientId)
+            ->where('bid', $userId)
+            ->exists();
+
+        if ($blocked) {
+            return redirect()->route('messages.create')->with('error', 'Pengguna ini telah memblokir Anda.');
+        }
+
         $this->messageService->send(
-            Auth::id(),
-            $request->recipient_id,
+            $userId,
+            $recipientId,
             $request->subject,
             $request->message
         );

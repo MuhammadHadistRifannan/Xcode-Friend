@@ -1,26 +1,33 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="pt-10 pb-6 bg-[#fafafa]">
-    <div class="w-full px-4 lg:px-20 mx-auto flex flex-col lg:flex-row gap-6 lg:gap-12">
+<div class="pb-6 bg-[#fafafa]">
+    <div class="w-full px-4 lg:px-20 mx-auto">
 
-        <!-- KONTEN KIRI: Notifications -->
-        <div class="w-full lg:w-[80%] bg-[#f6f3f3] rounded-[24px] flex flex-col min-h-[650px] shadow-sm">
-            
-            <!-- Header -->
-            <div class="px-8 pt-8 pb-4">
-                <div class="flex justify-between items-center border-b border-gray-300/60 pb-4">
-                    <h1 class="text-2xl font-bold text-gray-900">Notifications</h1>
-                    @if($notifications->where('hasread', 0)->count() > 0)
-                        <form action="{{ route('notifications.markAllRead') }}" method="POST">
-                            @csrf
-                            <button type="submit" class="text-sm font-bold text-[#b71c1c] hover:text-red-800 transition">
-                                MARK ALL READ
-                            </button>
-                        </form>
-                    @endif
-                </div>
+        <!-- Breadcrumb + Header (di luar container) -->
+        <div class="mb-6">
+            <div class="flex items-center gap-2 text-xs text-gray-500 mb-2">
+                <a href="{{ route('beranda') }}" class="hover:text-gray-700 transition">HOME</a>
+                <span>›</span>
+                <span class="text-gray-700 font-medium">NOTIFICATIONS</span>
             </div>
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-gray-900">NOTIFICATIONS</h1>
+                @if($notifications->where('hasread', 0)->count() > 0)
+                    <form action="{{ route('notifications.markAllRead') }}" method="POST">
+                        @csrf
+                        <button type="submit" class="text-sm font-bold text-[#b71c1c] hover:text-red-800 transition">
+                            MARK ALL READ
+                        </button>
+                    </form>
+                @endif
+            </div>
+        </div>
+
+        <div class="flex flex-col lg:flex-row gap-6 lg:gap-12">
+
+            <!-- KONTEN KIRI: Notifications -->
+            <div class="w-full lg:w-[80%] bg-[#f6f3f3] rounded-[24px] flex flex-col min-h-[650px] shadow-sm pt-8">
 
             <!-- Info Banner -->
             <div class="mx-8 mb-4 bg-white border-l-4 border-[#3b82f6] rounded-r-lg p-4 flex items-start gap-3">

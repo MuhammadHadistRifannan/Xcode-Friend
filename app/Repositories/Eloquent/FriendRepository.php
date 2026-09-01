@@ -176,11 +176,8 @@ class FriendRepository implements FriendRepositoryInterface
     public function areBlocked(int $userId, int $otherId): bool
     {
         return DB::table('jcow_blacks')
-            ->where(function ($query) use ($userId, $otherId) {
-                $query->where('uid', $userId)->where('bid', $otherId);
-            })->orWhere(function ($query) use ($userId, $otherId) {
-                $query->where('uid', $otherId)->where('bid', $userId);
-            })
+            ->where('uid', $otherId)
+            ->where('bid', $userId)
             ->exists();
     }
 }

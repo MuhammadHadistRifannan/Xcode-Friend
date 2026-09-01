@@ -80,7 +80,7 @@
                         <label class="block text-xs font-bold text-neutral-600 mb-2">Jenis Kelamin <span class="text-red-600">*</span></label>
                         <div class="flex items-center gap-5 text-sm text-neutral-700 h-8">
                             <label class="cursor-pointer flex items-center"><input type="radio" name="gender" value="1" {{ old('gender') == '1' ? 'checked' : '' }} class="mr-1.5 text-red-600 focus:ring-red-600"> Laki-laki</label>
-                            <label class="cursor-pointer flex items-center"><input type="radio" name="gender" value="2" {{ old('gender', '2') == '2' ? 'checked' : '' }} class="mr-1.5 text-red-600 focus:ring-red-600"> Perempuan</label>
+                            <label class="cursor-pointer flex items-center"><input type="radio" name="gender" value="0" {{ old('gender', '0') == '0' ? 'checked' : '' }} class="mr-1.5 text-red-600 focus:ring-red-600"> Perempuan</label>
                         </div>
                     </div>
                 </div>

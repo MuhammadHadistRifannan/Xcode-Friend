@@ -1,11 +1,23 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="pt-10 pb-6 bg-[#fafafa]">
-    <div class="w-full px-4 lg:px-20 mx-auto flex flex-col lg:flex-row gap-6 lg:gap-12">
+<div class="pb-6 bg-[#fafafa]">
+    <div class="w-full px-4 lg:px-20 mx-auto">
 
-        <!-- KONTEN KIRI: Kotak Masuk -->
-        <div class="w-full lg:w-[80%] bg-[#f6f3f3] rounded-[24px] flex flex-col min-h-[650px] shadow-sm">
+        <!-- Breadcrumb + Header (di luar container) -->
+        <div class="mb-6">
+            <div class="flex items-center gap-2 text-xs text-gray-500 mb-2">
+                <a href="{{ route('beranda') }}" class="hover:text-gray-700 transition">HOME</a>
+                <span>›</span>
+                <span class="text-gray-700 font-medium">MESSAGE</span>
+            </div>
+            <h1 class="text-2xl font-bold text-gray-900">MESSAGE</h1>
+        </div>
+
+        <div class="flex flex-col lg:flex-row gap-6 lg:gap-12">
+
+            <!-- KONTEN KIRI: Kotak Masuk -->
+            <div class="w-full lg:w-[80%] bg-[#f6f3f3] rounded-[24px] flex flex-col min-h-[650px] shadow-sm">
             
             <!-- Header dengan border abu-abu di dalam area padding -->
             <div class="px-8 pt-8 flex flex-col">
@@ -20,7 +32,40 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                             Tulis Pesan
                         </a>
+
+                        <!-- Filter Dropdown -->
+                        <div class="relative" id="filterWrapper">
+                            <button type="button" id="filterToggle" class="p-2 bg-white border border-gray-200 rounded-xl text-gray-500 hover:bg-gray-50 shadow-sm transition">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>
+                            </button>
+                            <div id="filterDropdown" class="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-xl shadow-lg z-50 hidden">
+                                <div class="p-4 space-y-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-700 mb-1">Urutkan</label>
+                                        <select id="filterSort" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-[#b71c1c] outline-none">
+                                            <option value="terbaru" {{ ($filters['sort'] ?? 'terbaru') == 'terbaru' ? 'selected' : '' }}>Terbaru</option>
+                                            <option value="terlama" {{ ($filters['sort'] ?? '') == 'terlama' ? 'selected' : '' }}>Terlama</option>
+                                            <option value="abjad_az" {{ ($filters['sort'] ?? '') == 'abjad_az' ? 'selected' : '' }}>Abjad A-Z</option>
+                                            <option value="abjad_za" {{ ($filters['sort'] ?? '') == 'abjad_za' ? 'selected' : '' }}>Abjad Z-A</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-700 mb-1">Status</label>
+                                        <select id="filterStatus" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-[#b71c1c] outline-none">
+                                            <option value="all" {{ ($filters['status'] ?? 'all') == 'all' ? 'selected' : '' }}>Semua Pesan</option>
+                                            <option value="unread" {{ ($filters['status'] ?? '') == 'unread' ? 'selected' : '' }}>Belum Dibaca</option>
+                                            <option value="read" {{ ($filters['status'] ?? '') == 'read' ? 'selected' : '' }}>Sudah Dibaca</option>
+                                        </select>
+                                    </div>
+                                    <button type="button" onclick="applyFilter()" class="w-full bg-[#b71c1c] hover:bg-red-800 text-white py-2 rounded-lg text-sm font-bold transition">Terapkan</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Search -->
                         <form method="GET" action="{{ route('messages.index') }}" class="flex items-center gap-2">
+                            <input type="hidden" name="sort" value="{{ $filters['sort'] ?? 'terbaru' }}">
+                            <input type="hidden" name="status" value="{{ $filters['status'] ?? 'all' }}">
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                     <svg class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
@@ -28,7 +73,7 @@
                                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Search messages..." class="block w-full sm:w-[240px] pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-[#b71c1c] outline-none shadow-sm">
                             </div>
                             <button type="submit" class="p-2 bg-white border border-gray-200 rounded-xl text-gray-500 hover:bg-gray-50 shadow-sm transition">
-                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                             </button>
                         </form>
                     </div>
@@ -161,6 +206,27 @@
 
 @push('scripts')
 <script>
+    // Filter dropdown toggle
+    document.getElementById('filterToggle')?.addEventListener('click', function(e) {
+        e.stopPropagation();
+        document.getElementById('filterDropdown').classList.toggle('hidden');
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!document.getElementById('filterWrapper')?.contains(e.target)) {
+            document.getElementById('filterDropdown')?.classList.add('hidden');
+        }
+    });
+
+    function applyFilter() {
+        const sort = document.getElementById('filterSort').value;
+        const status = document.getElementById('filterStatus').value;
+        const search = '{{ request("search") }}';
+        let url = '{{ route("messages.index") }}?sort=' + sort + '&status=' + status;
+        if (search) url += '&search=' + search;
+        window.location.href = url;
+    }
+
     document.getElementById('selectAll')?.addEventListener('change', function() {
         const checkboxes = document.querySelectorAll('input[name="ids[]"]');
         checkboxes.forEach(cb => cb.checked = this.checked);
@@ -175,7 +241,6 @@
         if (!confirm('Hapus ' + checked.length + ' pesan yang dipilih?')) {
             return;
         }
-        // Submit via form
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = '{{ route("messages.bulkDelete") }}';

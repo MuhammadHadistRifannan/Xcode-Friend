@@ -9,34 +9,57 @@ use Illuminate\Support\Facades\DB;
 
 class MessageRepository implements MessageRepositoryInterface
 {
-    public function getInbox(int $userId, int $perPage = 20): LengthAwarePaginator
+    public function getInbox(int $userId, int $perPage = 20, string $sort = 'terbaru', string $status = 'all'): LengthAwarePaginator
     {
-        return DB::table('jcow_messages')
+        $query = DB::table('jcow_messages')
             ->join('jcow_accounts', 'jcow_accounts.id', '=', 'jcow_messages.from_id')
             ->where('jcow_messages.to_id', $userId)
-            ->where('jcow_messages.from_id', '>', 0)
-            ->select(
+            ->where('jcow_messages.from_id', '>', 0);
+
+        // Filter by read status
+        if ($status === 'unread') {
+            $query->where('jcow_messages.hasread', 0);
+        } elseif ($status === 'read') {
+            $query->where('jcow_messages.hasread', 1);
+        }
+
+        // Sort
+        $query = match ($sort) {
+            'terlama' => $query->orderBy('jcow_messages.created', 'asc'),
+            'abjad_az' => $query->orderBy('jcow_accounts.fullname', 'asc'),
+            'abjad_za' => $query->orderBy('jcow_accounts.fullname', 'desc'),
+            default => $query->orderBy('jcow_messages.created', 'desc'),
+        };
+
+        return $query->select(
                 'jcow_messages.*',
                 'jcow_accounts.fullname',
                 'jcow_accounts.username',
                 'jcow_accounts.avatar'
             )
-            ->orderBy('jcow_messages.created', 'desc')
             ->paginate($perPage);
     }
 
-    public function getOutbox(int $userId, int $perPage = 20): LengthAwarePaginator
+    public function getOutbox(int $userId, int $perPage = 20, string $sort = 'terbaru'): LengthAwarePaginator
     {
-        return DB::table('jcow_messages_sent')
+        $query = DB::table('jcow_messages_sent')
             ->join('jcow_accounts', 'jcow_accounts.id', '=', 'jcow_messages_sent.to_id')
-            ->where('jcow_messages_sent.from_id', $userId)
-            ->select(
+            ->where('jcow_messages_sent.from_id', $userId);
+
+        // Sort
+        $query = match ($sort) {
+            'terlama' => $query->orderBy('jcow_messages_sent.created', 'asc'),
+            'abjad_az' => $query->orderBy('jcow_accounts.fullname', 'asc'),
+            'abjad_za' => $query->orderBy('jcow_accounts.fullname', 'desc'),
+            default => $query->orderBy('jcow_messages_sent.created', 'desc'),
+        };
+
+        return $query->select(
                 'jcow_messages_sent.*',
                 'jcow_accounts.fullname',
                 'jcow_accounts.username',
                 'jcow_accounts.avatar'
             )
-            ->orderBy('jcow_messages_sent.created', 'desc')
             ->paginate($perPage);
     }
 

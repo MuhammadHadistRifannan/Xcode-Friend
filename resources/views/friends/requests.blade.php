@@ -1,11 +1,23 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="pt-10 pb-6 bg-[#fafafa]">
-    <div class="w-full px-4 lg:px-20 mx-auto flex flex-col lg:flex-row gap-6 lg:gap-12">
+<div class="pb-6 bg-[#fafafa]">
+    <div class="w-full px-4 lg:px-20 mx-auto">
 
-        <!-- KONTEN KIRI: Permintaan Pertemanan -->
-        <div class="w-full lg:w-[80%] bg-[#f6f3f3] rounded-[24px] flex flex-col min-h-[650px] shadow-sm">
+        <!-- Breadcrumb + Header (di luar container) -->
+        <div class="mb-6">
+            <div class="flex items-center gap-2 text-xs text-gray-500 mb-2">
+                <a href="{{ route('beranda') }}" class="hover:text-gray-700 transition">HOME</a>
+                <span>›</span>
+                <span class="text-gray-700 font-medium">FRIENDS</span>
+            </div>
+            <h1 class="text-2xl font-bold text-gray-900">FRIENDS</h1>
+        </div>
+
+        <div class="flex flex-col lg:flex-row gap-6 lg:gap-12">
+
+            <!-- KONTEN KIRI: Permintaan Pertemanan -->
+            <div class="w-full lg:w-[80%] bg-[#f6f3f3] rounded-[24px] flex flex-col min-h-[650px] shadow-sm">
             
             <!-- Header -->
             <div class="px-8 pt-8">

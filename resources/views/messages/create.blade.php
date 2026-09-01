@@ -1,34 +1,43 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="pt-10 pb-6 bg-[#fafafa]">
-    <div class="w-full px-4 lg:px-20 mx-auto flex flex-col lg:flex-row gap-6 lg:gap-12">
+<div class="pb-6 bg-[#fafafa]">
+    <div class="w-full px-4 lg:px-20 mx-auto">
 
-        <!-- KONTEN KIRI: Form Buat Pesan -->
-        <div class="w-full lg:w-[80%] bg-[#f6f3f3] rounded-[24px] flex flex-col min-h-[650px] shadow-sm">
-            
-            <!-- Breadcrumb -->
-            <div class="px-8 pt-8">
-                <nav class="flex items-center gap-2 text-xs text-gray-500 mb-6">
-                    <a href="{{ route('beranda') }}" class="hover:text-gray-700">HOME</a>
-                    <span>/</span>
-                    <a href="{{ route('messages.index') }}" class="hover:text-gray-700">MESSAGE</a>
-                    <span>/</span>
-                    <span class="text-gray-900 font-medium">BUAT SEBUAH PESAN</span>
-                </nav>
+        <!-- Breadcrumb + Header (di luar container) -->
+        <div class="mb-6">
+            <div class="flex items-center gap-2 text-xs text-gray-500 mb-2">
+                <a href="{{ route('beranda') }}" class="hover:text-gray-700 transition">HOME</a>
+                <span>›</span>
+                <a href="{{ route('messages.index') }}" class="hover:text-gray-700 transition">MESSAGE</a>
+                <span>›</span>
+                <span class="text-gray-700 font-medium">BUAT SEBUAH PESAN</span>
+            </div>
+            <h1 class="text-2xl font-bold text-gray-900">BUAT SEBUAH PESAN</h1>
+        </div>
 
-                <h1 class="text-2xl font-bold text-gray-900 mb-6">BUAT SEBUAH PESAN</h1>
+        <div class="flex flex-col lg:flex-row gap-6 lg:gap-12">
+
+            <!-- KONTEN KIRI: Form Buat Pesan -->
+            <div class="w-full lg:w-[80%] bg-[#f6f3f3] rounded-[24px] flex flex-col min-h-[650px] shadow-sm">
 
                 <!-- Tabs -->
-                <div class="flex space-x-8 border-b border-gray-300/60 mb-[-1px]">
-                    <a href="{{ route('messages.index') }}" class="pb-3 text-sm font-medium text-gray-500 hover:text-gray-800 border-b-2 border-transparent transition">KOTAK MASUK</a>
-                    <a href="{{ route('messages.outbox') }}" class="pb-3 text-sm font-medium text-gray-500 hover:text-gray-800 border-b-2 border-transparent transition">KOTAK KELUAR</a>
+                <div class="px-8 pt-8">
+                    <div class="flex space-x-8 border-b border-gray-300/60 mb-[-1px]">
+                        <a href="{{ route('messages.index') }}" class="pb-3 text-sm font-bold text-[#b71c1c] border-b-2 border-[#b71c1c] transition">KOTAK MASUK</a>
+                        <a href="{{ route('messages.outbox') }}" class="pb-3 text-sm font-medium text-gray-500 hover:text-gray-800 border-b-2 border-transparent transition">KOTAK KELUAR</a>
+                    </div>
                 </div>
-            </div>
 
             <!-- Form -->
             <form action="{{ route('messages.store') }}" method="POST" class="px-8 py-6 flex-grow">
                 @csrf
+
+                @if($blocked)
+                    <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+                        Pengguna ini telah memblokir Anda. Anda tidak dapat mengirim pesan.
+                    </div>
+                @endif
                 
                 <!-- Tujuan -->
                 <div class="mb-6">
