@@ -203,7 +203,7 @@
             <div>
                 <label class="block text-xs font-bold text-neutral-700 mb-2">Jenis Kelamin <span class="text-red-600">*</span></label>
                 <div class="flex gap-3" id="gender-group">
-                    @foreach([['1','Cowok','♂'],['2','Cewek','♀'],['0','Sembunyikan','○']] as [$val, $lbl, $icon])
+                    @foreach([['1','Cowok','♂'],['0','Cewek','♀'],['2','Sembunyikan','○']] as [$val, $lbl, $icon])
                     <label class="flex-1 cursor-pointer group">
                         <input type="radio" name="gender" value="{{ $val }}" {{ old('gender','1') == $val ? 'checked' : '' }} class="sr-only peer">
                         <div class="border-2 border-neutral-200 rounded-xl p-3 text-center text-xs font-semibold text-neutral-500

@@ -6,6 +6,10 @@
     <title>@yield('title') - XCODE-FRIENDS</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Montserrat (Gotham Bold alternative) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;800;900&display=swap" rel="stylesheet">
     <style> body { background-color: #FAFAFA; } </style>
 </head>
 <body class="flex flex-col min-h-screen antialiased text-neutral-900">
@@ -14,12 +18,14 @@
     @include('layouts.partials.navbar')
 
     <!-- Konten Utama -->
-    <main class="flex-grow flex items-center justify-center py-10 px-4 sm:px-6 lg:px-8">
+    <main class="flex-grow w-full py-10">
         @yield('content')
     </main>
 
     <!-- Memanggil Footer -->
     @include('layouts.partials.footer')
+
+    @stack('scripts')
 
 </body>
 </html>

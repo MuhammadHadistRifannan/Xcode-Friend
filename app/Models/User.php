@@ -10,10 +10,10 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
-    // Arahkan ke tabel legacy
+    // Arahkan ke tabel legacy JCow
     protected $table = 'jcow_accounts';
 
-    // Nonaktifkan timestamps bawaan (karena kita pakai 'created' & 'lastlogin' UNIX)
+    // Legacy menggunakan Unix timestamps (integer)
     public $timestamps = false;
 
     protected $fillable = [
@@ -33,6 +33,25 @@ class User extends Authenticatable
         ];
     }
 
+    public function getNameAttribute()
+    {
+        return $this->fullname;
+    }
+
+    public function friends()
+    {
+        return $this->belongsToMany(User::class, 'jcow_friends', 'uid', 'fid');
+    }
+
+    public function sentMessages()
+    {
+        return $this->hasMany(Message::class, 'from_id');
+    }
+
+    public function receivedMessages()
+    {
+        return $this->hasMany(Message::class, 'to_id');
+    }
 
     // Tambahkan relasi ini di dalam class User
     public function profile()
