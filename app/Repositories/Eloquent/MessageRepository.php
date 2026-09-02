@@ -18,9 +18,9 @@ class MessageRepository implements MessageRepositoryInterface
 
         // Filter by read status
         if ($status === 'unread') {
-            $query->where('jcow_messages.hasread', 0);
+            $query->whereRaw('jcow_messages.hasread = 0');
         } elseif ($status === 'read') {
-            $query->where('jcow_messages.hasread', 1);
+            $query->whereRaw('jcow_messages.hasread = 1');
         }
 
         // Sort
@@ -123,7 +123,6 @@ class MessageRepository implements MessageRepositoryInterface
         return DB::table('jcow_messages')
             ->where('id', $id)
             ->where('to_id', $userId)
-            ->where('hasread', 0)
             ->update(['hasread' => 1]) > 0;
     }
 
@@ -132,7 +131,7 @@ class MessageRepository implements MessageRepositoryInterface
         DB::table('jcow_messages')
             ->where('to_id', $userId)
             ->where('from_id', $otherId)
-            ->where('hasread', 0)
+            ->whereRaw('hasread = 0')
             ->update(['hasread' => 1]);
     }
 
@@ -184,7 +183,7 @@ class MessageRepository implements MessageRepositoryInterface
         return (int) DB::table('jcow_messages')
             ->where('to_id', $userId)
             ->where('from_id', '>', 0)
-            ->where('hasread', 0)
+            ->whereRaw('hasread = 0')
             ->count();
     }
 

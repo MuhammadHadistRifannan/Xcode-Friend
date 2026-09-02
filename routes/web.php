@@ -32,10 +32,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/friends/accept/{userId}', [App\Http\Controllers\FriendController::class, 'accept'])->name('friends.accept');
     Route::post('/friends/reject/{userId}', [App\Http\Controllers\FriendController::class, 'reject'])->name('friends.reject');
     Route::delete('/friends/unfriend/{userId}', [App\Http\Controllers\FriendController::class, 'unfriend'])->name('friends.unfriend');
+    Route::post('/friends/follow/{userId}', [App\Http\Controllers\FriendController::class, 'follow'])->name('friends.follow');
+    Route::post('/friends/unfollow/{userId}', [App\Http\Controllers\FriendController::class, 'unfollow'])->name('friends.unfollow');
+    Route::post('/friends/block/{userId}', [App\Http\Controllers\FriendController::class, 'block'])->name('friends.block');
+    Route::post('/friends/unblock/{userId}', [App\Http\Controllers\FriendController::class, 'unblock'])->name('friends.unblock');
 
     // Notifications
     Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
-    Route::post('/notifications/{id}/read', [App\Http\Controllers\NotificationController::class, 'markRead'])->name('notifications.markRead');
+    Route::get('/notifications/{id}/read', [App\Http\Controllers\NotificationController::class, 'markRead'])->name('notifications.markRead');
     Route::post('/notifications/read-all', [App\Http\Controllers\NotificationController::class, 'markAllRead'])->name('notifications.markAllRead');
     Route::delete('/notifications/{id}', [App\Http\Controllers\NotificationController::class, 'destroy'])->name('notifications.destroy');
     Route::get('/notifications/unread-count', [App\Http\Controllers\NotificationController::class, 'unreadCount'])->name('notifications.unreadCount');

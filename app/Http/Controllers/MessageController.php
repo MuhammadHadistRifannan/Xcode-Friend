@@ -14,6 +14,14 @@ class MessageController extends Controller
         private MessageService $messageService
     ) {}
 
+    private function noCache($response)
+    {
+        return $response
+            ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');
+    }
+
     public function index(Request $request)
     {
         $userId = Auth::id();
@@ -28,7 +36,9 @@ class MessageController extends Controller
 
         $filters = compact('sort', 'status');
 
-        return view('messages.index', compact('messages', 'filters'));
+        return $this->noCache(
+            response()->view('messages.index', compact('messages', 'filters'))
+        );
     }
 
     public function outbox(Request $request)
@@ -44,7 +54,9 @@ class MessageController extends Controller
 
         $filters = compact('sort');
 
-        return view('messages.outbox', compact('messages', 'filters'));
+        return $this->noCache(
+            response()->view('messages.outbox', compact('messages', 'filters'))
+        );
     }
 
     public function create(Request $request)
@@ -67,7 +79,9 @@ class MessageController extends Controller
             ->orderBy('fullname')
             ->get();
 
-        return view('messages.create', compact('users', 'toId', 'blocked'));
+        return $this->noCache(
+            response()->view('messages.create', compact('users', 'toId', 'blocked'))
+        );
     }
 
     public function store(SendMessageRequest $request)
@@ -75,14 +89,15 @@ class MessageController extends Controller
         $userId = Auth::id();
         $recipientId = $request->recipient_id;
 
-        // Cek apakah penerima memblokir pengirim
         $blocked = DB::table('jcow_blacks')
             ->where('uid', $recipientId)
             ->where('bid', $userId)
             ->exists();
 
         if ($blocked) {
-            return redirect()->route('messages.create')->with('error', 'Pengguna ini telah memblokir Anda.');
+            return $this->noCache(
+                redirect()->route('messages.create')->with('error', 'Pengguna ini telah memblokir Anda.')
+            );
         }
 
         $this->messageService->send(
@@ -92,7 +107,9 @@ class MessageController extends Controller
             $request->message
         );
 
-        return redirect()->route('messages.outbox')->with('success', 'Pesan berhasil dikirim.');
+        return $this->noCache(
+            redirect()->route('messages.outbox')->with('success', 'Pesan berhasil dikirim.')
+        );
     }
 
     public function show(int $id)
@@ -102,7 +119,9 @@ class MessageController extends Controller
         $message = $this->messageService->getById($id, $userId);
 
         if (!$message) {
-            return redirect()->route('messages.index')->with('error', 'Pesan tidak ditemukan.');
+            return $this->noCache(
+                redirect()->route('messages.index')->with('error', 'Pesan tidak ditemukan.')
+            );
         }
 
         $type = $message->to_id == $userId ? 'inbox' : 'outbox';
@@ -116,7 +135,9 @@ class MessageController extends Controller
 
         $otherUser = DB::table('jcow_accounts')->where('id', $otherId)->first();
 
-        return view('messages.show', compact('message', 'otherUser', 'type'));
+        return $this->noCache(
+            response()->view('messages.show', compact('message', 'otherUser', 'type'))
+        );
     }
 
     public function destroy(int $id)
@@ -125,7 +146,9 @@ class MessageController extends Controller
 
         $this->messageService->delete($id, $userId, 'inbox');
 
-        return redirect()->route('messages.index')->with('success', 'Pesan berhasil dihapus.');
+        return $this->noCache(
+            redirect()->route('messages.index')->with('success', 'Pesan berhasil dihapus.')
+        );
     }
 
     public function bulkDelete(Request $request)
@@ -141,6 +164,8 @@ class MessageController extends Controller
 
         $route = $request->type === 'outbox' ? 'messages.outbox' : 'messages.index';
 
-        return redirect()->route($route)->with('success', 'Pesan berhasil dihapus.');
+        return $this->noCache(
+            redirect()->route($route)->with('success', 'Pesan berhasil dihapus.')
+        );
     }
 }

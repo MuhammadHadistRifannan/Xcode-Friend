@@ -27,7 +27,7 @@
         <div class="flex flex-col lg:flex-row gap-6 lg:gap-12">
 
             <!-- KONTEN KIRI: Notifications -->
-            <div class="w-full lg:w-[80%] bg-[#f6f3f3] rounded-[24px] flex flex-col min-h-[650px] shadow-sm pt-8">
+            <div class="w-full lg:w-[80%] bg-[#f6f3f3] rounded-[24px] flex flex-col shadow-sm pt-8">
 
             <!-- Info Banner -->
             <div class="mx-8 mb-4 bg-white border-l-4 border-[#3b82f6] rounded-r-lg p-4 flex items-start gap-3">

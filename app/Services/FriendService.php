@@ -107,4 +107,45 @@ class FriendService
     {
         return $this->friendRepo->areFriends($userId, $otherId);
     }
+
+    public function follow(int $userId, int $targetId): void
+    {
+        if ($userId === $targetId) {
+            throw new Exception('Tidak bisa mengikuti diri sendiri.');
+        }
+        $this->friendRepo->follow($userId, $targetId);
+    }
+
+    public function unfollow(int $userId, int $targetId): void
+    {
+        $this->friendRepo->unfollow($userId, $targetId);
+    }
+
+    public function isFollowing(int $userId, int $targetId): bool
+    {
+        return $this->friendRepo->isFollowing($userId, $targetId);
+    }
+
+    public function block(int $userId, int $targetId): void
+    {
+        if ($userId === $targetId) {
+            throw new Exception('Tidak bisa memblokir diri sendiri.');
+        }
+        $this->friendRepo->block($userId, $targetId);
+    }
+
+    public function unblock(int $userId, int $targetId): void
+    {
+        $this->friendRepo->unblock($userId, $targetId);
+    }
+
+    public function isBlocked(int $userId, int $targetId): bool
+    {
+        return $this->friendRepo->isBlocked($userId, $targetId);
+    }
+
+    public function getFollowerCount(int $userId): int
+    {
+        return $this->friendRepo->getFollowerCount($userId);
+    }
 }

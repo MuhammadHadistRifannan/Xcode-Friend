@@ -33,7 +33,6 @@ class NotificationRepository implements NotificationRepositoryInterface
             ->where('id', $id)
             ->where('to_id', $userId)
             ->where('from_id', 0)
-            ->where('hasread', 0)
             ->update(['hasread' => 1]) > 0;
     }
 
@@ -42,7 +41,7 @@ class NotificationRepository implements NotificationRepositoryInterface
         DB::table('jcow_messages')
             ->where('to_id', $userId)
             ->where('from_id', 0)
-            ->where('hasread', 0)
+            ->whereRaw('hasread = 0')
             ->update(['hasread' => 1]);
     }
 
@@ -51,7 +50,7 @@ class NotificationRepository implements NotificationRepositoryInterface
         return (int) DB::table('jcow_messages')
             ->where('to_id', $userId)
             ->where('from_id', 0)
-            ->where('hasread', 0)
+            ->whereRaw('hasread = 0')
             ->count();
     }
 

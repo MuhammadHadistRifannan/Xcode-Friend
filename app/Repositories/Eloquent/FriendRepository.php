@@ -180,4 +180,75 @@ class FriendRepository implements FriendRepositoryInterface
             ->where('bid', $userId)
             ->exists();
     }
+
+    public function follow(int $userId, int $targetId): void
+    {
+        $exists = DB::table('jcow_followers')
+            ->where('uid', $targetId)
+            ->where('fid', $userId)
+            ->exists();
+
+        if (!$exists) {
+            DB::table('jcow_followers')->insert([
+                'uid' => $targetId,
+                'fid' => $userId,
+            ]);
+        }
+    }
+
+    public function unfollow(int $userId, int $targetId): void
+    {
+        DB::table('jcow_followers')
+            ->where('uid', $targetId)
+            ->where('fid', $userId)
+            ->delete();
+    }
+
+    public function isFollowing(int $userId, int $targetId): bool
+    {
+        return DB::table('jcow_followers')
+            ->where('uid', $targetId)
+            ->where('fid', $userId)
+            ->exists();
+    }
+
+    public function block(int $userId, int $targetId): void
+    {
+        $exists = DB::table('jcow_blacks')
+            ->where('uid', $userId)
+            ->where('bid', $targetId)
+            ->exists();
+
+        if (!$exists) {
+            $target = DB::table('jcow_accounts')->where('id', $targetId)->first();
+            DB::table('jcow_blacks')->insert([
+                'uid' => $userId,
+                'bid' => $targetId,
+                'bname' => $target->username ?? '',
+            ]);
+        }
+    }
+
+    public function unblock(int $userId, int $targetId): void
+    {
+        DB::table('jcow_blacks')
+            ->where('uid', $userId)
+            ->where('bid', $targetId)
+            ->delete();
+    }
+
+    public function isBlocked(int $userId, int $targetId): bool
+    {
+        return DB::table('jcow_blacks')
+            ->where('uid', $userId)
+            ->where('bid', $targetId)
+            ->exists();
+    }
+
+    public function getFollowerCount(int $userId): int
+    {
+        return (int) DB::table('jcow_followers')
+            ->where('uid', $userId)
+            ->count();
+    }
 }

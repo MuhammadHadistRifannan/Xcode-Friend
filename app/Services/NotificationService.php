@@ -15,6 +15,11 @@ class NotificationService
         return $this->notifRepo->getNotifications($userId, $perPage);
     }
 
+    public function getById(int $id, int $userId): ?object
+    {
+        return $this->notifRepo->getById($id, $userId);
+    }
+
     public function markAsRead(int $id, int $userId): bool
     {
         return $this->notifRepo->markAsRead($id, $userId);
