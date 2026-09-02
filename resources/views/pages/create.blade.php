@@ -105,47 +105,7 @@
         <!-- ================================= -->
         <div class="col-span-12 lg:col-span-3 space-y-6">
 
-            <!-- Creation Guidelines -->
-            <div class="bg-gray-50 border border-gray-200 rounded-lg p-5">
-                <h3 class="text-sm font-bold text-gray-900 mb-4">Panduan Pembuatan</h3>
-                <ul class="space-y-3 text-xs text-gray-600">
-                    <li class="flex items-start gap-2">
-                        <i data-lucide="check-circle-2" class="w-4 h-4 text-red-600 shrink-0 mt-0.5"></i>
-                        <span>URL unik — tidak bisa dipakai dua kali</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <i data-lucide="check-circle-2" class="w-4 h-4 text-red-600 shrink-0 mt-0.5"></i>
-                        <span>URL hanya huruf kecil dan angka, tanpa spasi atau simbol</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <i data-lucide="check-circle-2" class="w-4 h-4 text-red-600 shrink-0 mt-0.5"></i>
-                        <span>Minimum 6 karakter untuk URL</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <i data-lucide="check-circle-2" class="w-4 h-4 text-red-600 shrink-0 mt-0.5"></i>
-                        <span>Visibilitas publik secara default</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <i data-lucide="image" class="w-4 h-4 text-red-600 shrink-0 mt-0.5"></i>
-                        <span>Logo bisa diupload setelah halaman dibuat</span>
-                    </li>
-                </ul>
-            </div>
-
-            <!-- System Info -->
-            <div class="bg-white border border-gray-200 rounded-lg p-5">
-                <h3 class="text-sm font-bold text-gray-900 mb-4 border-b border-gray-100 pb-2">System Info</h3>
-                <div class="space-y-3 text-xs font-medium">
-                    <div class="flex justify-between items-center">
-                        <span class="text-gray-500">Network Status</span>
-                        <span class="text-red-600 font-bold">OPERATIONAL</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-gray-500">Node ID</span>
-                        <span class="text-gray-900">XC-772-B</span>
-                    </div>
-                </div>
-            </div>
+            <x-sidebar-right />
 
         </div>
     </div>

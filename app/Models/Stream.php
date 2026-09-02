@@ -31,6 +31,14 @@ class Stream extends Model
         return $this->hasMany(Like::class, 'stream_id', 'id');
     }
 
+    // Relasi: Mengambil data target (Grup/Page) jika app = 'group' atau 'page'
+    public function targetPage()
+    {
+        // Menggunakan Page::class karena Group juga di tabel jcow_pages 
+        // tanpa global scope yang membatasi.
+        return $this->belongsTo(Page::class, 'aid', 'id');
+    }
+
     /**
      * Accessor: konversi UNIX 'created' ke Carbon agar bisa pakai diffForHumans()
      */

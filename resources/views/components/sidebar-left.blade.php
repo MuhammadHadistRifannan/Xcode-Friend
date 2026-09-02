@@ -61,10 +61,10 @@
         <div class="flex">
             @if(isset($profile['recentFollowers']) && $profile['recentFollowers']->count() > 0)
                 @foreach($profile['recentFollowers'] as $follower)
-                    <img src="{{ $follower->avatar ? asset('storage/'.$follower->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($follower->username ?? 'User').'&background=random&color=fff' }}" 
-                         alt="{{ $follower->username }}" 
+                    <img src="{{ $follower->avatar ? asset('storage/'.$follower->avatar) : asset('assets/img/default.png') }}" 
+                         alt="{{ $follower->fullname ?: $follower->username }}" 
                          class="w-8 h-8 rounded-full border-2 border-white -ml-2 first:ml-0" 
-                         title="{{ $follower->username }}">
+                         title="{{ $follower->fullname ?: $follower->username }}">
                 @endforeach
             @else
                 <span class="text-xs text-gray-400">Belum ada pengikut</span>

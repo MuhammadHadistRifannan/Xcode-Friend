@@ -20,28 +20,40 @@ class ProfileController extends Controller
 
         if ($tab === 'dinding') {
             // Ambil postingan (feed) milik user ini saja
-            $streams = Stream::with(['user', 'comments.user'])
+            $streams = Stream::with(['user', 'comments.user', 'targetPage'])
                         ->where('uid', $profileUser->id)
                         ->orderBy('created', 'desc')
                         ->paginate(10);
         } elseif ($tab === 'menyukai') {
             // Ambil postingan yang di-like oleh user ini
-            $streams = Stream::with(['user', 'comments.user'])
+            $streams = Stream::with(['user', 'comments.user', 'targetPage'])
                         ->whereHas('likedBy', function($q) use ($profileUser) {
                             $q->where('uid', $profileUser->id);
                         })
                         ->orderBy('created', 'desc')
                         ->paginate(10);
         } elseif ($tab === 'foto') {
-            // Asumsi JCow menggunakan jcow_stories dengan app='photos'
-            $photos = \App\Models\Story::where('uid', $profileUser->id)
-                        ->where('app', 'photos')
+            $photos = Stream::where('uid', $profileUser->id)
+                        ->where('attachment', '!=', '')
+                        ->where(function($q) {
+                            $q->where('type', 2)
+                              ->orWhere(function($q2) {
+                                  $q2->whereIn('app', ['group', 'page'])
+                                     ->where('attachment', 'not like', 'youtube:%');
+                              });
+                        })
                         ->orderBy('created', 'desc')
                         ->paginate(12);
         } elseif ($tab === 'video') {
-            // Asumsi JCow menggunakan jcow_stories dengan app='video'
-            $videos = \App\Models\Story::where('uid', $profileUser->id)
-                        ->whereIn('app', ['video', 'videos'])
+            $videos = Stream::where('uid', $profileUser->id)
+                        ->where('attachment', '!=', '')
+                        ->where(function($q) {
+                            $q->where('type', 3)
+                              ->orWhere(function($q2) {
+                                  $q2->whereIn('app', ['group', 'page'])
+                                     ->where('attachment', 'like', 'youtube:%');
+                              });
+                        })
                         ->orderBy('created', 'desc')
                         ->paginate(12);
         }

@@ -136,7 +136,7 @@
                     ]
                 ];
             @endphp
-            <x-sidebar-right :data="$sidebarData" />
+            <x-sidebar-right />
         </div>
 
     </div>

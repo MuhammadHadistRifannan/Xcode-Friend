@@ -18,9 +18,9 @@
             @forelse($page->followers as $follower)
                 <li class="flex justify-between items-center px-6 py-4 hover:bg-gray-50 transition-colors">
                     <div class="flex items-center gap-4">
-                        <img src="{{ $follower->avatar ? asset('storage/'.$follower->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($follower->username ?? 'User').'&background=random&color=fff' }}" alt="{{ $follower->username }}" class="w-12 h-12 rounded-full object-cover bg-gray-100 border border-gray-200">
+                        <img src="{{ $follower->avatar ? asset('storage/'.$follower->avatar) : asset('assets/img/default.png') }}" alt="{{ $follower->username }}" class="w-12 h-12 rounded-full object-cover bg-gray-100 border border-gray-200">
                         <div>
-                            <span class="text-gray-900 font-bold block">{{ $follower->username }}</span>
+                            <span class="text-gray-900 font-bold block">{{ $follower->fullname ?: $follower->username }}</span>
                             @if($follower->id === $page->uid)
                                 <span class="inline-block mt-1 text-[10px] uppercase tracking-wider font-semibold bg-blue-100 text-blue-700 px-2 py-0.5 rounded">Owner</span>
                             @else

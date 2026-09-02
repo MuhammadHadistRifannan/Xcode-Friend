@@ -20,7 +20,7 @@
         <div class="lg:col-span-3 space-y-6">
             <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-6 text-center">
                 <div class="w-24 h-24 mx-auto rounded-full bg-neutral-100 border-4 border-white shadow-md mb-4 overflow-hidden relative group">
-                    <img src="{{ $user->avatar ? asset('storage/avatars/' . $user->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($user->fullname).'&background=E5E5E5&size=128' }}" alt="Avatar" class="w-full h-full object-cover">
+                    <img src="{{ $user->avatar ? asset('storage/avatars/' . $user->avatar) : asset('assets/img/default.png') }}" alt="Avatar" class="w-full h-full object-cover">
                 </div>
                 
                 <h3 class="text-lg font-bold text-neutral-900 mb-1">{{ $user->fullname }}</h3>
@@ -167,7 +167,7 @@
                         <div class="flex justify-center mb-8">
                             <div class="w-32 h-32 rounded-full border border-neutral-300 p-1">
                                 <div class="w-full h-full rounded-full overflow-hidden bg-neutral-100">
-                                    <img src="{{ $user->avatar ? asset('storage/avatars/' . $user->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($user->fullname).'&background=E5E5E5&size=128' }}" class="w-full h-full object-cover">
+                                    <img src="{{ $user->avatar ? asset('storage/avatars/' . $user->avatar) : asset('assets/img/default.png') }}" class="w-full h-full object-cover">
                                 </div>
                             </div>
                         </div>
@@ -328,47 +328,7 @@
 
         <!-- KOLOM KANAN (Widgets) -->
         <div class="lg:col-span-3 space-y-6">
-            <!-- Widget Review -->
-            <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-6 text-center">
-                <h4 class="text-xs font-bold text-neutral-600 mb-2">Google Reviews</h4>
-                <div class="flex justify-center text-yellow-400 mb-1 space-x-1">
-                    <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                    <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                    <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                    <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                    <svg class="w-4 h-4 fill-current text-neutral-200" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                </div>
-                <p class="text-2xl font-black text-neutral-900 mb-1">4.9</p>
-                <a href="#" class="text-[11px] font-medium text-blue-600 hover:underline">532 Reviews</a>
-            </div>
-
-            <!-- Network Links -->
-            <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-6">
-                <h4 class="text-sm font-bold text-neutral-800 mb-4">Network Links</h4>
-                <div class="space-y-3">
-                    <a href="#" class="flex justify-between items-center bg-blue-50/50 hover:bg-blue-50 border border-blue-100 rounded-lg p-3 transition group">
-                        <div class="flex items-center text-blue-700">
-                            <div class="bg-white p-1.5 rounded-md border border-blue-100 shadow-sm mr-3"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg></div>
-                            <span class="text-xs font-semibold">LinkedIn</span>
-                        </div>
-                        <svg class="w-4 h-4 text-blue-400 group-hover:text-blue-600 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                    </a>
-                    <a href="#" class="flex justify-between items-center bg-indigo-50/50 hover:bg-indigo-50 border border-indigo-100 rounded-lg p-3 transition group">
-                        <div class="flex items-center text-indigo-700">
-                            <div class="bg-white p-1.5 rounded-md border border-indigo-100 shadow-sm mr-3"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M2.99 18.064c-.381.16-.708-.282-.544-.645l.985-2.176c-1.397-1.89-2.073-4.148-1.865-6.52.28-3.195 2.502-5.918 5.6-6.732 3.86-1.014 7.647.464 9.538 3.513 1.944 3.13 1.408 7.33-1.344 9.873-1.92 1.774-4.576 2.65-7.143 2.518-1.385-.072-2.707-.482-3.844-1.127l-1.383 1.296zm4.997-6.264c-1.077 0-1.954.89-1.954 1.986s.877 1.987 1.954 1.987 1.954-.89 1.954-1.987-.877-1.986-1.954-1.986zm5.992 0c-1.076 0-1.953.89-1.953 1.986s.877 1.987 1.953 1.987 1.954-.89 1.954-1.987-.878-1.986-1.954-1.986zm-5.992-5.462c-1.077 0-1.954.89-1.954 1.986s.877 1.987 1.954 1.987 1.954-.89 1.954-1.987-.877-1.986-1.954-1.986zm5.992 0c-1.076 0-1.953.89-1.953 1.986s.877 1.987 1.953 1.987 1.954-.89 1.954-1.987-.878-1.986-1.954-1.986z"/></svg></div>
-                            <span class="text-xs font-semibold">phpBB Group</span>
-                        </div>
-                        <svg class="w-4 h-4 text-indigo-400 group-hover:text-indigo-600 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                    </a>
-                    <a href="#" class="flex justify-between items-center bg-sky-50/50 hover:bg-sky-50 border border-sky-100 rounded-lg p-3 transition group">
-                        <div class="flex items-center text-sky-700">
-                            <div class="bg-white p-1.5 rounded-md border border-sky-100 shadow-sm mr-3"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M22.675 0h-21.35C.597 0 0 .597 0 1.325v21.351C0 23.403.597 24 1.325 24h11.495v-9.294H9.691v-3.622h3.129V8.413c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12V24h6.116c.73 0 1.323-.597 1.323-1.324V1.325C24 .597 23.403 0 22.675 0z"/></svg></div>
-                            <span class="text-xs font-semibold">Facebook</span>
-                        </div>
-                        <svg class="w-4 h-4 text-sky-400 group-hover:text-sky-600 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                    </a>
-                </div>
-            </div>
+            <x-sidebar-right />
         </div>
 
     </div>

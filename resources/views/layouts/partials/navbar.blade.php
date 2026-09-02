@@ -105,7 +105,7 @@
 
                         @auth
                             <div class="px-3 py-2 border-b border-neutral-800">
-                                <p class="text-xs text-white font-semibold truncate">{{ auth()->user()->username }}</p>
+                                <p class="text-xs text-white font-semibold truncate">{{ auth()->user()->fullname ?: auth()->user()->username }}</p>
                                 <p class="text-[10px] text-neutral-500 truncate">{{ auth()->user()->email }}</p>
                             </div>
                             <a href="{{ route('profile.show', auth()->user()->username) }}" class="block px-4 py-2 text-xs text-neutral-300 hover:bg-neutral-800 hover:text-white transition mt-1">Profil Saya</a>

@@ -2,7 +2,9 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto px-6 py-8">
-
+    <div class="grid grid-cols-12 gap-8">
+        <!-- Main Content -->
+        <div class="col-span-12 lg:col-span-9">
     <!-- Header -->
     <div class="mb-6">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
@@ -163,7 +165,14 @@
         @endif
     </div>
 
-</div>
+        </div> <!-- End Main Content -->
+
+        <!-- Right Sidebar (col-span-3) -->
+        <div class="col-span-12 lg:col-span-3">
+            <x-sidebar-right />
+        </div>
+    </div> <!-- End grid -->
+</div> <!-- End max-w-7xl -->
 
 <script>
     function switchTab(tab) {

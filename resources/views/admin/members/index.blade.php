@@ -68,7 +68,7 @@
                                 <!-- User Info -->
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center gap-4">
-                                        <img src="{{ $member->avatar ? asset('storage/'.$member->avatar) : asset('img/avatar.png') }}" alt="{{ $member->username }}" class="w-10 h-10 rounded-full object-cover border border-gray-200 bg-gray-100">
+                                        <img src="{{ $member->avatar ? asset('storage/'.$member->avatar) : asset('img/avatar.png') }}" alt="{{ $member->fullname ?: $member->username }}" class="w-10 h-10 rounded-full object-cover border border-gray-200 bg-gray-100">
                                         <div>
                                             <div class="font-bold text-gray-900 text-base flex items-center gap-2">
                                                 {{ $member->fullname ?: $member->username }}
@@ -147,7 +147,7 @@
                                                                     Ubah Role Pengguna
                                                                 </h3>
                                                                 <div class="mt-2">
-                                                                    <p class="text-sm text-gray-500 mb-4">Ubah hak akses untuk pengguna <strong>{{ $member->username }}</strong>.</p>
+                                                                    <p class="text-sm text-gray-500 mb-4">Ubah hak akses untuk pengguna <strong>{{ $member->fullname ?: $member->username }}</strong>.</p>
                                                                     
                                                                     <div>
                                                                         <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Role Saat Ini</label>

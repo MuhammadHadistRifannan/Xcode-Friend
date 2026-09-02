@@ -294,54 +294,7 @@
 
         {{-- ===== SIDEBAR KANAN (col-span-3) ===== --}}
         <div class="col-span-12 lg:col-span-3 space-y-5">
-
-            {{-- Panduan Singkat --}}
-            <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-5">
-                <h3 class="text-xs font-black text-gray-900 uppercase tracking-wider mb-4">Panduan</h3>
-                <ul class="space-y-3">
-                    <li class="flex items-start gap-2.5">
-                        <div class="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center shrink-0 mt-0.5">
-                            <span class="text-[10px] font-black text-red-600">1</span>
-                        </div>
-                        <p class="text-xs text-gray-600">Isi judul dan URL YouTube video.</p>
-                    </li>
-                    <li class="flex items-start gap-2.5">
-                        <div class="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center shrink-0 mt-0.5">
-                            <span class="text-[10px] font-black text-red-600">2</span>
-                        </div>
-                        <p class="text-xs text-gray-600">Pilih playlist yang ada, buat baru, atau lewati.</p>
-                    </li>
-                    <li class="flex items-start gap-2.5">
-                        <div class="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center shrink-0 mt-0.5">
-                            <span class="text-[10px] font-black text-red-600">3</span>
-                        </div>
-                        <p class="text-xs text-gray-600">Tekan <strong>Publikasikan</strong> untuk menyimpan.</p>
-                    </li>
-                </ul>
-            </div>
-
-            {{-- Tips --}}
-            <div class="bg-amber-50 border border-amber-200 rounded-xl p-5">
-                <h3 class="text-xs font-black text-amber-800 uppercase tracking-wider mb-2">💡 Tips</h3>
-                <p class="text-xs text-amber-700 leading-relaxed">
-                    Gunakan URL YouTube yang valid, misalnya:<br>
-                    <code class="text-[10px] bg-amber-100 px-1 py-0.5 rounded font-mono">https://www.youtube.com/watch?v=xxxxx</code><br>
-                    atau format pendek:<br>
-                    <code class="text-[10px] bg-amber-100 px-1 py-0.5 rounded font-mono">https://youtu.be/xxxxx</code>
-                </p>
-            </div>
-
-            @php
-                $sidebarData = [
-                    'reviews'      => ['rating' => 4.9, 'count' => 532],
-                    'networkLinks' => [
-                        ['id' => 1, 'label' => 'LinkedIn', 'url' => '#'],
-                        ['id' => 2, 'label' => 'phpBB Group', 'url' => '#'],
-                        ['id' => 3, 'label' => 'Facebook', 'url' => '#'],
-                    ],
-                ];
-            @endphp
-            <x-sidebar-right :data="$sidebarData" />
+            <x-sidebar-right />
         </div>
 
     </div>

@@ -47,7 +47,7 @@
             <h3 class="text-[11px] font-bold text-neutral-800 uppercase mb-4 tracking-wider">Recent Logins</h3>
             <div class="flex space-x-2">
                 @forelse($recentLogins as $recent)
-                    <img src="{{ asset('uploads/' . $recent->avatar) }}" alt="{{ $recent->username }}" class="w-8 h-8 rounded-full border border-neutral-200 object-cover" onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($recent->fullname) }}&background=E5E5E5&color=333'">
+                    <img src="{{ asset('uploads/' . $recent->avatar) }}" alt="{{ $recent->fullname ?: $recent->username }}" class="w-8 h-8 rounded-full border border-neutral-200 object-cover" onerror="this.src=asset('assets/img/default.png') }}&background=E5E5E5&color=333'">
                 @empty
                     <p class="text-[10px] text-neutral-400">Belum ada data login.</p>
                 @endforelse

@@ -53,7 +53,7 @@
             <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5 text-center relative">
                 <!-- Avatar -->
                 <div class="w-24 h-24 mx-auto rounded-full bg-neutral-100 border-2 border-neutral-200 mb-3 overflow-hidden shadow">
-                    <img src="{{ $profileUser->avatar ? asset('storage/avatars/' . $profileUser->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($profileUser->fullname).'&background=E5E5E5&size=128' }}" alt="Avatar" class="w-full h-full object-cover">
+                    <img src="{{ $profileUser->avatar ? asset('storage/avatars/' . $profileUser->avatar) : asset('assets/img/default.png') }}" alt="Avatar" class="w-full h-full object-cover">
                 </div>
 
                 @if(auth()->check() && auth()->user()->id !== $profileUser->id)
@@ -304,13 +304,20 @@
                         <div class="flex justify-between items-start mb-3">
                             <div class="flex items-center space-x-3">
                                 <a href="/{{ $stream->user->username ?? '#' }}" class="w-10 h-10 rounded-full bg-neutral-100 overflow-hidden border border-neutral-200 hover:ring-2 hover:ring-red-700 transition flex-shrink-0">
-                                    <img src="{{ $stream->user->avatar ? asset('storage/avatars/'.$stream->user->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($stream->user->fullname ?? 'Unknown').'&background=E5E5E5' }}" class="w-full h-full object-cover">
+                                    <img src="{{ $stream->user->avatar ? asset('storage/avatars/'.$stream->user->avatar) : asset('assets/img/default.png') }}" class="w-full h-full object-cover">
                                 </a>
                                 <div>
                                     <h4 class="text-sm font-bold text-neutral-900">
                                         <a href="/{{ $stream->user->username ?? '#' }}" class="hover:text-red-700 transition">{{ $stream->user->fullname ?? 'Unknown User' }}</a>
                                     </h4>
-                                    <p class="text-[11px] text-neutral-400">{{ \Carbon\Carbon::createFromTimestamp($stream->created)->diffForHumans() }}</p>
+                                    <p class="text-[11px] text-neutral-400">
+                                        {{ \Carbon\Carbon::createFromTimestamp($stream->created)->diffForHumans() }}
+                                        @if($stream->app === 'group' && $stream->targetPage)
+                                            &bull; Mengunggah di Grup <a href="{{ url('/groups/' . $stream->targetPage->id) }}" class="font-semibold text-neutral-600 hover:text-red-700 hover:underline">{{ $stream->targetPage->name }}</a>
+                                        @elseif($stream->app === 'page' && $stream->targetPage)
+                                            &bull; Mengunggah di Halaman <a href="{{ url('/pages/' . $stream->targetPage->id) }}" class="font-semibold text-neutral-600 hover:text-red-700 hover:underline">{{ $stream->targetPage->name }}</a>
+                                        @endif
+                                    </p>
                                 </div>
                             </div>
                             <button class="text-neutral-400 hover:text-neutral-600"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z"></path></svg></button>
@@ -368,6 +375,23 @@
                             @endif
                         @endif
                         
+                        @if(in_array($stream->app, ['group', 'page']) && $stream->attachment)
+                            @if(strpos($stream->attachment, 'youtube:') === 0)
+                                @php 
+                                    $videoId = substr($stream->attachment, 8); 
+                                    $embedUrl = 'https://www.youtube.com/embed/' . $videoId;
+                                @endphp
+                                <div class="mb-4 rounded-xl overflow-hidden border border-neutral-200">
+                                    <iframe src="{{ $embedUrl }}" class="w-full h-[300px]" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                                </div>
+                            @else
+                                <div class="mb-4 rounded-xl overflow-hidden border border-neutral-200">
+                                    @php $singlePhoto = json_encode([asset('storage/' . $stream->attachment)]); @endphp
+                                    <img src="{{ asset('storage/' . $stream->attachment) }}" onclick='openLightbox({!! $singlePhoto !!}, 0)' class="w-full h-auto cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                </div>
+                            @endif
+                        @endif
+                        
                         @if($stream->type == 3 && $stream->attachment)
                             @php $att = json_decode($stream->attachment, true); @endphp
                             @if(isset($att['video_url']))
@@ -420,7 +444,7 @@
                                                 $parsedMessage = preg_replace('/@([a-zA-Z0-9_]+)/', '<a href="/@$1" class="text-blue-600 hover:underline">@$1</a>', $parsedMessage);
                                             @endphp
                                             <p class="text-neutral-700 mt-1">{!! $parsedMessage !!}</p>
-                                            <button type="button" onclick="replyTo('{{ $stream->id }}', '{{ $comment->user->username ?? 'user' }}')" class="text-[10px] text-neutral-500 font-semibold hover:text-red-700 mt-1 uppercase tracking-wider">Reply</button>
+                                            <button type="button" onclick="replyTo('{{ $stream->id }}', '{{ addslashes($comment->user->fullname ?? $comment->user->username ?? 'user') }}')" class="text-[10px] text-neutral-500 font-semibold hover:text-red-700 mt-1 uppercase tracking-wider">Reply</button>
                                         </div>
                                     </div>
                                 @endforeach
@@ -430,7 +454,7 @@
                             <form action="{{ route('comment.store', $stream->id) }}" method="POST" class="flex space-x-2 form-comment" data-stream-id="{{ $stream->id }}">
                                 @csrf
                                 <div class="w-8 h-8 rounded-full bg-neutral-200 overflow-hidden flex-shrink-0">
-                                    <img src="{{ auth()->user()->avatar ? asset('storage/avatars/'.auth()->user()->avatar) : 'https://ui-avatars.com/api/?name='.urlencode(auth()->user()->fullname).'&background=E5E5E5' }}" class="w-full h-full">
+                                    <img src="{{ auth()->user()->avatar ? asset('storage/avatars/'.auth()->user()->avatar) : asset('assets/img/default.png') }}" class="w-full h-full">
                                 </div>
                                 <input type="text" name="message" id="comment-input-{{ $stream->id }}" required placeholder="Tulis komentar..." class="flex-1 bg-neutral-50 border border-neutral-200 rounded-full px-4 text-sm focus:outline-none focus:border-red-700">
                                 <button type="submit" class="text-red-700 font-bold text-sm px-2">Kirim</button>
@@ -455,19 +479,114 @@
                         <div class="flex justify-between items-start mb-3">
                             <div class="flex items-center space-x-3">
                                 <a href="/{{ $stream->user->username ?? '#' }}" class="w-10 h-10 rounded-full bg-neutral-100 overflow-hidden border border-neutral-200 hover:ring-2 hover:ring-red-700 transition flex-shrink-0">
-                                    <img src="{{ $stream->user->avatar ? asset('storage/avatars/'.$stream->user->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($stream->user->fullname ?? 'Unknown').'&background=E5E5E5' }}" class="w-full h-full object-cover">
+                                    <img src="{{ $stream->user->avatar ? asset('storage/avatars/'.$stream->user->avatar) : asset('assets/img/default.png') }}" class="w-full h-full object-cover">
                                 </a>
                                 <div>
                                     <h4 class="text-sm font-bold text-neutral-900">
                                         <a href="/{{ $stream->user->username ?? '#' }}" class="hover:text-red-700 transition">{{ $stream->user->fullname ?? 'Unknown User' }}</a>
-                                        <span class="font-normal text-neutral-500">Mendaftar / Menyukai</span>
+                                        <br><span class="font-normal text-neutral-500">Mendaftar / Menyukai</span>
                                     </h4>
-                                    <p class="text-[11px] text-neutral-400"><svg class="w-3 h-3 inline pb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg> {{ \Carbon\Carbon::createFromTimestamp($stream->created)->format('M jS Y, g:i a') }}</p>
+                                    <p class="text-[11px] text-neutral-400">
+                                        <svg class="w-3 h-3 inline pb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg> {{ \Carbon\Carbon::createFromTimestamp($stream->created)->format('M jS Y, g:i a') }}
+                                        @if($stream->app === 'group' && $stream->targetPage)
+                                            &bull; Mengunggah di Grup <a href="{{ url('/groups/' . $stream->targetPage->id) }}" class="font-semibold text-neutral-600 hover:text-red-700 hover:underline">{{ $stream->targetPage->name }}</a>
+                                        @elseif($stream->app === 'page' && $stream->targetPage)
+                                            &bull; Mengunggah di Halaman <a href="{{ url('/pages/' . $stream->targetPage->id) }}" class="font-semibold text-neutral-600 hover:text-red-700 hover:underline">{{ $stream->targetPage->name }}</a>
+                                        @endif
+                                    </p>
                                 </div>
                             </div>
                         </div>
                         
                         <p class="text-sm text-neutral-800 mb-4 whitespace-pre-wrap leading-relaxed">{{ $stream->message }}</p>
+
+                        @if($stream->type == 2 && $stream->attachment)
+                            @php $att = json_decode($stream->attachment, true); @endphp
+                            @if(isset($att['photos']) && is_array($att['photos']))
+                                @php 
+                                    $ptCount = count($att['photos']); 
+                                    $photoUrls = array_map(fn($p) => asset('storage/posts/' . $p), $att['photos']);
+                                    $jsonPhotos = json_encode($photoUrls);
+                                @endphp
+                                <div class="mb-4 rounded-xl overflow-hidden border border-neutral-200">
+                                    @if($ptCount == 1)
+                                        <img src="{{ $photoUrls[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' class="w-full h-auto max-h-[500px] object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                    @elseif($ptCount == 2)
+                                        <div class="grid grid-cols-2 gap-1 h-64 sm:h-80">
+                                            <img src="{{ $photoUrls[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                            <img src="{{ $photoUrls[1] }}" onclick='openLightbox({!! $jsonPhotos !!}, 1)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                        </div>
+                                    @elseif($ptCount == 3)
+                                        <div class="grid grid-cols-2 gap-1 h-64 sm:h-80">
+                                            <img src="{{ $photoUrls[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                            <div class="grid grid-rows-2 gap-1 h-full">
+                                                <img src="{{ $photoUrls[1] }}" onclick='openLightbox({!! $jsonPhotos !!}, 1)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                                <img src="{{ $photoUrls[2] }}" onclick='openLightbox({!! $jsonPhotos !!}, 2)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                            </div>
+                                        </div>
+                                    @elseif($ptCount >= 4)
+                                        <div class="grid grid-cols-2 gap-1 h-72 sm:h-96">
+                                            <img src="{{ $photoUrls[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                            <div class="grid grid-rows-3 gap-1 h-full">
+                                                <img src="{{ $photoUrls[1] }}" onclick='openLightbox({!! $jsonPhotos !!}, 1)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                                <img src="{{ $photoUrls[2] }}" onclick='openLightbox({!! $jsonPhotos !!}, 2)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                                <div class="relative w-full h-full" onclick='openLightbox({!! $jsonPhotos !!}, 3)'>
+                                                    <img src="{{ $photoUrls[3] }}" class="w-full h-full object-cover cursor-pointer" alt="Post Photo">
+                                                    @if($ptCount > 4)
+                                                    <div class="absolute inset-0 bg-black/60 flex items-center justify-center cursor-pointer hover:bg-black/50 transition">
+                                                        <span class="text-white text-3xl font-bold">+{{ $ptCount - 4 }}</span>
+                                                    </div>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
+                            @elseif(isset($att['photo']))
+                                <div class="mb-4 rounded-xl overflow-hidden border border-neutral-200">
+                                    @php $singlePhoto = json_encode([asset('storage/posts/' . $att['photo'])]); @endphp
+                                    <img src="{{ asset('storage/posts/' . $att['photo']) }}" onclick='openLightbox({!! $singlePhoto !!}, 0)' class="w-full h-auto cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                </div>
+                            @endif
+                        @endif
+                        
+                        @if(in_array($stream->app, ['group', 'page']) && $stream->attachment)
+                            @if(strpos($stream->attachment, 'youtube:') === 0)
+                                @php 
+                                    $videoId = substr($stream->attachment, 8); 
+                                    $embedUrl = 'https://www.youtube.com/embed/' . $videoId;
+                                @endphp
+                                <div class="mb-4 rounded-xl overflow-hidden border border-neutral-200">
+                                    <iframe src="{{ $embedUrl }}" class="w-full h-[300px]" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                                </div>
+                            @else
+                                <div class="mb-4 rounded-xl overflow-hidden border border-neutral-200">
+                                    @php $singlePhoto = json_encode([asset('storage/' . $stream->attachment)]); @endphp
+                                    <img src="{{ asset('storage/' . $stream->attachment) }}" onclick='openLightbox({!! $singlePhoto !!}, 0)' class="w-full h-auto cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                </div>
+                            @endif
+                        @endif
+                        
+                        @if($stream->type == 3 && $stream->attachment)
+                            @php $att = json_decode($stream->attachment, true); @endphp
+                            @if(isset($att['video_url']))
+                                @php
+                                    $videoUrl = $att['video_url'];
+                                    $embedUrl = '';
+                                    if (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i', $videoUrl, $matches)) {
+                                        $embedUrl = 'https://www.youtube.com/embed/' . $matches[1];
+                                    }
+                                @endphp
+                                <div class="mb-4 rounded-xl overflow-hidden border border-neutral-200">
+                                    @if($embedUrl)
+                                        <iframe src="{{ $embedUrl }}" class="w-full h-[300px]" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                                    @else
+                                        <a href="{{ $videoUrl }}" target="_blank" class="text-blue-600 hover:underline flex items-center p-3 bg-neutral-50"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Tonton Video</a>
+                                    @endif
+                                </div>
+                            @endif
+                        @endif
+
 
                         <div class="text-[11px] text-neutral-500 border-t border-neutral-100 pt-3">
                             <button class="text-red-700 hover:underline font-semibold">+Komentar</button> <span class="mx-1">|</span> <button class="text-red-700 hover:underline font-semibold">Suka</button>
@@ -493,20 +612,33 @@
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         @forelse($photos as $photo)
-                        <div class="group">
-                            <div class="w-full h-40 bg-neutral-100 rounded-lg overflow-hidden border border-neutral-200 mb-3 relative">
-                                <!-- Placeholder if $photo->thumbnail is empty -->
-                                @if($photo->thumbnail)
-                                    <img src="{{ asset('uploads/' . $photo->thumbnail) }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
-                                @else
-                                    <div class="w-full h-full bg-gradient-to-br from-neutral-200 to-neutral-300 flex items-center justify-center">
-                                        <svg class="w-8 h-8 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            @php 
+                                $photoUrls = [];
+                                if ($photo->type == 2) {
+                                    $att = json_decode($photo->attachment, true); 
+                                    if (isset($att['photos']) && is_array($att['photos'])) {
+                                        $photoUrls = array_map(fn($p) => asset('storage/posts/' . $p), $att['photos']);
+                                    } elseif (isset($att['photo'])) {
+                                        $photoUrls = [asset('storage/posts/' . $att['photo'])];
+                                    }
+                                } else {
+                                    $photoUrls = [asset('storage/' . $photo->attachment)];
+                                }
+                            @endphp
+                            @if(count($photoUrls) > 0)
+                                <div class="group">
+                                    <div class="w-full h-40 bg-neutral-100 rounded-lg overflow-hidden border border-neutral-200 mb-3 relative cursor-pointer" onclick='openLightbox({!! json_encode($photoUrls) !!}, 0)'>
+                                        <img src="{{ $photoUrls[0] }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                                        @if(count($photoUrls) > 1)
+                                            <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                                                <span class="text-white font-bold text-lg">+{{ count($photoUrls) - 1 }} Foto</span>
+                                            </div>
+                                        @endif
                                     </div>
-                                @endif
-                            </div>
-                            <h4 class="text-sm font-bold text-neutral-900 mb-1 truncate">{{ $photo->title ?: 'Untitled' }}</h4>
-                            <p class="text-xs text-neutral-500">{{ $profileUser->fullname }}</p>
-                        </div>
+                                    <h4 class="text-sm font-bold text-neutral-900 mb-1 truncate">{{ $photo->message ?: 'Unggahan Foto' }}</h4>
+                                    <p class="text-xs text-neutral-500">{{ $profileUser->fullname }} &bull; {{ \Carbon\Carbon::createFromTimestamp($photo->created)->diffForHumans() }}</p>
+                                </div>
+                            @endif
                         @empty
                         <div class="col-span-2 text-center text-sm text-neutral-500 py-10">Belum ada foto yang diunggah.</div>
                         @endforelse
@@ -526,25 +658,53 @@
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         @forelse($videos as $video)
-                        <div class="group">
-                            <div class="w-full h-40 bg-neutral-100 rounded-lg overflow-hidden border border-neutral-200 mb-3 relative">
-                                <!-- Placeholder if $video->thumbnail is empty -->
-                                @if($video->thumbnail)
-                                    <img src="{{ asset('uploads/' . $video->thumbnail) }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
-                                @else
-                                    <div class="w-full h-full bg-gradient-to-br from-neutral-200 to-neutral-300 flex items-center justify-center relative">
-                                        <svg class="w-8 h-8 text-neutral-400 absolute" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                                    </div>
-                                @endif
-                                <div class="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-300">
-                                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-                                        <svg class="w-4 h-4 text-red-700 ml-1" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4l12 6-12 6z"></path></svg>
+                            @php 
+                                $videoUrl = '';
+                                $embedUrl = '';
+                                $title = $video->message ?: 'Unggahan Video';
+                                $desc = '';
+                                
+                                if ($video->type == 3) {
+                                    $att = json_decode($video->attachment, true); 
+                                    $videoUrl = $att['video_url'] ?? '';
+                                    $title = $att['title'] ?? $title;
+                                    $desc = $att['desc'] ?? '';
+                                    
+                                    if (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i', $videoUrl, $matches)) {
+                                        $embedUrl = 'https://www.youtube.com/embed/' . $matches[1];
+                                    }
+                                } else {
+                                    // Group / Page Youtube post
+                                    if (strpos($video->attachment, 'youtube:') === 0) {
+                                        $videoId = substr($video->attachment, 8);
+                                        $embedUrl = 'https://www.youtube.com/embed/' . $videoId;
+                                        $videoUrl = 'https://www.youtube.com/watch?v=' . $videoId;
+                                    }
+                                }
+                            @endphp
+                            @if($videoUrl || $embedUrl)
+                                <div class="bg-neutral-50 rounded-xl overflow-hidden border border-neutral-200">
+                                    @if($embedUrl)
+                                        <iframe src="{{ $embedUrl }}" class="w-full h-40" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                                    @else
+                                        <a href="{{ $videoUrl }}" target="_blank" class="block w-full h-40 bg-neutral-200 flex items-center justify-center group-hover:opacity-90 transition relative">
+                                            <svg class="w-8 h-8 text-neutral-400 absolute" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                            <div class="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center opacity-0 hover:opacity-100 transition duration-300">
+                                                <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+                                                    <svg class="w-4 h-4 text-red-700 ml-1" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4l12 6-12 6z"></path></svg>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    @endif
+                                    <div class="p-4 bg-white">
+                                        <h4 class="text-sm font-bold text-neutral-900 mb-1 truncate">{{ $title }}</h4>
+                                        <p class="text-[11px] text-neutral-500 mb-2">{{ $profileUser->fullname }} &bull; {{ \Carbon\Carbon::createFromTimestamp($video->created)->diffForHumans() }}</p>
+                                        @if($desc)
+                                            <p class="text-xs text-neutral-700 line-clamp-2">{{ $desc }}</p>
+                                        @endif
                                     </div>
                                 </div>
-                            </div>
-                            <h4 class="text-sm font-bold text-neutral-900 mb-1 truncate">{{ $video->title ?: 'Untitled Video' }}</h4>
-                            <p class="text-xs text-neutral-500">{{ $profileUser->fullname }}</p>
-                        </div>
+                            @endif
                         @empty
                         <div class="col-span-2 text-center text-sm text-neutral-500 py-10">Belum ada video yang diunggah.</div>
                         @endforelse
@@ -559,47 +719,7 @@
 
         <!-- KOLOM KANAN (Widget) -->
         <div class="lg:col-span-3 space-y-6">
-            <!-- Widget Review -->
-            <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-6 text-center">
-                <h4 class="text-xs font-bold text-neutral-600 mb-2">Google Reviews</h4>
-                <div class="flex justify-center text-yellow-400 mb-1">
-                    <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                    <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                    <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                    <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                    <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                </div>
-                <div class="text-3xl font-extrabold text-neutral-800 my-1">4.9</div>
-                <a href="#" class="text-xs text-blue-600 hover:underline">532 Reviews</a>
-            </div>
-
-            <!-- Network Links -->
-            <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
-                <h3 class="text-xs font-bold text-neutral-800 uppercase mb-4">Network Links</h3>
-                <div class="space-y-2">
-                    <a href="#" class="flex items-center justify-between p-3 bg-neutral-50 border border-neutral-100 rounded-lg hover:bg-neutral-100 transition group">
-                        <div class="flex items-center text-sm font-medium text-neutral-600">
-                            <!-- LinkedIn SVG -->
-                            <img src="{{ asset('assets/img/logo-linkedin.png') }}" class="w-4 h-4 mr-3 opacity-60 group-hover:opacity-100 transition"> LinkedIn
-                        </div>
-                        <span class="text-blue-500 font-bold">&rarr;</span>
-                    </a>
-                    <a href="#" class="flex items-center justify-between p-3 bg-neutral-50 border border-neutral-100 rounded-lg hover:bg-neutral-100 transition group">
-                        <div class="flex items-center text-sm font-medium text-neutral-600">
-                            <!-- phpBB SVG -->
-                            <img src="{{ asset('assets/img/logo-phpbb.png') }}" class="w-4 h-4 mr-3 opacity-60 group-hover:opacity-100 transition"> phpBB Group
-                        </div>
-                        <span class="text-blue-500 font-bold">&rarr;</span>
-                    </a>
-                    <a href="#" class="flex items-center justify-between p-3 bg-neutral-50 border border-neutral-100 rounded-lg hover:bg-neutral-100 transition group">
-                        <div class="flex items-center text-sm font-medium text-neutral-600">
-                            <!-- Facebook SVG -->
-                            <svg class="w-4 h-4 mr-3 text-neutral-400 group-hover:text-[#1877F2] transition" fill="currentColor" viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"></path></svg> Facebook
-                        </div>
-                        <span class="text-blue-500 font-bold">&rarr;</span>
-                    </a>
-                </div>
-            </div>
+            <x-sidebar-right />
         </div>
 
     </div>

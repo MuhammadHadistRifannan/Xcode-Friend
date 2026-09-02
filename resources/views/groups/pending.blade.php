@@ -29,9 +29,9 @@
                 @foreach($group->pendingMembers as $member)
                     <li class="flex justify-between items-center px-6 py-4 hover:bg-gray-50 transition-colors">
                         <div class="flex items-center gap-4">
-                            <img src="{{ $member->avatar ? asset('storage/' . $member->avatar) : 'https://ui-avatars.com/api/?name=' . urlencode($member->username ?? $member->name) . '&background=random&color=fff' }}" alt="{{ $member->username ?? $member->name }}" class="w-12 h-12 rounded-full object-cover bg-gray-100 border border-gray-200">
+                            <img src="{{ $member->avatar ? asset('storage/' . $member->avatar) : asset('assets/img/default.png') }}" alt="{{ $member->fullname ?? $member->username ?? $member->name }}" class="w-12 h-12 rounded-full object-cover bg-gray-100 border border-gray-200">
                             <div>
-                                <span class="text-gray-900 font-bold block">{{ $member->username ?? $member->name }}</span>
+                                <span class="text-gray-900 font-bold block">{{ $member->fullname ?? $member->username ?? $member->name }}</span>
                                 <span class="inline-block mt-1 text-xs text-gray-500">Menunggu persetujuan</span>
                             </div>
                         </div>

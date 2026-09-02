@@ -149,7 +149,7 @@ class PageController extends Controller
                 'description' => $page->description,
                 'likesCount'  => $page->followers_count,
                 'coverUrl'    => 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&q=80&w=1000',
-                'avatarUrl'   => $page->logo_url ?? 'https://ui-avatars.com/api/?name=' . urlencode($page->name) . '&background=ff0000&color=fff',
+                'avatarUrl'   => $page->logo_url ?? asset('assets/img/default.png'),
                 'isLiked'     => $isLiked,
                 'isOwner'     => $isOwner,
                 'recentFollowers' => $recentFollowers,

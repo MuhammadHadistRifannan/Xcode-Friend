@@ -269,10 +269,10 @@
                     <!-- Post Header: Avatar + Nama + Waktu -->
                     <div class="flex items-start justify-between mb-3 relative" x-data="{ openOptions: false }">
                         <div class="flex items-start gap-3">
-                            <img src="{{ $post->user?->avatar ? asset('storage/'.$post->user->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($post->user?->username ?? 'User').'&background=random&color=fff' }}"
+                            <img src="{{ $post->user?->avatar ? asset('storage/'.$post->user->avatar) : asset('assets/img/default.png') }}"
                                  class="w-10 h-10 rounded-full object-cover border border-gray-200 shrink-0" alt="Avatar">
                             <div>
-                                <span class="font-bold text-gray-900 text-sm">{{ $post->user?->username ?? 'Unknown User' }}</span>
+                                <span class="font-bold text-gray-900 text-sm">{{ $post->user?->fullname ?? $post->user?->username ?? 'Unknown User' }}</span>
                                 <p class="text-xs text-gray-400 mt-0.5">{{ \Carbon\Carbon::createFromTimestamp($post->created)->diffForHumans() }}</p>
                             </div>
                         </div>
@@ -365,13 +365,13 @@
                         <div class="bg-gray-50 rounded-lg p-4 mt-3 space-y-3 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
                             @foreach($post->comments as $comment)
                                 <div class="flex gap-2" id="comment-{{ $comment->id }}">
-                                    <img src="{{ $comment->user?->avatar ? asset('storage/'.$comment->user->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($comment->user?->username ?? 'User').'&background=random&color=fff' }}"
+                                    <img src="{{ $comment->user?->avatar ? asset('storage/'.$comment->user->avatar) : asset('assets/img/default.png') }}"
                                          class="w-8 h-8 rounded-full object-cover shrink-0 border border-gray-200" alt="Avatar">
                                     <div x-data="{ editing: false, openCommentOptions: false }">
                                         <div class="flex items-center gap-2 group">
                                             <!-- Tampilan Komentar Biasa -->
                                             <div x-show="!editing" class="bg-white px-3 py-2 rounded-2xl border border-gray-100 shadow-sm text-sm">
-                                                <span class="font-bold text-gray-900">{{ $comment->user?->username ?? 'Unknown' }}</span>
+                                                <span class="font-bold text-gray-900">{{ $comment->user?->fullname ?? $comment->user?->username ?? 'Unknown' }}</span>
                                                 <span class="text-gray-700 ml-1">{{ $comment->message }}</span>
                                             </div>
 
@@ -421,7 +421,7 @@
                                         <div class="flex items-center gap-3 mt-1 ml-2">
                                             <p class="text-[10px] text-gray-400">{{ $comment->createdAt->diffForHumans() }}</p>
                                             @if($isMember)
-                                            <button type="button" onclick="const inp = document.getElementById('comment-input-{{ $post->id }}'); if(inp) { inp.value = '@' + '{{ addslashes($comment->user?->username ?? 'Unknown') }}' + ' '; inp.focus(); }" class="text-[10px] text-gray-500 font-semibold hover:text-red-600 transition-colors">Balas</button>
+                                            <button type="button" onclick="const inp = document.getElementById('comment-input-{{ $post->id }}'); if(inp) { inp.value = '@' + '{{ addslashes($comment->user?->fullname ?? $comment->user?->username ?? 'Unknown') }}' + ' '; inp.focus(); }" class="text-[10px] text-gray-500 font-semibold hover:text-red-600 transition-colors">Balas</button>
                                             @endif
                                         </div>
                                     </div>
@@ -475,9 +475,9 @@
                     <div class="flex flex-wrap gap-3">
                         @foreach($group->members->take(6) as $member)
                             <a href="#" class="block hover:opacity-80 transition-opacity">
-                                <img src="{{ $member->avatar ? asset('storage/' . $member->avatar) : 'https://ui-avatars.com/api/?name=' . urlencode($member->username ?? $member->name) . '&background=random&color=fff' }}" 
-                                     alt="{{ $member->username ?? $member->name }}" 
-                                     title="{{ $member->username ?? $member->name }}" 
+                                <img src="{{ $member->avatar ? asset('storage/' . $member->avatar) : asset('assets/img/default.png') }}" 
+                                     alt="{{ $member->fullname ?? $member->username ?? $member->name }}" 
+                                     title="{{ $member->fullname ?? $member->username ?? $member->name }}" 
                                      class="w-12 h-12 rounded-full object-cover border border-gray-200 shadow-sm bg-gray-100">
                             </a>
                         @endforeach

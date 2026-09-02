@@ -113,48 +113,7 @@
 
         <!-- RIGHT SIDEBAR -->
         <div class="w-full lg:w-1/3 space-y-6">
-            <!-- Google Reviews Mock -->
-            <div class="bg-white border border-gray-200 p-4 rounded shadow-sm text-center">
-                <div class="flex justify-center mb-2">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" class="w-8 h-8" alt="Google">
-                </div>
-                <h3 class="font-bold text-gray-800 text-sm">Rating</h3>
-                <div class="flex justify-center text-yellow-400 my-1">
-                    ★★★★★
-                </div>
-                <p class="text-xs text-gray-500">5.0 Berdasarkan 51 ulasan</p>
-            </div>
-
-            <!-- Network Links -->
-            <div class="bg-white border border-gray-200 p-0 rounded shadow-sm overflow-hidden">
-                <a href="#" class="flex items-center px-4 py-3 hover:bg-gray-50 border-b border-gray-100 transition">
-                    <div class="w-8 h-8 bg-blue-700 text-white rounded flex items-center justify-center mr-3">
-                        in
-                    </div>
-                    <div>
-                        <div class="font-bold text-gray-800 text-sm">LINKEDIN</div>
-                        <div class="text-xs text-gray-500">Network</div>
-                    </div>
-                </a>
-                <a href="#" class="flex items-center px-4 py-3 hover:bg-gray-50 border-b border-gray-100 transition">
-                    <div class="w-8 h-8 bg-indigo-600 text-white rounded flex items-center justify-center mr-3 text-xs font-bold">
-                        php
-                    </div>
-                    <div>
-                        <div class="font-bold text-gray-800 text-sm">PHPBB</div>
-                        <div class="text-xs text-gray-500">Forum</div>
-                    </div>
-                </a>
-                <a href="#" class="flex items-center px-4 py-3 hover:bg-gray-50 transition">
-                    <div class="w-8 h-8 bg-blue-600 text-white rounded flex items-center justify-center mr-3 text-xl font-bold">
-                        f
-                    </div>
-                    <div>
-                        <div class="font-bold text-gray-800 text-sm">FACEBOOK</div>
-                        <div class="text-xs text-gray-500">Grup Facebook</div>
-                    </div>
-                </a>
-            </div>
+            <x-sidebar-right />
         </div>
 
     </div>

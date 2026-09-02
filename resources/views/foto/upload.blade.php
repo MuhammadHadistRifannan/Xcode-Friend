@@ -211,48 +211,8 @@
 
         <!-- Right Column: Sidebar Info (col-span-3) -->
         <div class="col-span-12 lg:col-span-3 space-y-6">
-            
-            <!-- Existing Sidebar Components -->
-            @php
-                $sidebarData = [
-                    'reviews' => ['rating' => 4.9, 'count' => 532],
-                    'networkLinks' => [
-                        ['id' => 1, 'label' => 'LinkedIn', 'url' => '#'],
-                        ['id' => 2, 'label' => 'phpBB Group', 'url' => '#'],
-                        ['id' => 3, 'label' => 'Facebook', 'url' => '#']
-                    ]
-                ];
-            @endphp
-            <x-sidebar-right :data="$sidebarData" />
-
-            <!-- System Info -->
-            <div class="bg-gray-50 border border-gray-200 rounded-lg p-5">
-                <h3 class="text-sm font-bold text-gray-500 mb-2 flex items-center gap-2"><i data-lucide="info" class="w-4 h-4"></i> SYSTEM INFO</h3>
-                <p class="text-xs text-gray-600 leading-relaxed">
-                    Go to <strong>Admin CP - Themes - Manage Blocks</strong> to edit this message.
-                </p>
-            </div>
-
-            <!-- Upload Guidelines -->
-            <div class="bg-white border border-gray-200 rounded-lg p-5">
-                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">UPLOAD GUIDELINES</h3>
-                <ul class="space-y-3 text-xs text-gray-700">
-                    <li class="flex items-start gap-2">
-                        <i data-lucide="check-circle" class="w-4 h-4 text-red-500 shrink-0"></i>
-                        <span>Keep file sizes under 10MB per image.</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <i data-lucide="check-circle" class="w-4 h-4 text-red-500 shrink-0"></i>
-                        <span>Ensure images do not contain sensitive credentials.</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <i data-lucide="check-circle" class="w-4 h-4 text-red-500 shrink-0"></i>
-                        <span>Supported formats: JPG, PNG, GIF.</span>
-                    </li>
-                </ul>
-            </div>
-            
-        </div>
+            <x-sidebar-right />
+        </div>    
 
     </div>
 </div>

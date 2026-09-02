@@ -119,17 +119,7 @@
 
         <!-- Right Sidebar (col-span-3) -->
         <div class="col-span-12 lg:col-span-3">
-            @php
-                $sidebarData = [
-                    'reviews' => ['rating' => 4.9, 'count' => 532],
-                    'networkLinks' => [
-                        ['id' => 1, 'label' => 'LinkedIn', 'url' => '#'],
-                        ['id' => 2, 'label' => 'phpBB Group', 'url' => '#'],
-                        ['id' => 3, 'label' => 'Facebook', 'url' => '#']
-                    ]
-                ];
-            @endphp
-            <x-sidebar-right :data="$sidebarData" />
+            <x-sidebar-right />
         </div>
 
     </div>

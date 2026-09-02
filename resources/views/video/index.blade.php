@@ -2,8 +2,10 @@
 
 @section('content')
 <div class="bg-[#f5f5f5] min-h-[calc(100vh-64px)] py-8">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6">
-
+<div class="max-w-7xl mx-auto px-4 sm:px-6">
+    <div class="grid grid-cols-12 gap-8">
+        <!-- Main Content -->
+        <div class="col-span-12 lg:col-span-9">
         {{-- ===== HEADER ===== --}}
         <div class="flex items-center justify-between mb-8">
             <div>
@@ -210,6 +212,12 @@
             </div>
         @endif
 
+        </div>
+
+        <!-- Right Sidebar (col-span-3) -->
+        <div class="col-span-12 lg:col-span-3">
+            <x-sidebar-right />
+        </div>
     </div>
 </div>
 @endsection

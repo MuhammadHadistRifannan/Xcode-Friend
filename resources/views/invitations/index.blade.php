@@ -1,7 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-3xl mx-auto py-10 px-4">
+<div class="max-w-7xl mx-auto py-10 px-4">
+    <div class="grid grid-cols-12 gap-8">
+        <!-- Main Content -->
+        <div class="col-span-12 lg:col-span-9">
     <!-- Header -->
     <div class="mb-8 text-center">
         <h1 class="text-3xl font-bold text-gray-900 mb-2">Undang Teman</h1>
@@ -145,6 +148,13 @@
                 @endif
             </div>
             
+        </div>
+    </div>
+        </div>
+        
+        <!-- Right Sidebar (col-span-3) -->
+        <div class="col-span-12 lg:col-span-3">
+            <x-sidebar-right />
         </div>
     </div>
 </div>

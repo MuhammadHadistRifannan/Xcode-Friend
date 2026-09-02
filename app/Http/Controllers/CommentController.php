@@ -35,7 +35,7 @@ class CommentController extends Controller
                         'username' => auth()->user()->username,
                         'avatar' => auth()->user()->avatar 
                             ? asset('storage/avatars/'.auth()->user()->avatar) 
-                            : 'https://ui-avatars.com/api/?name='.urlencode(auth()->user()->fullname).'&background=E5E5E5'
+                            : asset('assets/img/default.png')
                     ]
                 ],
                 'comments_count' => $stream->comments()->count()
