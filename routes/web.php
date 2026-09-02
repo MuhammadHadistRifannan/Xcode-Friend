@@ -5,6 +5,10 @@ use Illuminate\Support\Facades\Route;
 // Controllers from GitHub
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\StreamController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\AlbumController;
+use App\Http\Controllers\CaptchaController;
 
 // Local Controllers
 use App\Http\Controllers\PageController;
@@ -23,8 +27,25 @@ use App\Http\Controllers\AdminController;
 // Halaman Landing Page (Statistik & Feed Publik)
 Route::get('/', [HomeController::class, 'guest'])->name('home.guest');
 
-// Halaman Dashboard 3 Kolom (Hanya bisa diakses jika sudah login)
-Route::get('/beranda', [HomeController::class, 'index'])->middleware('auth')->name('beranda');
+Route::middleware('auth')->group(function () {
+    Route::get('/beranda', [HomeController::class, 'index'])->name('beranda');
+    Route::post('/stream', [StreamController::class, 'store'])->name('stream.store');
+    Route::post('/like/{stream}', [\App\Http\Controllers\LikeController::class, 'toggle'])->name('like.toggle');
+    Route::post('/comment/{stream}', [\App\Http\Controllers\CommentController::class, 'store'])->name('comment.store');
+    
+    // Profil Edit (Settings)
+    Route::get('/settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::post('/settings/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/background', [ProfileController::class, 'updateBackground'])->name('profile.background.update');
+    
+    // Album API
+    Route::get('/api/albums', [AlbumController::class, 'search'])->name('album.search');
+    Route::post('/api/albums', [AlbumController::class, 'store'])->name('album.store');
+});
+
+// Rute Profil Pengguna (contoh: xcode-friends.com/@giska) - Bisa diakses publik
+Route::get('/@{username}', [ProfileController::class, 'show'])->name('profile.show');
+
 
 // ==========================================
 // 2. AREA OTENTIKASI (LOGIN & REGISTER)
@@ -44,9 +65,13 @@ Route::middleware('guest')->group(function () {
     Route::get('/forgot-password', function () {
         return view('auth.forgot-password');
     })->name('password.request');
+    Route::post('/forgot-password', [\App\Http\Controllers\PasswordResetController::class, 'store'])->name('password.email');
+    Route::get('/reset-password/{token}', [\App\Http\Controllers\PasswordResetController::class, 'edit'])->name('password.reset');
+    Route::post('/reset-password', [\App\Http\Controllers\PasswordResetController::class, 'update'])->name('password.update');
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
+
 
 // ==========================================
 // 3. ADMIN ROUTES
@@ -190,3 +215,8 @@ Route::middleware('auth')->group(function () {
 // ==========================================
 Route::get('/desain-profil', [ProfileDesignController::class, 'index'])->name('desain-profil.index');
 Route::get('/undang', [InvitationController::class, 'index'])->name('undang.index');
+// ==========================================
+// Captcha & Extra Routes (from Remote)
+// ==========================================
+// Captcha Image Generator
+Route::get('/captcha', [CaptchaController::class, 'generate'])->name('captcha.generate');

@@ -59,8 +59,13 @@ class HomeController extends Controller
         $followingCount = $user->following()->count();
         $followerCount = $user->followers()->count();
 
-        // Ambil Feed Berita (Mengecualikan postingan grup dan pages)
+        // Dapatkan ID user yang diikuti
+        $followingIds = $user->following()->pluck('fid')->toArray();
+        $followingIds[] = $user->id; // Tambahkan ID sendiri
+
+        // Ambil Feed Berita (Mengecualikan postingan grup dan pages, hanya dari user yang diikuti)
         $streams = Stream::with(['user', 'comments.user'])
+                    ->whereIn('uid', $followingIds)
                     ->where(function($query) {
                         $query->whereNotIn('app', ['group', 'page'])
                               ->orWhereNull('app');
