@@ -19,7 +19,14 @@ class AdminController extends Controller
 
     public function dashboard()
     {
-        return view('admin.dashboard');
+        $stats = [
+            'total_members' => \Illuminate\Support\Facades\DB::table('jcow_accounts')->count(),
+            'pending_members' => \Illuminate\Support\Facades\DB::table('jcow_accounts')->where('disabled', 1)->count(),
+            'total_photos' => \Illuminate\Support\Facades\DB::table('jcow_story_photos')->count(),
+            'total_videos' => \Illuminate\Support\Facades\DB::table('jcow_stories')->where('app', 'video')->count(),
+        ];
+        
+        return view('admin.dashboard', compact('stats'));
     }
 
     public function siteConfiguration()

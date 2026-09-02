@@ -38,9 +38,6 @@
             @endif
         </div>
 
-        <div class="rounded-lg overflow-hidden mb-4 border border-gray-200 aspect-square">
-            <img src="{{ $profile['coverUrl'] }}" alt="Cover" class="w-full h-full object-cover">
-        </div>
 
         @if($profile['isOwner'])
         <div class="space-y-2">
@@ -58,11 +55,20 @@
         
         <div class="flex items-center justify-between text-xs text-gray-500 mb-4 border-t border-gray-100 pt-3">
             <span class="font-medium">{{ $profile['likesCount'] }} ORANG MENYUKAI INI</span>
-            <a href="#" class="text-blue-600 hover:underline">Lihat Semua</a>
+            <a href="{{ route('pages.followers', $profile['id']) }}" class="text-blue-600 hover:underline">Lihat Semua</a>
         </div>
         
         <div class="flex">
-            <img src="{{ $profile['avatarUrl'] }}" alt="Liked user" class="w-8 h-8 rounded-full border-2 border-white">
+            @if(isset($profile['recentFollowers']) && $profile['recentFollowers']->count() > 0)
+                @foreach($profile['recentFollowers'] as $follower)
+                    <img src="{{ $follower->avatar ? asset('storage/'.$follower->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($follower->username ?? 'User').'&background=random&color=fff' }}" 
+                         alt="{{ $follower->username }}" 
+                         class="w-8 h-8 rounded-full border-2 border-white -ml-2 first:ml-0" 
+                         title="{{ $follower->username }}">
+                @endforeach
+            @else
+                <span class="text-xs text-gray-400">Belum ada pengikut</span>
+            @endif
         </div>
     </div>
 

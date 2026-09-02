@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('content')
 <div class="bg-[#f5f5f5] min-h-[calc(100vh-64px)] py-8">
@@ -31,7 +31,7 @@
                                 </div>
                             </div>
                             <div>
-                                <div class="text-2xl font-black text-gray-900 mb-1">8</div>
+                                <div class="text-2xl font-black text-gray-900 mb-1">{{ $stats['total_members'] ?? 0 }}</div>
                                 <div class="text-[10px] text-gray-500 leading-tight">Total registered members</div>
                             </div>
                         </div>
@@ -45,7 +45,7 @@
                                 </div>
                             </div>
                             <div>
-                                <div class="text-2xl font-black text-gray-900 mb-1">0</div>
+                                <div class="text-2xl font-black text-gray-900 mb-1">{{ $stats['pending_members'] ?? 0 }}</div>
                                 <div class="text-[10px] text-gray-500 leading-tight">Awaiting approval</div>
                             </div>
                         </div>
@@ -59,7 +59,7 @@
                                 </div>
                             </div>
                             <div>
-                                <div class="text-2xl font-black text-gray-900 mb-1">0</div>
+                                <div class="text-2xl font-black text-gray-900 mb-1">{{ $stats['total_photos'] ?? 0 }}</div>
                                 <div class="text-[10px] text-gray-500 leading-tight">Uploaded photos</div>
                             </div>
                         </div>
@@ -73,83 +73,14 @@
                                 </div>
                             </div>
                             <div>
-                                <div class="text-2xl font-black text-gray-900 mb-1">0</div>
+                                <div class="text-2xl font-black text-gray-900 mb-1">{{ $stats['total_videos'] ?? 0 }}</div>
                                 <div class="text-[10px] text-gray-500 leading-tight">Uploaded videos</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Bagian B: MANAGEMENT TOOLS -->
-                <div>
-                    <h2 class="text-lg font-bold text-gray-900 mb-4">MANAGEMENT TOOLS</h2>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                        
-                        <!-- Tool 1: Site Config -->
-                        <a href="{{ route('admin.site-config') }}" class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:border-red-300 hover:shadow-md transition-all group cursor-pointer block">
-                            <div class="text-red-500 bg-red-50 w-10 h-10 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                                <i data-lucide="settings" class="w-5 h-5"></i>
-                            </div>
-                            <h3 class="font-bold text-gray-900 text-sm mb-1 group-hover:text-red-600 transition-colors">Site Config</h3>
-                            <p class="text-[11px] text-gray-500 leading-tight">Global settings, metadata, and core platform...</p>
-                        </a>
-
-                        <!-- Tool 2: Modules -->
-                        <a href="{{ route('admin.modules') }}" class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:border-red-300 hover:shadow-md transition-all group cursor-pointer block">
-                            <div class="text-red-500 bg-red-50 w-10 h-10 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                                <i data-lucide="box" class="w-5 h-5"></i>
-                            </div>
-                            <h3 class="font-bold text-gray-900 text-sm mb-1 group-hover:text-red-600 transition-colors">Modules</h3>
-                            <p class="text-[11px] text-gray-500 leading-tight">Enable or disable core features and add-ons...</p>
-                        </a>
-
-                        <!-- Tool 3: Menu -->
-                        <a href="{{ route('admin.menu') }}" class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:border-red-300 hover:shadow-md transition-all group cursor-pointer block">
-                            <div class="text-red-500 bg-red-50 w-10 h-10 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                                <i data-lucide="list" class="w-5 h-5"></i>
-                            </div>
-                            <h3 class="font-bold text-gray-900 text-sm mb-1 group-hover:text-red-600 transition-colors">Menu</h3>
-                            <p class="text-[11px] text-gray-500 leading-tight">Customize navigation structure and links...</p>
-                        </a>
-
-                        <!-- Tool 4: Emailing -->
-                        <a href="#" class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:border-red-300 hover:shadow-md transition-all group cursor-pointer block">
-                            <div class="text-red-500 bg-red-50 w-10 h-10 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                                <i data-lucide="mail" class="w-5 h-5"></i>
-                            </div>
-                            <h3 class="font-bold text-gray-900 text-sm mb-1 group-hover:text-red-600 transition-colors">Emailing</h3>
-                            <p class="text-[11px] text-gray-500 leading-tight">Configure SMTP and template dispatch logic...</p>
-                        </a>
-
-                        <!-- Tool 5: Themes -->
-                        <a href="#" class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:border-red-300 hover:shadow-md transition-all group cursor-pointer block">
-                            <div class="text-red-500 bg-red-50 w-10 h-10 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                                <i data-lucide="palette" class="w-5 h-5"></i>
-                            </div>
-                            <h3 class="font-bold text-gray-900 text-sm mb-1 group-hover:text-red-600 transition-colors">Themes</h3>
-                            <p class="text-[11px] text-gray-500 leading-tight">Manage visual identity and UI assets...</p>
-                        </a>
-
-                        <!-- Tool 6: Members -->
-                        <a href="#" class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:border-red-300 hover:shadow-md transition-all group cursor-pointer block">
-                            <div class="text-red-500 bg-red-50 w-10 h-10 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                                <i data-lucide="users" class="w-5 h-5"></i>
-                            </div>
-                            <h3 class="font-bold text-gray-900 text-sm mb-1 group-hover:text-red-600 transition-colors">Members</h3>
-                            <p class="text-[11px] text-gray-500 leading-tight">Review, edit, or ban user accounts...</p>
-                        </a>
-
-                        <!-- Tool 7: Reports -->
-                        <a href="{{ route('admin.reports') }}" class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:border-red-300 hover:shadow-md transition-all group cursor-pointer block">
-                            <div class="text-red-500 bg-red-50 w-10 h-10 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                                <i data-lucide="alert-triangle" class="w-5 h-5"></i>
-                            </div>
-                            <h3 class="font-bold text-gray-900 text-sm mb-1 group-hover:text-red-600 transition-colors">Reports</h3>
-                            <p class="text-[11px] text-gray-500 leading-tight">Review and resolve user reports...</p>
-                        </a>
-
-                    </div>
-                </div>
+                <!-- Bagian B dihapus karena dipindah ke Sidebar -->
 
             </div>
 

@@ -4,7 +4,7 @@
     <!-- Top Navigation Tabs -->
     <div class="bg-white rounded-t-lg border-b border-gray-200 flex">
         <button class="flex-1 py-3 text-sm font-bold text-red-600 border-b-2 border-red-600 tracking-wider">
-            DINDING
+            STATUS
         </button>
         <button class="flex-1 py-3 text-sm font-bold text-gray-500 hover:bg-gray-50 tracking-wider transition-colors">
             FOTO

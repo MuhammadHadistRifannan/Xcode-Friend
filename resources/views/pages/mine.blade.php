@@ -60,69 +60,66 @@
                 </a>
             </div>
         @else
-            <!-- Table Header -->
-            <div class="grid grid-cols-12 gap-4 text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 px-4">
-                <div class="col-span-1">LOGO</div>
-                <div class="col-span-7">NAMA &amp; DESKRIPSI</div>
-                <div class="col-span-2 text-center">LIKES</div>
-                <div class="col-span-2 text-right">AKSI</div>
-            </div>
-            <div class="border-t border-gray-200 mb-4"></div>
-
-            <div class="space-y-3">
-                @foreach($createdPages as $page)
-                <div class="bg-white rounded-lg border border-gray-200 p-4 flex items-center gap-4 hover:shadow-sm transition-shadow">
-
-                    <!-- Logo -->
-                    <div class="shrink-0">
-                        @if($page->logo_url)
-                            <img src="{{ $page->logo_url }}" alt="{{ $page->name }}" class="w-12 h-12 rounded-md object-cover border border-gray-200">
-                        @else
-                            <div class="w-12 h-12 bg-gray-100 rounded-md flex items-center justify-center border border-gray-200">
-                                <i data-lucide="file-text" class="w-5 h-5 text-gray-400"></i>
-                            </div>
-                        @endif
-                    </div>
-
-                    <!-- Info -->
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-2 mb-0.5">
-                            <a href="{{ route('pages.show', $page->id) }}" class="font-bold text-gray-900 hover:text-red-700 transition-colors text-sm truncate">
-                                {{ $page->name }}
-                            </a>
-                        </div>
-                        <p class="text-xs text-gray-500 truncate">{{ $page->description ?: 'Tidak ada deskripsi.' }}</p>
-                        <p class="text-[10px] text-gray-400 mt-0.5">
-                            Diperbarui: {{ $page->updated ? date('d M Y', $page->updated) : '-' }}
-                        </p>
-                    </div>
-
-                    <!-- Likes Count -->
-                    <div class="shrink-0 text-center">
-                        <div class="text-sm font-bold text-gray-800">{{ number_format($page->followers_count) }}</div>
-                        <div class="text-[10px] text-gray-400">likes</div>
-                    </div>
-
-                    <!-- Actions -->
-                    <div class="shrink-0 flex items-center gap-2">
-                        <a href="{{ route('pages.edit', $page->id) }}"
-                            class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
-                            title="Edit">
-                            <i data-lucide="pencil" class="w-4 h-4"></i>
-                        </a>
-                        <form action="{{ route('pages.destroy', $page->id) }}" method="POST"
-                              onsubmit="return confirm('Hapus halaman {{ addslashes($page->name) }}?')">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit"
-                                class="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                                title="Hapus">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
-                        </form>
-                    </div>
+            <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-gray-50 border-b border-gray-200 text-xs text-gray-500 uppercase tracking-wider">
+                            <tr>
+                                <th class="px-6 py-4 font-bold w-20">Logo</th>
+                                <th class="px-6 py-4 font-bold">Nama &amp; Deskripsi</th>
+                                <th class="px-6 py-4 font-bold text-center">Likes</th>
+                                <th class="px-6 py-4 font-bold text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            @foreach($createdPages as $page)
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4">
+                                    @if($page->logo_url)
+                                        <img src="{{ $page->logo_url }}" alt="{{ $page->name }}" class="w-12 h-12 rounded-md object-cover border border-gray-200">
+                                    @else
+                                        <div class="w-12 h-12 bg-gray-100 rounded-md flex items-center justify-center border border-gray-200">
+                                            <i data-lucide="file-text" class="w-5 h-5 text-gray-400"></i>
+                                        </div>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4">
+                                    <a href="{{ route('pages.show', $page->id) }}" class="font-bold text-gray-900 hover:text-red-700 transition-colors text-sm block truncate mb-1">
+                                        {{ $page->name }}
+                                    </a>
+                                    <p class="text-xs text-gray-500 truncate mb-1">{{ $page->description ?: 'Tidak ada deskripsi.' }}</p>
+                                    <p class="text-[10px] text-gray-400">
+                                        Diperbarui: {{ $page->updated ? date('d M Y', $page->updated) : '-' }}
+                                    </p>
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    <div class="text-sm font-bold text-gray-800">{{ number_format($page->followers_count) }}</div>
+                                    <div class="text-[10px] text-gray-400 uppercase tracking-wide">likes</div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center justify-end gap-2">
+                                        <a href="{{ route('pages.edit', $page->id) }}"
+                                            class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-md transition-colors"
+                                            title="Edit">
+                                            <i data-lucide="pencil" class="w-4 h-4"></i>
+                                        </a>
+                                        <form action="{{ route('pages.destroy', $page->id) }}" method="POST"
+                                              onsubmit="return confirm('Hapus halaman {{ addslashes($page->name) }}?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                class="p-2 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-md transition-colors"
+                                                title="Hapus">
+                                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
-                @endforeach
             </div>
         @endif
     </div>

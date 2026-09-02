@@ -63,6 +63,15 @@ class Page extends Model
         );
     }
 
+    /**
+     * Stream / Postingan di dinding Halaman.
+     */
+    public function streams(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Stream::class, 'wall_id')
+                    ->where('app', 'page');
+    }
+
     // =========================================================================
     // ACCESSOR / HELPER
     // =========================================================================

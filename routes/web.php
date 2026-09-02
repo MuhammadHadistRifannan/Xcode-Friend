@@ -51,17 +51,41 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->n
 // ==========================================
 // 3. ADMIN ROUTES
 // ==========================================
-Route::get('/admin/login', [AdminController::class, 'login'])->name('admin.login');
-Route::post('/admin/login-process', [AdminController::class, 'loginProcess'])->name('admin.login.process');
-// TODO: Bungkus dengan Middleware Auth
-Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
-Route::get('/admin/site-configuration', [AdminController::class, 'siteConfiguration'])->name('admin.site-config');
-Route::get('/admin/modules', [AdminController::class, 'modules'])->name('admin.modules');
-Route::get('/admin/menu', [AdminController::class, 'menu'])->name('admin.menu');
-Route::get('/admin/user-roles', [AdminController::class, 'userRoles'])->name('admin.user-roles');
-Route::get('/admin/translate', [AdminController::class, 'translate'])->name('admin.translate');
-Route::get('/admin/reports', [AdminController::class, 'reports'])->name('admin.reports');
-Route::patch('/admin/reports/{id}/resolve', [AdminController::class, 'reportsResolve'])->name('admin.reports.resolve');
+Route::prefix('admin')->group(function () {
+    Route::get('/login', [\App\Http\Controllers\AdminController::class, 'login'])->name('admin.login');
+    Route::post('/login-process', [\App\Http\Controllers\AdminController::class, 'loginProcess'])->name('admin.login.process');
+    
+    Route::middleware(['auth', 'admin'])->group(function () {
+        Route::get('/', [\App\Http\Controllers\AdminController::class, 'dashboard'])->name('admin.index');
+        Route::get('/dashboard', [\App\Http\Controllers\AdminController::class, 'dashboard'])->name('admin.dashboard');
+        
+        // Members Management
+        Route::get('/members', [\App\Http\Controllers\AdminMemberController::class, 'index'])->name('admin.members');
+        Route::put('/members/{id}/role', [\App\Http\Controllers\AdminMemberController::class, 'updateRole'])->name('admin.members.role');
+        Route::delete('/members/{id}/ban', [\App\Http\Controllers\AdminMemberController::class, 'banMember'])->name('admin.members.ban');
+        
+        // Site Configuration
+        Route::get('/site-configuration', [\App\Http\Controllers\AdminSettingsController::class, 'index'])->name('admin.site-config');
+        Route::post('/site-configuration', [\App\Http\Controllers\AdminSettingsController::class, 'update'])->name('admin.settings.update');
+        // Modules Management
+        Route::get('/modules', [\App\Http\Controllers\AdminModuleController::class, 'index'])->name('admin.modules');
+        Route::post('/modules/toggle', [\App\Http\Controllers\AdminModuleController::class, 'toggle'])->name('admin.modules.toggle');
+        // Custom Fields
+        Route::get('/custom-fields', [\App\Http\Controllers\AdminCustomFieldController::class, 'index'])->name('admin.custom-fields');
+        Route::post('/custom-fields', [\App\Http\Controllers\AdminCustomFieldController::class, 'store'])->name('admin.custom-fields.store');
+        Route::delete('/custom-fields/{id}', [\App\Http\Controllers\AdminCustomFieldController::class, 'destroy'])->name('admin.custom-fields.destroy');
+        // Themes & Blocks
+        Route::get('/themes', [\App\Http\Controllers\AdminThemeController::class, 'index'])->name('admin.themes');
+        Route::post('/themes/update', [\App\Http\Controllers\AdminThemeController::class, 'update'])->name('admin.themes.update');
+        Route::get('/themes/blocks', [\App\Http\Controllers\AdminBlockController::class, 'index'])->name('admin.themes.blocks');
+        Route::post('/themes/blocks', [\App\Http\Controllers\AdminBlockController::class, 'update'])->name('admin.themes.blocks.update');
+        Route::get('/menu', [\App\Http\Controllers\AdminController::class, 'menu'])->name('admin.menu');
+        Route::get('/user-roles', [\App\Http\Controllers\AdminController::class, 'userRoles'])->name('admin.user-roles');
+        Route::get('/translate', [\App\Http\Controllers\AdminController::class, 'translate'])->name('admin.translate');
+        Route::get('/reports', [\App\Http\Controllers\AdminController::class, 'reports'])->name('admin.reports');
+        Route::patch('/reports/{id}/resolve', [\App\Http\Controllers\AdminController::class, 'reportsResolve'])->name('admin.reports.resolve');
+    });
+});
 
 // ==========================================
 // 4. PAGES ROUTES
@@ -78,6 +102,9 @@ Route::post('/pages/{id}/like', [PageController::class, 'like'])->name('pages.li
 Route::delete('/pages/{id}/unlike', [PageController::class, 'unlike'])->name('pages.unlike');
 
 Route::get('/my-pages', [MyPageController::class, 'index'])->name('my-pages.index');
+Route::post('/pages/{id}/stream', [PageController::class, 'postStream'])->name('pages.stream');
+Route::get('/pages/{page}/media/{type}', [PageController::class, 'media'])->name('pages.media');
+Route::get('/pages/{id}/followers', [PageController::class, 'followers'])->name('pages.followers');
 
 // ==========================================
 // 5. VIDEOS ROUTES
@@ -85,6 +112,12 @@ Route::get('/my-pages', [MyPageController::class, 'index'])->name('my-pages.inde
 Route::get('/videos', [VideoController::class, 'publicIndex'])->name('videos.public');
 Route::get('/videos/create', [VideoController::class, 'create'])->name('videos.create');
 Route::post('/videos', [VideoController::class, 'store'])->name('videos.store');
+
+// ==========================================
+// 6. INVITATION ROUTES
+// ==========================================
+Route::get('/invitation', [InvitationController::class, 'index'])->name('invitation.index');
+Route::post('/invitation/email', [InvitationController::class, 'sendEmail'])->name('invitation.email');
 Route::get('/video', [VideoController::class, 'index'])->name('video.index');
 Route::get('/video/album/{id}/edit', [VideoController::class, 'editAlbum'])->name('video.album.edit');
 Route::put('/video/album/{id}', [VideoController::class, 'updateAlbum'])->name('video.album.update');
@@ -124,6 +157,9 @@ Route::middleware('auth')->group(function () {
     // Group Reports
     Route::get('/groups/{group}/reports', [GroupController::class, 'reports'])->name('groups.reports');
     Route::patch('/groups/{group}/reports/{id}/resolve', [GroupController::class, 'reportsResolve'])->name('groups.reports.resolve');
+    
+    // Group Media Full View
+    Route::get('/groups/{group}/media/{type}', [GroupController::class, 'media'])->name('groups.media');
     
     // Group Invites
     Route::get('/groups/{group}/invite', [GroupController::class, 'invite'])->name('groups.invite');

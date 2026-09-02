@@ -29,6 +29,14 @@ class AuthController extends Controller
         if (Auth::attempt([$fieldType => $request->login, 'password' => $request->password], $remember)) {
             $request->session()->regenerate();
 
+            // Cek apakah user adalah admin
+            $role = Auth::user()->roles;
+            $roleLower = strtolower($role);
+            if ($role == 1 || in_array($roleLower, ['admin', 'administrator'])) {
+                // Jika Admin, alihkan ke Dashboard Admin
+                return redirect()->intended('/admin/dashboard');
+            }
+
             // Jika berhasil, alihkan ke Dashboard (Beranda)
             return redirect()->intended('/beranda');
         }

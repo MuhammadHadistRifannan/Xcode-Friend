@@ -6,13 +6,22 @@
 <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
     
     @if(session('success'))
-        <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6 text-sm font-medium">
+        <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)" 
+             x-transition.duration.500ms
+             class="fixed bottom-4 right-4 z-50 bg-green-50 border border-green-200 text-green-700 px-6 py-4 rounded-lg shadow-lg text-sm font-bold flex items-center gap-3">
+            <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
             {{ session('success') }}
         </div>
     @endif
     @if($errors->any())
-        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 text-sm">
-            <ul class="list-disc pl-5 space-y-1">
+        <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)"
+             x-transition.duration.500ms
+             class="fixed bottom-4 right-4 z-50 bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-lg shadow-lg text-sm font-bold flex flex-col gap-1">
+            <div class="flex items-center gap-3">
+                <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                <span>Ada kesalahan:</span>
+            </div>
+            <ul class="list-disc pl-8 font-normal text-xs mt-1">
                 @foreach($errors->all() as $e) <li>{{ $e }}</li> @endforeach
             </ul>
         </div>
@@ -162,34 +171,19 @@
             }" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 <!-- Top Tabs -->
                 <div class="flex border-b border-gray-100">
-                    <button type="button" @click="tab = 'status'" :class="{'text-red-700 border-b-2 border-red-700': tab === 'status', 'text-gray-500 hover:text-gray-700': tab !== 'status'}" class="flex-1 py-3 text-sm font-bold uppercase tracking-wide">Dinding</button>
+                    <button type="button" @click="tab = 'status'" :class="{'text-red-700 border-b-2 border-red-700': tab === 'status', 'text-gray-500 hover:text-gray-700': tab !== 'status'}" class="flex-1 py-3 text-sm font-bold uppercase tracking-wide">Status</button>
                     <button type="button" @click="tab = 'photo'" :class="{'text-red-700 border-b-2 border-red-700': tab === 'photo', 'text-gray-500 hover:text-gray-700': tab !== 'photo'}" class="flex-1 py-3 text-sm font-bold uppercase tracking-wide">Foto</button>
                     <button type="button" @click="tab = 'video'" :class="{'text-red-700 border-b-2 border-red-700': tab === 'video', 'text-gray-500 hover:text-gray-700': tab !== 'video'}" class="flex-1 py-3 text-sm font-bold uppercase tracking-wide">Video</button>
                 </div>
 
                 <!-- Inner content -->
                 <div class="p-5">
-                    <!-- Sub Tabs -->
-                    <div class="flex items-center gap-6 mb-4 border-b border-gray-50 pb-4">
-                        <button type="button" @click="tab = 'status'" :class="{'text-red-700': tab === 'status', 'text-gray-500 hover:text-gray-700': tab !== 'status'}" class="flex items-center gap-2 text-sm font-bold transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg>
-                            STATUS
-                        </button>
-                        <button type="button" @click="tab = 'photo'" :class="{'text-red-700': tab === 'photo', 'text-gray-500 hover:text-gray-700': tab !== 'photo'}" class="flex items-center gap-2 text-sm font-bold transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                            UNGGAH
-                        </button>
-                        <button type="button" @click="tab = 'video'" :class="{'text-red-700': tab === 'video', 'text-gray-500 hover:text-gray-700': tab !== 'video'}" class="flex items-center gap-2 text-sm font-bold transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                            VIDEO
-                        </button>
-                    </div>
 
                     <form action="{{ route('groups.stream', $group->id) }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         
                         <!-- Textarea (Always Visible as caption) -->
-                        <textarea name="message" rows="2" class="w-full resize-none border-0 focus:ring-0 text-sm text-gray-700 font-mono placeholder-gray-400 p-0 mb-4 bg-transparent" placeholder="> Awaiting command sequence..."></textarea>
+                        <textarea name="message" rows="2" :required="tab === 'status'" class="w-full resize-none border-0 focus:ring-0 text-sm text-gray-700 font-mono placeholder-gray-400 p-0 mb-4 bg-transparent" placeholder="> Awaiting command sequence..."></textarea>
                         
                         <!-- File Upload Input (Shown for Photo) -->
                         <div x-show="tab === 'photo'" x-cloak class="mb-4">
@@ -492,19 +486,128 @@
             </div>
 
             <!-- Kotak Media Grup -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden" x-data="{ 
+                mediaTab: 'photo',
+                videoUrl: '', 
+                videoId: null,
+                photoUrl: null,
+                openVideo(url) {
+                    this.videoUrl = url;
+                    let match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^&?\/\s]{11})/);
+                    if (match && match[1]) {
+                        this.videoId = match[1];
+                    }
+                }
+            }">
                 <div class="px-5 py-4 border-b border-gray-100 flex justify-between items-center">
                     <h3 class="font-bold text-gray-900 text-sm tracking-wide uppercase">Media Grup</h3>
                 </div>
-                <div class="p-4 flex gap-3">
-                    <a href="{{ route('groups.show', ['group' => $group->id, 'filter' => 'photo']) }}" class="flex-1 bg-red-50 hover:bg-red-100 text-red-700 font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors border border-red-100 shadow-sm text-sm">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                
+                <!-- Tabs Navigation -->
+                <div class="flex border-b border-gray-100">
+                    <button type="button" @click="mediaTab = 'photo'" :class="{ 'border-red-600 text-red-600': mediaTab === 'photo', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': mediaTab !== 'photo' }" class="flex-1 py-3 text-sm font-bold border-b-2 transition-colors">
                         Foto
+                    </button>
+                    <button type="button" @click="mediaTab = 'video'" :class="{ 'border-red-600 text-red-600': mediaTab === 'video', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': mediaTab !== 'video' }" class="flex-1 py-3 text-sm font-bold border-b-2 transition-colors">
+                        Vidio
+                    </button>
+                </div>
+
+                <!-- Photos Grid -->
+                <div x-show="mediaTab === 'photo'" class="p-4" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+                    @if($recentPhotos->count() > 0)
+                        <div class="grid grid-cols-3 gap-2 mb-4">
+                            @foreach($recentPhotos as $photo)
+                                <div @click="photoUrl = '{{ asset('storage/'.$photo->attachment) }}'" class="aspect-square bg-gray-100 rounded-md overflow-hidden block group relative cursor-pointer">
+                                    <img src="{{ asset('storage/'.$photo->attachment) }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="text-center py-6 text-xs text-gray-400 bg-gray-50 rounded-lg mb-4 border border-gray-100">
+                            Belum ada foto
+                        </div>
+                    @endif
+                    <a href="{{ route('groups.media', ['group' => $group->id, 'type' => 'photo']) }}" class="block w-full py-2 text-center text-sm font-bold text-gray-600 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg transition-colors hover:text-red-700">
+                        Lihat semuanya
                     </a>
-                    <a href="{{ route('groups.show', ['group' => $group->id, 'filter' => 'video']) }}" class="flex-1 bg-red-50 hover:bg-red-100 text-red-700 font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors border border-red-100 shadow-sm text-sm">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                        Video
+                </div>
+
+                <!-- Videos Grid -->
+                <div x-show="mediaTab === 'video'" class="p-4" style="display: none;" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+                    @if($recentVideos->count() > 0)
+                        <div class="grid grid-cols-3 gap-2 mb-4">
+                            @foreach($recentVideos as $video)
+                                @php $ytId = str_replace('youtube:', '', $video->attachment); @endphp
+                                <div @click="openVideo('https://www.youtube.com/watch?v={{ $ytId }}')" class="aspect-square bg-gray-100 rounded-md overflow-hidden block relative group border border-gray-200 cursor-pointer">
+                                    <img src="https://img.youtube.com/vi/{{ $ytId }}/mqdefault.jpg" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300 opacity-90 group-hover:opacity-100">
+                                    <div class="absolute inset-0 flex items-center justify-center">
+                                        <div class="bg-black bg-opacity-60 rounded-full p-1.5 backdrop-blur-sm group-hover:bg-red-600 transition-colors">
+                                            <i data-lucide="play" class="w-3 h-3 text-white fill-white ml-0.5"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="text-center py-6 text-xs text-gray-400 bg-gray-50 rounded-lg mb-4 border border-gray-100">
+                            Belum ada vidio
+                        </div>
+                    @endif
+                    <a href="{{ route('groups.media', ['group' => $group->id, 'type' => 'video']) }}" class="block w-full py-2 text-center text-sm font-bold text-gray-600 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg transition-colors hover:text-red-700">
+                        Lihat semuanya
                     </a>
+                </div>
+
+                <!-- Video Player Modal (Alpine.js) -->
+                <div x-show="videoId" 
+                    class="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-90 backdrop-blur-sm p-4"
+                    style="display: none;"
+                    x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0"
+                    x-transition:enter-end="opacity-100"
+                    x-transition:leave="transition ease-in duration-200"
+                    x-transition:leave-start="opacity-100"
+                    x-transition:leave-end="opacity-0">
+                    
+                    <div class="relative w-full max-w-4xl mx-auto rounded-xl overflow-hidden shadow-2xl bg-black" @click.away="videoId = null">
+                        <button type="button" @click="videoId = null" class="absolute -top-12 right-0 text-white hover:text-red-500 transition-colors flex items-center gap-2 text-sm font-bold bg-white/10 px-3 py-1.5 rounded-lg backdrop-blur-md">
+                            Tutup <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                        
+                        <div class="relative pt-[56.25%] w-full bg-black rounded-xl overflow-hidden">
+                            <template x-if="videoId">
+                                <iframe 
+                                    class="absolute top-0 left-0 w-full h-full"
+                                    :src="'https://www.youtube.com/embed/' + videoId + '?autoplay=1'" 
+                                    title="YouTube video player" 
+                                    frameborder="0" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                    allowfullscreen>
+                                </iframe>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Photo Viewer Modal (Alpine.js) -->
+                <div x-show="photoUrl" 
+                    class="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-90 backdrop-blur-sm p-4"
+                    style="display: none;"
+                    x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0"
+                    x-transition:enter-end="opacity-100"
+                    x-transition:leave="transition ease-in duration-200"
+                    x-transition:leave-start="opacity-100"
+                    x-transition:leave-end="opacity-0">
+                    
+                    <div class="relative w-full h-full max-w-5xl max-h-[90vh] flex items-center justify-center" @click.away="photoUrl = null">
+                        <button type="button" @click="photoUrl = null" class="absolute -top-12 right-0 text-white hover:text-red-500 transition-colors flex items-center gap-2 text-sm font-bold bg-white/10 px-3 py-1.5 rounded-lg backdrop-blur-md z-10">
+                            Tutup <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                        
+                        <img :src="photoUrl" class="w-full h-full object-contain rounded-lg shadow-2xl">
+                    </div>
                 </div>
             </div>
 

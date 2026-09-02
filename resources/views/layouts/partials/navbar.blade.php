@@ -14,7 +14,7 @@
             <a href="{{ route('beranda') }}" class="{{ request()->routeIs('beranda') ? 'text-red-600' : 'hover:text-white' }} transition">Beranda</a>
             <a href="#" class="hover:text-white transition">Telusur</a>
             <a href="{{ route('videos.public') }}" class="{{ request()->routeIs('videos.*') || request()->routeIs('video.*') ? 'text-red-600' : 'hover:text-white' }} transition">Video</a>
-            <a href="{{ route('pages.index') }}" class="{{ request()->routeIs('pages.*') || request()->routeIs('my-pages.*') ? 'text-red-600' : 'hover:text-white' }} transition">Pages</a>
+            <a href="{{ route('pages.index') }}" class="{{ request()->routeIs('pages.*') ? 'text-red-600' : 'hover:text-white' }} transition">Pages</a>
 
             @auth
             <!-- Dropdown My Apps -->
@@ -84,10 +84,6 @@
                 </div>
             @endauth
 
-            <a href="{{ route('admin.login') }}" class="bg-red-600 hover:bg-red-700 text-white text-[10px] font-bold px-2 py-1 rounded flex items-center gap-1 transition-colors shadow-sm">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg> ADMIN
-            </a>
-
             <!-- Tombol Profile & Dropdown (Sistem HOVER murni tanpa JS) -->
             <div class="relative ml-2 group">
                 <!-- Tombol Avatar -->
@@ -115,6 +111,13 @@
                             <a href="#" class="block px-4 py-2 text-xs text-neutral-300 hover:bg-neutral-800 hover:text-white transition mt-1">Profil Saya</a>
                             <a href="#" class="block px-4 py-2 text-xs text-neutral-300 hover:bg-neutral-800 hover:text-white transition">Pengaturan</a>
                             
+                            @php
+                                $isAdmin = auth()->check() && (auth()->user()->roles == 1 || in_array(strtolower(auth()->user()->roles), ['admin', 'administrator']));
+                            @endphp
+                            @if($isAdmin)
+                                <a href="{{ route('admin.dashboard') }}" class="block px-4 py-2 text-xs text-neutral-300 hover:bg-neutral-800 hover:text-white transition">Tampilan Admin</a>
+                            @endif
+
                             <form method="POST" action="{{ route('logout') }}" class="block w-full text-left">
                                 @csrf
                                 <button type="submit" class="w-full text-left px-4 py-2 text-xs text-red-500 font-bold hover:bg-neutral-800 hover:text-red-400 transition mt-1 border-t border-neutral-800">

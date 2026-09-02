@@ -103,7 +103,45 @@ class GroupController extends Controller
         $isMember = $group->uid === Auth::id() || $group->members()->where('uid', Auth::id())->exists();
         $isPending = $group->type === 'private_group' && $group->pendingMembers()->where('uid', Auth::id())->exists();
         
-        return view('groups.show', compact('group', 'isMember', 'isPending', 'filter'));
+        $recentPhotos = \App\Models\Stream::where('wall_id', $group->id)
+            ->where('attachment', '!=', '')
+            ->where('attachment', 'not like', 'youtube:%')
+            ->orderBy('created', 'desc')
+            ->take(9)
+            ->get();
+
+        $recentVideos = \App\Models\Stream::where('wall_id', $group->id)
+            ->where('attachment', 'like', 'youtube:%')
+            ->orderBy('created', 'desc')
+            ->take(9)
+            ->get();
+        
+        return view('groups.show', compact('group', 'isMember', 'isPending', 'filter', 'recentPhotos', 'recentVideos'));
+    }
+
+    public function media(Group $group, $type)
+    {
+        $isMember = $group->uid === Auth::id() || $group->members()->where('uid', Auth::id())->exists();
+        if (!$isMember && $group->type === 'private_group') {
+            abort(403, 'Anda tidak memiliki akses ke halaman ini.');
+        }
+
+        $query = \App\Models\Stream::where('wall_id', $group->id);
+
+        if ($type === 'photo') {
+            $query->where('attachment', '!=', '')
+                  ->where('attachment', 'not like', 'youtube:%');
+            $title = 'Foto Grup';
+        } elseif ($type === 'video') {
+            $query->where('attachment', 'like', 'youtube:%');
+            $title = 'Vidio Grup';
+        } else {
+            abort(404);
+        }
+
+        $mediaList = $query->orderBy('created', 'desc')->paginate(12);
+
+        return view('groups.media', compact('group', 'mediaList', 'type', 'title', 'isMember'));
     }
 
     public function postStream(Request $request, $id)
@@ -138,7 +176,7 @@ class GroupController extends Controller
         }
 
         Stream::create([
-            'message'    => $request->input('message', ''),
+            'message'    => $request->message ?? '',
             'wall_id'    => $id,
             'uid'        => Auth::id(),
             'attachment' => $attachment,
@@ -285,9 +323,9 @@ class GroupController extends Controller
         if ($group->type === 'private_group') {
             // Cek apakah user sudah diundang oleh admin grup
             $isInvited = DB::table('jcow_messages')
-                ->where('uid', Auth::id())
-                ->where('fid', $group->uid)
-                ->where('title', 'Undangan Grup: ' . $group->name)
+                ->where('to_id', Auth::id())
+                ->where('from_id', $group->uid)
+                ->where('subject', 'Undangan Grup: ' . $group->name)
                 ->exists();
 
             if (!$isInvited) {

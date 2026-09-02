@@ -111,7 +111,23 @@ class PageController extends Controller
 
     public function show($id)
     {
-        $page = Page::withCount('followers')->findOrFail($id);
+        $page = Page::findOrFail($id);
+        $filter = request()->query('filter');
+
+        $page->load([
+            'creator',
+            'streams' => function ($query) use ($filter) {
+                if ($filter === 'photo') {
+                    $query->where('attachment', '!=', '')
+                          ->where('attachment', 'not like', 'youtube:%');
+                } elseif ($filter === 'video') {
+                    $query->where('attachment', 'like', 'youtube:%');
+                }
+                $query->with('user');
+                $query->orderBy('created', 'desc');
+            }
+        ]);
+        $page->loadCount('followers');
 
         // Fallback ke user ID 1 jika Auth belum aktif untuk keperluan testing
         $userId = Auth::id() ?? (optional(\App\Models\User::first())->id ?? 1);
@@ -121,6 +137,8 @@ class PageController extends Controller
 
         // Cek apakah user adalah pemilik page
         $isOwner = ($page->uid == $userId);
+
+        $recentFollowers = $page->followers()->take(5)->get();
 
         // Mock data untuk posts & sidebar (ganti dengan query real nanti)
         $pageData = [
@@ -134,13 +152,29 @@ class PageController extends Controller
                 'avatarUrl'   => $page->logo_url ?? 'https://ui-avatars.com/api/?name=' . urlencode($page->name) . '&background=ff0000&color=fff',
                 'isLiked'     => $isLiked,
                 'isOwner'     => $isOwner,
+                'recentFollowers' => $recentFollowers,
             ],
             'posts'        => [],
             'reviews'      => ['rating' => 0, 'count' => 0],
             'networkLinks' => [],
         ];
 
-        return view('pages.show', compact('page', 'pageData', 'isLiked'));
+        $recentPhotos = \App\Models\Stream::where('wall_id', $page->id)
+            ->where('app', 'page')
+            ->where('attachment', '!=', '')
+            ->where('attachment', 'not like', 'youtube:%')
+            ->orderBy('created', 'desc')
+            ->take(9)
+            ->get();
+
+        $recentVideos = \App\Models\Stream::where('wall_id', $page->id)
+            ->where('app', 'page')
+            ->where('attachment', 'like', 'youtube:%')
+            ->orderBy('created', 'desc')
+            ->take(9)
+            ->get();
+
+        return view('pages.show', compact('page', 'pageData', 'isLiked', 'recentPhotos', 'recentVideos', 'filter'));
     }
 
     // =========================================================================
@@ -275,5 +309,75 @@ class PageController extends Controller
         }
 
         return back()->with('success', 'Kamu batal menyukai halaman ini.');
+    }
+
+    public function postStream(Request $request, $id)
+    {
+        $page = Page::findOrFail($id);
+
+        $userId = Auth::id() ?? (optional(\App\Models\User::first())->id ?? 1);
+        
+        $isOwner = ($page->uid == $userId);
+        if (!$isOwner) abort(403, 'Hanya admin halaman yang dapat memposting.');
+
+        $request->validate([
+            'message'     => 'required_without_all:file,youtube_url|nullable|string|max:5000',
+            'file'        => 'nullable|file|mimes:jpg,jpeg,png,gif,webp|max:20480',
+            'youtube_url' => 'nullable|url',
+        ]);
+
+        $attachment = '';
+
+        if ($request->hasFile('file')) {
+            $attachment = $request->file('file')->store('streams', 'public');
+        } elseif ($request->filled('youtube_url')) {
+            $url = $request->input('youtube_url');
+            preg_match('/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_\-]{11})/', $url, $matches);
+            $videoId = $matches[1] ?? null;
+            if ($videoId) {
+                $attachment = 'youtube:' . $videoId;
+            }
+        }
+
+        \App\Models\Stream::create([
+            'message'    => $request->message ?? '',
+            'wall_id'    => $id,
+            'uid'        => $userId,
+            'attachment' => $attachment,
+            'created'    => time(),
+            'type'       => 1,
+            'app'        => 'page',
+            'aid'        => $id,
+            'hide'       => 0,
+            'likes'      => 0,
+        ]);
+
+        return redirect()->route('pages.show', $id)->with('success', 'Postingan berhasil diunggah!');
+    }
+
+    public function media(Page $page, $type)
+    {
+        $query = \App\Models\Stream::where('wall_id', $page->id)->where('app', 'page');
+
+        if ($type === 'photo') {
+            $query->where('attachment', '!=', '')
+                  ->where('attachment', 'not like', 'youtube:%');
+            $title = 'Foto Halaman';
+        } elseif ($type === 'video') {
+            $query->where('attachment', 'like', 'youtube:%');
+            $title = 'Vidio Halaman';
+        } else {
+            abort(404);
+        }
+
+        $mediaList = $query->orderBy('created', 'desc')->paginate(12);
+        
+        return view('pages.media', compact('page', 'type', 'mediaList', 'title'));
+    }
+
+    public function followers($id)
+    {
+        $page = Page::with('followers')->findOrFail($id);
+        return view('pages.followers', compact('page'));
     }
 }
