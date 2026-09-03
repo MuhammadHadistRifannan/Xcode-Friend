@@ -37,6 +37,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::post('/settings/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/background', [ProfileController::class, 'updateBackground'])->name('profile.background.update');
+    Route::post('/profile/design', [ProfileController::class, 'updateDesign'])->name('profile.design');
     
     // Album API
     Route::get('/api/albums', [AlbumController::class, 'search'])->name('album.search');

@@ -158,97 +158,7 @@
             
             <!-- Upload Box (Tampil jika user adalah member grup) -->
             @if($isMember)
-            <div x-data="{ 
-                tab: 'status', 
-                photoName: null, 
-                photoPreview: null,
-                videoUrl: '',
-                videoId: null,
-                extractVideoId() {
-                    let match = this.videoUrl.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_\-]{11})/);
-                    this.videoId = match ? match[1] : null;
-                }
-            }" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <!-- Top Tabs -->
-                <div class="flex border-b border-gray-100">
-                    <button type="button" @click="tab = 'status'" :class="{'text-red-700 border-b-2 border-red-700': tab === 'status', 'text-gray-500 hover:text-gray-700': tab !== 'status'}" class="flex-1 py-3 text-sm font-bold uppercase tracking-wide">Status</button>
-                    <button type="button" @click="tab = 'photo'" :class="{'text-red-700 border-b-2 border-red-700': tab === 'photo', 'text-gray-500 hover:text-gray-700': tab !== 'photo'}" class="flex-1 py-3 text-sm font-bold uppercase tracking-wide">Foto</button>
-                    <button type="button" @click="tab = 'video'" :class="{'text-red-700 border-b-2 border-red-700': tab === 'video', 'text-gray-500 hover:text-gray-700': tab !== 'video'}" class="flex-1 py-3 text-sm font-bold uppercase tracking-wide">Video</button>
-                </div>
-
-                <!-- Inner content -->
-                <div class="p-5">
-
-                    <form action="{{ route('groups.stream', $group->id) }}" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        
-                        <!-- Textarea (Always Visible as caption) -->
-                        <textarea name="message" rows="2" :required="tab === 'status'" class="w-full resize-none border-0 focus:ring-0 text-sm text-gray-700 font-mono placeholder-gray-400 p-0 mb-4 bg-transparent" placeholder="> Awaiting command sequence..."></textarea>
-                        
-                        <!-- File Upload Input (Shown for Photo) -->
-                        <div x-show="tab === 'photo'" x-cloak class="mb-4">
-                            <!-- Input Area -->
-                            <label for="photoUpload" x-show="!photoPreview" class="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center text-gray-500 hover:bg-gray-50 hover:border-red-300 transition-colors cursor-pointer">
-                                <svg class="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                                <span class="text-sm font-medium">Klik untuk memilih gambar</span>
-                                <span class="text-xs text-gray-400 mt-1">JPG, PNG, GIF, WebP (max 20MB)</span>
-                            </label>
-                            
-                            <!-- Preview Area -->
-                            <div x-show="photoPreview" class="relative rounded-lg overflow-hidden border border-gray-200 bg-gray-50 flex justify-center items-center h-48">
-                                <img :src="photoPreview" class="max-h-full object-contain" alt="Preview">
-                                <button type="button" @click="photoPreview = null; photoName = null; $refs.photoInput.value = ''" class="absolute top-2 right-2 bg-white rounded-full p-1 shadow-md hover:bg-red-50 text-gray-600 hover:text-red-600 transition-colors">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                </button>
-                            </div>
-                            
-                            <!-- Single File Input -->
-                            <input id="photoUpload" type="file" name="file" x-ref="photoInput" class="hidden" accept="image/*"
-                                @change="
-                                    photoName = $event.target.files[0]?.name ?? null; 
-                                    if ($event.target.files[0]) {
-                                        photoPreview = URL.createObjectURL($event.target.files[0]);
-                                    } else {
-                                        photoPreview = null;
-                                    }
-                                ">
-                        </div>
-
-                        <!-- Video YouTube URL Input (Shown for Video) -->
-                        <div x-show="tab === 'video'" x-cloak class="mb-4">
-                            <!-- Input Box -->
-                            <div class="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 mb-3">
-                                <svg class="w-5 h-5 text-red-600 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-                                <input type="text" name="youtube_url" x-model="videoUrl" @input="extractVideoId()"
-                                    class="flex-1 bg-transparent border-0 focus:ring-0 text-sm text-gray-700 placeholder-gray-400 p-0"
-                                    placeholder="Tempel link YouTube di sini... (https://youtu.be/...)">
-                            </div>
-                            
-                            <!-- Video Preview -->
-                            <div x-show="videoId" class="rounded-xl overflow-hidden bg-black aspect-video relative">
-                                <iframe class="w-full h-full"
-                                    :src="'https://www.youtube.com/embed/' + videoId"
-                                    title="YouTube video preview"
-                                    frameborder="0"
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                    allowfullscreen>
-                                </iframe>
-                                <button type="button" @click="videoUrl = ''; videoId = null" class="absolute top-2 right-2 bg-white rounded-full p-1.5 shadow-md hover:bg-red-50 text-gray-800 hover:text-red-600 transition-colors z-10">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <!-- Bottom Actions -->
-                        <div class="flex justify-end items-center mt-2">
-                            <button type="submit" class="bg-red-700 hover:bg-red-800 text-white text-sm font-bold px-6 py-2.5 rounded flex items-center gap-2 shadow-sm transition-colors">
-                                UNGGAH
-                                <svg class="w-4 h-4 transform rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+            <x-feed-upload action="{{ route('groups.stream', $group->id) }}" app="group" aid="{{ $group->id }}" wallId="{{ $group->id }}" />
             @endif
             @if(isset($filter) && in_array($filter, ['photo', 'video']))
                 <div class="mb-4 flex flex-wrap items-center justify-between gap-3 bg-red-50 text-red-800 px-4 py-3 rounded-xl border border-red-100 shadow-sm">
@@ -654,4 +564,6 @@
     }
 </script>
 
+@include('components.lightbox')
+@include('components.feed-scripts')
 @endsection

@@ -59,7 +59,11 @@
                     <h2 class="text-sm font-bold uppercase tracking-wider text-gray-800">PENGATURAN TAMPILAN</h2>
                 </div>
                 
-                <div class="p-6 flex flex-col md:flex-row gap-8">
+                @php
+                    $pengaturan = json_decode(auth()->user()->settings) ?? (object)[];
+                @endphp
+                <form action="{{ route('profile.design') }}" method="POST" class="p-6 flex flex-col md:flex-row gap-8">
+                    @csrf
                     <!-- Left: Phone Mockup -->
                     <div class="shrink-0 flex justify-center">
                         <div class="w-36 h-64 border-4 border-gray-300 rounded-xl bg-gray-50 shadow-inner relative overflow-hidden flex flex-col">
@@ -79,7 +83,7 @@
                     <div class="flex-1 flex flex-col justify-between">
                         <div class="space-y-5">
                             <label class="flex items-start gap-3 cursor-pointer group">
-                                <input type="checkbox" class="mt-1 w-4 h-4 text-red-600 rounded border-gray-300 focus:ring-red-500">
+                                <input type="checkbox" name="music" {{ isset($pengaturan->music) && $pengaturan->music == 1 ? 'checked' : '' }} class="mt-1 w-4 h-4 text-red-600 rounded border-gray-300 focus:ring-red-500">
                                 <div>
                                     <span class="text-sm font-medium text-gray-900 group-hover:text-red-600 transition-colors">Pemutar musik</span>
                                     <p class="text-xs text-gray-500">Aktifkan musik yg ku sukai di halaman profil</p>
@@ -87,7 +91,7 @@
                             </label>
 
                             <label class="flex items-start gap-3 cursor-pointer group">
-                                <input type="checkbox" class="mt-1 w-4 h-4 text-red-600 rounded border-gray-300 focus:ring-red-500">
+                                <input type="checkbox" name="wallpaper" {{ isset($pengaturan->wallpaper) && $pengaturan->wallpaper == 1 ? 'checked' : '' }} class="mt-1 w-4 h-4 text-red-600 rounded border-gray-300 focus:ring-red-500">
                                 <div>
                                     <span class="text-sm font-medium text-gray-900 group-hover:text-red-600 transition-colors">Wallpaper</span>
                                     <p class="text-xs text-gray-500">Aktifkan kustom wallpaper</p>
@@ -95,7 +99,7 @@
                             </label>
 
                             <label class="flex items-start gap-3 cursor-pointer group">
-                                <input type="checkbox" checked class="mt-1 w-4 h-4 text-red-600 rounded border-gray-300 focus:ring-red-500">
+                                <input type="checkbox" name="public_page" {{ isset($pengaturan->public_page) && $pengaturan->public_page == 1 ? 'checked' : '' }} class="mt-1 w-4 h-4 text-red-600 rounded border-gray-300 focus:ring-red-500">
                                 <div>
                                     <span class="text-sm font-medium text-gray-900 group-hover:text-red-600 transition-colors">Halaman Umum</span>
                                     <p class="text-xs text-gray-500">Jadikan halaman umum keboleh</p>
@@ -103,7 +107,7 @@
                             </label>
 
                             <label class="flex items-start gap-3 cursor-pointer group">
-                                <input type="checkbox" class="mt-1 w-4 h-4 text-red-600 rounded border-gray-300 focus:ring-red-500">
+                                <input type="checkbox" name="block_title" {{ isset($pengaturan->block_title) && $pengaturan->block_title == 1 ? 'checked' : '' }} class="mt-1 w-4 h-4 text-red-600 rounded border-gray-300 focus:ring-red-500">
                                 <div>
                                     <span class="text-sm font-medium text-gray-900 group-hover:text-red-600 transition-colors">Judul Blok</span>
                                     <p class="text-xs text-gray-500">Aktifkan judul blok kustom</p>
@@ -112,12 +116,12 @@
                         </div>
                         
                         <div class="mt-8">
-                            <button class="bg-[#b91c1c] hover:bg-red-800 text-white px-6 py-2 rounded-md font-bold text-sm w-full transition-colors shadow-sm">
+                            <button type="submit" class="bg-[#b91c1c] hover:bg-red-800 text-white px-6 py-2 rounded-md font-bold text-sm w-full transition-colors shadow-sm">
                                 SIMPAN PERUBAHAN
                             </button>
                         </div>
                     </div>
-                </div>
+                </form>
 
             </div>
         </div>

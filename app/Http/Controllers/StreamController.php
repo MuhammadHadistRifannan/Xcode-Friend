@@ -54,10 +54,10 @@ class StreamController extends Controller
             'uid' => auth()->id(),
             'created' => time(),
             'type' => $type,
-            'app' => 'feed',
-            'wall_id' => 0,
+            'app' => $request->input('app', 'feed'),
+            'wall_id' => $request->input('wallId', 0),
             'attachment' => $attachment,
-            'aid' => 0,
+            'aid' => $request->input('aid', 0),
             'hide' => 0,
             'likes' => 0
         ]);

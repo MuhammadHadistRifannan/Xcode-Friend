@@ -30,7 +30,7 @@
                 <!-- Jembatan Hover -->
                 <div class="absolute left-1/2 transform -translate-x-1/2 top-[80%] pt-4 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                     <div class="bg-[#1A1A1A] border border-neutral-800 rounded-lg shadow-2xl p-1.5 flex flex-col gap-1">
-                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 {{ request()->is('dasbor') ? 'bg-[#990000] text-white' : 'text-neutral-300 hover:text-white hover:bg-neutral-800' }} rounded-md transition group/item">
+                        <a href="{{ auth()->check() ? route('beranda') : '/' }}" class="flex items-center gap-3 px-3 py-2.5 {{ request()->is('dasbor') ? 'bg-[#990000] text-white' : 'text-neutral-300 hover:text-white hover:bg-neutral-800' }} rounded-md transition group/item">
                             <svg class="w-4 h-4 {{ request()->is('dasbor') ? 'opacity-90' : 'opacity-70 group-hover/item:opacity-100 transition' }}" fill="currentColor" viewBox="0 0 20 20"><path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                             <span class="text-xs font-semibold">Dasbor</span>
                         </a>

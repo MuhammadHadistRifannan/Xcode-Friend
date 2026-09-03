@@ -97,6 +97,27 @@ class ProfileController extends Controller
         return back()->with('success', 'Cover background berhasil diperbarui!');
     }
 
+    public function updateDesign(Request $request)
+    {
+        $user = auth()->user();
+        
+        // Ambil pengaturan saat ini atau inisialisasi array kosong
+        $settings = json_decode($user->settings, true) ?: [];
+        
+        // Simpan 4 preferensi (centang = 1, tidak = 0)
+        $settings['music'] = $request->has('music') ? 1 : 0;
+        $settings['wallpaper'] = $request->has('wallpaper') ? 1 : 0;
+        $settings['public_page'] = $request->has('public_page') ? 1 : 0;
+        $settings['block_title'] = $request->has('block_title') ? 1 : 0;
+        
+        // Update field settings di tabel jcow_accounts
+        $user->settings = json_encode($settings);
+        $user->save();
+
+        return back()->with('success', 'Pengaturan tampilan berhasil diperbarui.');
+    }
+
+
     public function edit()
     {
         $user = auth()->user();

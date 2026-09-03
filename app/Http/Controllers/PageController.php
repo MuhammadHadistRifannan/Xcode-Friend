@@ -321,22 +321,42 @@ class PageController extends Controller
         if (!$isOwner) abort(403, 'Hanya admin halaman yang dapat memposting.');
 
         $request->validate([
-            'message'     => 'required_without_all:file,youtube_url|nullable|string|max:5000',
-            'file'        => 'nullable|file|mimes:jpg,jpeg,png,gif,webp|max:20480',
-            'youtube_url' => 'nullable|url',
+            'message' => 'nullable|string|max:5000',
+            'photos.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'photos' => 'nullable|array|max:10',
+            'video_url' => 'nullable|string|max:255',
         ]);
 
-        $attachment = '';
+        if (empty($request->message) && !$request->hasFile('photos') && empty($request->video_url)) {
+            return back()->withErrors(['message' => 'Postingan tidak boleh kosong.']);
+        }
 
-        if ($request->hasFile('file')) {
-            $attachment = $request->file('file')->store('streams', 'public');
-        } elseif ($request->filled('youtube_url')) {
-            $url = $request->input('youtube_url');
-            preg_match('/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_\-]{11})/', $url, $matches);
-            $videoId = $matches[1] ?? null;
-            if ($videoId) {
-                $attachment = 'youtube:' . $videoId;
+        $attachment = '';
+        $type = 1; // 1 = teks
+        $albumId = $request->input('album_id', 0);
+        $videoAlbumId = $request->input('video_album_id', 0);
+
+        if ($request->hasFile('photos')) {
+            $files = $request->file('photos');
+            $savedPhotos = [];
+            foreach($files as $index => $file) {
+                $filename = 'POST-' . auth()->id() . '-' . time() . '-' . $index . '.' . $file->getClientOriginalExtension();
+                $file->storeAs('posts', $filename, 'public');
+                $savedPhotos[] = $filename;
             }
+            $attachment = json_encode([
+                'photos' => $savedPhotos,
+                'album_id' => $albumId
+            ]);
+            $type = 2; // 2 = gambar
+        } elseif (!empty($request->video_url)) {
+            $attachment = json_encode([
+                'video_url' => $request->video_url,
+                'album_id' => $videoAlbumId,
+                'title' => $request->video_title ?? '',
+                'desc' => $request->video_desc ?? ''
+            ]);
+            $type = 3; // 3 = video
         }
 
         \App\Models\Stream::create([
@@ -345,7 +365,7 @@ class PageController extends Controller
             'uid'        => $userId,
             'attachment' => $attachment,
             'created'    => time(),
-            'type'       => 1,
+            'type'       => $type,
             'app'        => 'page',
             'aid'        => $id,
             'hide'       => 0,
