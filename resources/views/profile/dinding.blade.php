@@ -170,7 +170,7 @@
             <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
                 <div class="flex justify-between items-center mb-3">
                     <h4 class="text-[11px] font-bold text-neutral-800 uppercase tracking-wider">TEMAN</h4>
-                    <a href="{{ route('telusur') }}" class="text-[9px] font-bold text-red-700 hover:underline">Lihat Semua</a>
+                    <a href="{{ route('telusur.index') }}" class="text-[9px] font-bold text-red-700 hover:underline">Lihat Semua</a>
                 </div>
                 @if($profileUser->friends && $profileUser->friends->count() > 0)
                     <div class="flex flex-wrap gap-2">
