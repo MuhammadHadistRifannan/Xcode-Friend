@@ -185,15 +185,20 @@
                 @endif
             </div>
 
+            @php
+                $allGroups = $profileUser->likedGroups->merge($profileUser->createdGroups)->unique('id');
+                $allPages = $profileUser->likedPages->merge($profileUser->createdPages)->unique('id');
+            @endphp
+
             <!-- Groups -->
             <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
                 <div class="flex justify-between items-center mb-3">
                     <h4 class="text-[11px] font-bold text-neutral-800 uppercase tracking-wider">GROUPS</h4>
                     <a href="{{ route('groups.index') }}" class="text-[9px] font-bold text-red-700 hover:underline">Lihat Semua</a>
                 </div>
-                @if($profileUser->likedGroups && $profileUser->likedGroups->count() > 0)
+                @if($allGroups && $allGroups->count() > 0)
                     <div class="flex flex-wrap gap-2">
-                        @foreach($profileUser->likedGroups->take(6) as $group)
+                        @foreach($allGroups->take(6) as $group)
                             <a href="{{ url('/groups/'.$group->id) }}" class="block">
                                 <img src="{{ $group->logo_url ?: asset('assets/img/default.png') }}" alt="{{ $group->name }}" class="w-10 h-10 rounded-md object-cover border border-neutral-200" title="{{ $group->name }}">
                             </a>
@@ -210,9 +215,9 @@
                     <h4 class="text-[11px] font-bold text-neutral-800 uppercase tracking-wider">PAGES</h4>
                     <a href="{{ route('pages.index') }}" class="text-[9px] font-bold text-red-700 hover:underline">Lihat Semua</a>
                 </div>
-                @if($profileUser->likedPages && $profileUser->likedPages->count() > 0)
+                @if($allPages && $allPages->count() > 0)
                     <div class="flex flex-wrap gap-2">
-                        @foreach($profileUser->likedPages->take(6) as $page)
+                        @foreach($allPages->take(6) as $page)
                             <a href="{{ url('/pages/'.$page->id) }}" class="block">
                                 <img src="{{ $page->logo_url ?: asset('assets/img/default.png') }}" alt="{{ $page->name }}" class="w-10 h-10 rounded-md object-cover border border-neutral-200" title="{{ $page->name }}">
                             </a>
