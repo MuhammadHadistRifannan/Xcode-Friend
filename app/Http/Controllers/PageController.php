@@ -74,21 +74,29 @@ class PageController extends Controller
                 Rule::unique('jcow_pages', 'uri'),
             ],
             'name'        => ['required', 'string', 'max:100'],
+            'logo'        => ['required', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
             'description' => ['nullable', 'string', 'max:1000'],
         ], [
             'uri.regex'  => 'URL hanya boleh mengandung huruf kecil (a-z) dan angka (0-9).',
             'uri.unique' => 'URL halaman ini sudah digunakan, pilih yang lain.',
             'uri.min'    => 'URL minimal 6 karakter.',
+            'logo.required' => 'Logo halaman wajib diunggah (jangan gunakan foto default).',
+            'logo.image'    => 'Logo harus berupa gambar.',
         ]);
 
         // TODO: Ganti dengan Auth::id() setelah middleware Auth aktif
         $uid = Auth::id() ?? (optional(\App\Models\User::first())->id ?? 1);
 
+        $logoPath = '';
+        if ($request->hasFile('logo')) {
+            $logoPath = $request->file('logo')->store('pages/logos', 'public');
+        }
+
         $page = Page::create([
             'uri'         => $validated['uri'],
             'name'        => $validated['name'],
             'description' => $validated['description'] ?? '',
-            'logo'        => '',   // logo diupload terpisah via updateLogo()
+            'logo'        => $logoPath,
             'uid'         => $uid,
             'updated'     => time(),
             // Kolom NOT NULL di jcow_pages yang tidak punya DEFAULT di DB

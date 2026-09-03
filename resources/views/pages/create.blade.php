@@ -17,7 +17,7 @@
         <!-- =============================== -->
         <div class="col-span-12 lg:col-span-9">
             <div class="bg-white border border-gray-200 rounded-lg p-8 shadow-sm">
-                <form action="{{ route('pages.store') }}" method="POST" class="space-y-6">
+                <form action="{{ route('pages.store') }}" method="POST" class="space-y-6" enctype="multipart/form-data">
                     @csrf
 
                     <!-- PAGE ADDRESS (URI / Slug) -->
@@ -65,6 +65,29 @@
                         @error('name')
                             <p class="text-xs text-red-600 mt-1 flex items-center gap-1">
                                 <i data-lucide="alert-circle" class="w-3 h-3"></i> {{ $message }}
+                            </p>
+                        @enderror
+                    </div>
+
+                    <!-- PAGE LOGO -->
+                    <div>
+                        <label for="logo" class="block text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">
+                            PAGE LOGO <span class="font-normal text-red-500">*wajib</span>
+                        </label>
+                        <input
+                            type="file"
+                            id="logo"
+                            name="logo"
+                            accept="image/*"
+                            class="w-full border {{ $errors->has('logo') ? 'border-red-400' : 'border-gray-300' }} rounded-md px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-red-500 bg-white"
+                        >
+                        @error('logo')
+                            <p class="text-xs text-red-600 mt-1 flex items-center gap-1">
+                                <i data-lucide="alert-circle" class="w-3 h-3"></i> {{ $message }}
+                            </p>
+                        @else
+                            <p class="text-xs text-gray-500 mt-2 italic">
+                                Masukkan foto logo halaman kamu (Jangan gunakan foto default).
                             </p>
                         @enderror
                     </div>
