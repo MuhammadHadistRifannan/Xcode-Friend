@@ -11,6 +11,16 @@ class Page extends Model
      */
     protected $table = 'jcow_pages';
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Global scope untuk memisahkan Page dari Group
+        static::addGlobalScope('type', function (\Illuminate\Database\Eloquent\Builder $builder) {
+            $builder->whereIn('type', ['', 'page']);
+        });
+    }
+
     /**
      * Tabel ini tidak punya kolom created_at / updated_at Laravel bawaan.
      * Kolom 'updated' adalah Unix timestamp yang dikelola manual.
