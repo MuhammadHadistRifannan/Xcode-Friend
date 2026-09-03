@@ -335,11 +335,22 @@
             @forelse ($streams as $stream)
                 <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
                     <div class="flex items-center space-x-3 mb-2">
-                        <div class="w-10 h-10 rounded-full bg-neutral-100 overflow-hidden flex-shrink-0 border border-neutral-200">
+                        <a href="/@{{ $stream->user->username ?? '#' }}" class="w-10 h-10 rounded-full bg-neutral-100 overflow-hidden flex-shrink-0 border border-neutral-200 hover:ring-2 hover:ring-red-700 transition">
                             <img src="{{ $stream->user->avatar ? asset('storage/avatars/'.$stream->user->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($stream->user->fullname ?? 'Unknown').'&background=E5E5E5' }}" class="w-full h-full object-cover">
-                        </div>
+                        </a>
                         <div>
-                            <h4 class="text-sm font-bold text-neutral-900">{{ $stream->user->fullname ?? 'Unknown User' }} <span class="font-normal text-neutral-500">joined</span></h4>
+                            <h4 class="text-sm font-bold text-neutral-900">
+                                <a href="/@{{ $stream->user->username ?? '#' }}" class="hover:text-red-700 transition">{{ $stream->user->fullname ?? 'Unknown User' }}</a> 
+                                @if($stream->type == 1 && !$stream->attachment)
+                                <span class="font-normal text-neutral-500">memperbarui status</span>
+                                @elseif($stream->type == 2)
+                                <span class="font-normal text-neutral-500">mengunggah foto</span>
+                                @elseif($stream->type == 3)
+                                <span class="font-normal text-neutral-500">membagikan video</span>
+                                @else
+                                <span class="font-normal text-neutral-500">memposting</span>
+                                @endif
+                            </h4>
                             <p class="text-[11px] text-neutral-400">{{ \Carbon\Carbon::createFromTimestamp($stream->created)->diffForHumans() }}</p>
                         </div>
                     </div>
