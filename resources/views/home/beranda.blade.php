@@ -2,7 +2,7 @@
 @section('title', 'Dashboard')
 
 @section('content')
-<div class="max-w-[95%] mx-auto w-full">
+<div class="max-w-[95%] lg:max-w-5xl mx-auto w-full">
     <!-- Header Page -->
     <h2 class="text-xs font-bold text-neutral-800 uppercase tracking-widest mb-6">DASHBOARD</h2>
 
@@ -98,8 +98,9 @@
             <h3 class="text-xs font-bold text-neutral-800 uppercase border-l-4 border-red-700 pl-2 mt-8 mb-4">FEED BERITA</h3>
 
             @forelse ($streams as $stream)
-                <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
-                    <div class="flex items-center space-x-3 mb-2">
+                <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5" x-data="{ editingStream: false, openOptions: false }">
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="flex items-center space-x-3">
                         <a href="/@{{ $stream->user->username ?? '#' }}" class="w-10 h-10 rounded-full bg-neutral-100 overflow-hidden flex-shrink-0 border border-neutral-200 hover:ring-2 hover:ring-red-700 transition">
                             <img src="{{ $stream->user->avatar_url }}" class="w-full h-full object-cover">
                         </a>
@@ -118,10 +119,51 @@
                             </h4>
                             <p class="text-[11px] text-neutral-400">{{ \Carbon\Carbon::createFromTimestamp($stream->created)->diffForHumans() }}</p>
                         </div>
+                        
+                        <!-- 3-dots dropdown -->
+                        <div class="relative">
+                            <button @click="openOptions = !openOptions" @click.away="openOptions = false" class="text-neutral-400 hover:text-neutral-600 focus:outline-none mt-1">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z"></path></svg>
+                            </button>
+                            <div x-show="openOptions" style="display: none;" class="absolute right-0 mt-2 w-36 bg-white rounded-md shadow-lg border border-neutral-100 z-50 overflow-hidden">
+                                @if(auth()->check() && (auth()->id() === $stream->uid))
+                                    <button @click="openOptions = false; editingStream = true" class="block w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition">Edit</button>
+                                    <form action="{{ route('stream.destroy', $stream->id) }}" method="POST" class="block w-full m-0" onsubmit="return confirm('Apakah Anda yakin ingin menghapus postingan ini?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition">Hapus</button>
+                                    </form>
+                                    <button type="button" @click="openOptions = false; openReportModal('{{ url('/stream/'.$stream->id) }}')" class="block w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition border-t border-neutral-100">Lapor</button>
+                                @else
+                                    <button type="button" @click="openOptions = false; openReportModal('{{ url('/stream/'.$stream->id) }}')" class="block w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition">Lapor</button>
+                                @endif
+                            </div>
+                        </div>
                     </div>
 
                     @if($stream->message)
-                        <p class="text-sm text-neutral-800 mb-4 ml-13">{{ $stream->message }}</p>
+                        <p x-show="!editingStream" class="text-sm text-neutral-800 mb-4 ml-13 whitespace-pre-wrap leading-relaxed">{{ $stream->message }}</p>
+                        <form x-show="editingStream" style="display: none;" action="{{ route('stream.update', $stream->id) }}" method="POST" class="mb-4 ml-13">
+                            @csrf
+                            @method('PUT')
+                            <textarea name="message" rows="3" class="w-full text-sm p-3 border border-neutral-300 rounded-lg focus:ring-red-500 focus:border-red-500 mb-2">{{ $stream->message }}</textarea>
+                            <div class="flex justify-end space-x-2">
+                                <button type="button" @click="editingStream = false" class="px-3 py-1.5 text-xs font-semibold text-neutral-600 hover:bg-neutral-100 rounded-md transition">Batal</button>
+                                <button type="submit" class="px-3 py-1.5 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-md transition">Simpan</button>
+                            </div>
+                        </form>
+                    @else
+                        <div x-show="editingStream" style="display: none;" class="mb-4 ml-13">
+                            <form action="{{ route('stream.update', $stream->id) }}" method="POST">
+                                @csrf
+                                @method('PUT')
+                                <textarea name="message" rows="3" class="w-full text-sm p-3 border border-neutral-300 rounded-lg focus:ring-red-500 focus:border-red-500 mb-2" placeholder="Tambahkan caption..."></textarea>
+                                <div class="flex justify-end space-x-2">
+                                    <button type="button" @click="editingStream = false" class="px-3 py-1.5 text-xs font-semibold text-neutral-600 hover:bg-neutral-100 rounded-md transition">Batal</button>
+                                    <button type="submit" class="px-3 py-1.5 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-md transition">Simpan</button>
+                                </div>
+                            </form>
+                        </div>
                     @endif
 
                     @if($stream->type == 2 && $stream->attachment)
@@ -206,33 +248,80 @@
 
                     <!-- Comment Section -->
                     <div id="comment-form-home-{{ $stream->id }}" class="hidden mt-3 pt-3 border-t border-neutral-100 ml-13">
-                        <div id="comments-list-{{ $stream->id }}">
+                        <div id="comments-list-{{ $stream->id }}" class="bg-neutral-50 rounded-lg p-4 mb-3 space-y-3 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-neutral-200">
                             @foreach($stream->comments as $comment)
-                                <div class="flex items-start space-x-2 mb-3">
-                                    <div class="w-8 h-8 rounded-full bg-neutral-200 overflow-hidden flex-shrink-0">
-                                        <img src="https://ui-avatars.com/api/?name={{ urlencode($comment->user->fullname ?? 'Unknown') }}&background=E5E5E5" class="w-full h-full">
+                                <div class="flex gap-2" id="comment-{{ $comment->id }}">
+                                    <div class="w-8 h-8 rounded-full bg-neutral-200 overflow-hidden flex-shrink-0 border border-neutral-200">
+                                        <img src="{{ $comment->user->avatar_url }}" class="w-full h-full object-cover">
                                     </div>
-                                    <div class="bg-neutral-50 p-2.5 rounded-lg flex-1 text-sm">
-                                        <span class="font-bold text-neutral-900">{{ $comment->user->fullname ?? 'Unknown' }}</span>
-                                        @php 
-                                            // Parse Mentions
-                                            $parsedMessage = htmlspecialchars($comment->message);
-                                            $parsedMessage = preg_replace('/@([a-zA-Z0-9_]+)/', '<a href="/@$1" class="text-blue-600 hover:underline">@$1</a>', $parsedMessage);
-                                        @endphp
-                                        <p class="text-neutral-700 mt-1">{!! $parsedMessage !!}</p>
-                                        <button type="button" onclick="replyTo('{{ $stream->id }}', '{{ addslashes($comment->user->fullname ?? $comment->user->username ?? 'user') }}')" class="text-[10px] text-neutral-500 font-semibold hover:text-red-700 mt-1 uppercase tracking-wider">Reply</button>
+                                    <div x-data="{ editing: false, openCommentOptions: false }" class="flex-1">
+                                        <div class="flex items-start gap-2 group">
+                                            <!-- Comment Bubble -->
+                                            <div x-show="!editing" class="bg-white px-3 py-2 rounded-2xl border border-neutral-100 shadow-sm text-sm break-words max-w-[85%]">
+                                                <span class="font-bold text-neutral-900 mr-1">{{ $comment->user->fullname ?? 'Unknown' }}</span>
+                                                @php 
+                                                    $parsedMessage = htmlspecialchars($comment->message);
+                                                    $parsedMessage = preg_replace('/@([a-zA-Z0-9_]+)/', '<a href="/@$1" class="text-blue-600 hover:underline">@$1</a>', $parsedMessage);
+                                                @endphp
+                                                <span class="text-neutral-700">{!! $parsedMessage !!}</span>
+                                            </div>
+
+                                            <!-- Form Edit Komentar (Placeholder for future or logic) -->
+                                            <form x-show="editing" style="display: none;" action="{{ route('comment.update', $comment->id) }}" method="POST" class="flex gap-2 w-full max-w-sm">
+                                                @csrf
+                                                @method('PUT')
+                                                <input type="text" name="message" value="{{ $comment->message }}" class="flex-1 rounded-full bg-white border border-red-300 focus:ring-2 focus:ring-red-100 text-sm px-3 py-1 outline-none" required>
+                                                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white rounded-full px-3 py-1 text-xs font-bold transition-colors">Simpan</button>
+                                                <button type="button" @click="editing = false" class="bg-neutral-100 hover:bg-neutral-200 text-neutral-600 rounded-full px-3 py-1 text-xs font-bold transition-colors">Batal</button>
+                                            </form>
+
+                                            <!-- Options Dropdown -->
+                                            <div class="relative mt-1" x-show="!editing">
+                                                <button @click="openCommentOptions = !openCommentOptions" @click.away="openCommentOptions = false" type="button" class="text-neutral-400 hover:text-neutral-600 transition p-1 rounded-full hover:bg-neutral-200 focus:outline-none" title="Opsi Komentar">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                                                </button>
+                                                
+                                                <div x-show="openCommentOptions" style="display: none;"
+                                                     class="absolute left-0 top-6 mt-1 w-24 bg-white border border-neutral-200 rounded-md shadow-lg z-20 py-1">
+                                                    
+                                                    @if(auth()->check() && auth()->id() === $comment->uid)
+                                                    <button type="button" @click="editing = true; openCommentOptions = false" class="block px-3 py-1.5 text-xs text-neutral-700 hover:bg-neutral-50 hover:text-neutral-900 w-full text-left">Edit</button>
+                                                    @endif
+                                                    
+                                                    @if(auth()->check() && (auth()->id() === $comment->uid))
+                                                    <form action="{{ route('comment.destroy', $comment->id) }}" method="POST">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" onclick="return confirm('Hapus komentar ini?')" class="block px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 w-full text-left">
+                                                            Hapus
+                                                        </button>
+                                                    </form>
+                                                    @endif
+
+                                                    <button type="button" onclick="openReportModal('{{ url('/beranda#' . $comment->id) }}')" class="block px-3 py-1.5 text-xs text-yellow-600 hover:bg-yellow-50 w-full text-left">
+                                                        Laporkan
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- Bawah Bubble -->
+                                        <div class="flex items-center gap-3 mt-1 ml-2">
+                                            <p class="text-[10px] text-neutral-400">{{ $comment->created_at ? $comment->created_at->diffForHumans() : 'Baru saja' }}</p>
+                                            @if(auth()->check())
+                                            <button type="button" onclick="replyTo('{{ $stream->id }}', '{{ addslashes($comment->user->fullname ?? $comment->user->username ?? 'user') }}')" class="text-[10px] text-neutral-500 font-semibold hover:text-red-700 transition-colors uppercase tracking-wider">Balas</button>
+                                            @endif
+                                        </div>
                                     </div>
                                 </div>
                             @endforeach
                         </div>
                         
-                        <form action="{{ route('comment.store', $stream->id) }}" method="POST" class="flex space-x-2 form-comment" data-stream-id="{{ $stream->id }}">
+                        <form action="{{ route('comment.store', $stream->id) }}" method="POST" class="flex gap-2 form-comment" data-stream-id="{{ $stream->id }}">
                             @csrf
-                            <div class="w-8 h-8 rounded-full bg-neutral-200 overflow-hidden flex-shrink-0">
-                                <img src="{{ auth()->user()->avatar_url }}" class="w-full h-full">
-                            </div>
-                            <input type="text" name="message" id="comment-input-{{ $stream->id }}" required placeholder="Tulis komentar..." class="flex-1 bg-neutral-50 border border-neutral-200 rounded-full px-4 text-sm focus:outline-none focus:border-red-700">
-                            <button type="submit" class="text-red-700 font-bold text-sm px-2">Kirim</button>
+                            <input type="text" name="message" id="comment-input-{{ $stream->id }}" required placeholder="Tulis komentar..." class="flex-1 rounded-full bg-neutral-50 border border-neutral-200 focus:bg-white focus:border-red-300 focus:ring-2 focus:ring-red-100 text-sm px-4 py-2 transition-all outline-none">
+                            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white rounded-full p-2 shrink-0 transition-colors flex items-center justify-center w-9 h-9 shadow-sm">
+                                <svg class="w-4 h-4 transform rotate-45 -mt-0.5 -ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                            </button>
                         </form>
                     </div>
                 </div>
@@ -258,6 +347,42 @@
 </div>
 
 @include('components.lightbox')
+
+<!-- Report Modal -->
+<div id="reportModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-lg w-full max-w-md overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+            <h3 class="font-bold text-gray-800 text-lg">Laporkan Konten</h3>
+            <button type="button" onclick="closeReportModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <form action="{{ route('reports.store') }}" method="POST">
+            @csrf
+            <input type="hidden" name="url" id="reportUrl" value="">
+            <div class="p-6">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Alasan Pelaporan</label>
+                <textarea name="message" rows="4" class="w-full text-sm p-3 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 resize-none mb-3" placeholder="Jelaskan mengapa konten ini tidak pantas..." required></textarea>
+                <p class="text-xs text-gray-500">Laporan Anda bersifat anonim dan akan ditinjau oleh administrator.</p>
+            </div>
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
+                <button type="button" onclick="closeReportModal()" class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors">Batal</button>
+                <button type="submit" class="px-4 py-2 bg-red-600 border border-transparent rounded-lg text-sm font-bold text-white hover:bg-red-700 shadow-sm transition-colors">Kirim Laporan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openReportModal(url) {
+        document.getElementById('reportUrl').value = url;
+        document.getElementById('reportModal').classList.remove('hidden');
+    }
+    
+    function closeReportModal() {
+        document.getElementById('reportModal').classList.add('hidden');
+    }
+</script>
 
 @include('components.feed-scripts')
 @endsection

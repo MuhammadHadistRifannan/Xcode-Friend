@@ -207,14 +207,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     // Append new comment HTML
                     const commentHtml = `
-                        <div class="flex items-start space-x-2 mb-3">
-                            <div class="w-8 h-8 rounded-full bg-neutral-200 overflow-hidden flex-shrink-0">
-                                <img src="${data.comment.user.avatar}" class="w-full h-full">
+                        <div class="flex gap-2" id="comment-${data.comment.id || Date.now()}">
+                            <div class="w-8 h-8 rounded-full bg-neutral-200 overflow-hidden flex-shrink-0 border border-neutral-200">
+                                <img src="${data.comment.user.avatar}" class="w-full h-full object-cover">
                             </div>
-                            <div class="bg-neutral-50 p-2.5 rounded-lg flex-1 text-sm">
-                                <span class="font-bold text-neutral-900">${data.comment.user.fullname}</span>
-                                <p class="text-neutral-700 mt-1">${parsedMessage}</p>
-                                <button type="button" onclick="replyTo('${streamId}', '${data.comment.user.username}')" class="text-[10px] text-neutral-500 font-semibold hover:text-red-700 mt-1 uppercase tracking-wider">Reply</button>
+                            <div class="flex-1" x-data="{ openCommentOptions: false }">
+                                <div class="flex items-start gap-2 group">
+                                    <div class="bg-white px-3 py-2 rounded-2xl border border-neutral-100 shadow-sm text-sm break-words max-w-[85%]">
+                                        <span class="font-bold text-neutral-900 mr-1">${data.comment.user.fullname}</span>
+                                        <span class="text-neutral-700">${parsedMessage}</span>
+                                    </div>
+                                    <div class="relative mt-1">
+                                        <button @click="openCommentOptions = !openCommentOptions" @click.away="openCommentOptions = false" type="button" class="text-neutral-400 hover:text-neutral-600 transition p-1 rounded-full hover:bg-neutral-200 focus:outline-none" title="Opsi Komentar">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                                        </button>
+                                        <div x-show="openCommentOptions" style="display: none;" class="absolute left-0 top-6 mt-1 w-24 bg-white border border-neutral-200 rounded-md shadow-lg z-20 py-1">
+                                            <!-- Newly added comments via AJAX can't easily be deleted without reloading or complex JS, but we provide report button -->
+                                            <button type="button" onclick="alert('Silakan muat ulang halaman untuk menghapus komentar baru.')" class="block px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 w-full text-left">Hapus</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3 mt-1 ml-2">
+                                    <p class="text-[10px] text-neutral-400">Baru saja</p>
+                                    <button type="button" onclick="replyTo('${streamId}', '${data.comment.user.username}')" class="text-[10px] text-neutral-500 font-semibold hover:text-red-700 transition-colors uppercase tracking-wider">Balas</button>
+                                </div>
                             </div>
                         </div>
                     `;
