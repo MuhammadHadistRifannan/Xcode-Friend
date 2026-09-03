@@ -60,7 +60,7 @@ class MessageController extends Controller
                 ->exists();
         }
 
-        $users = DB::table('jcow_accounts')
+        $users = \App\Models\User::query()
             ->where('id', '!=', $userId)
             ->where('disabled', 0)
             ->select('id', 'fullname', 'username', 'avatar')
@@ -114,7 +114,7 @@ class MessageController extends Controller
             $otherId = $message->to_id;
         }
 
-        $otherUser = DB::table('jcow_accounts')->where('id', $otherId)->first();
+        $otherUser = \App\Models\User::query()->where('id', $otherId)->first();
 
         return view('messages.show', compact('message', 'otherUser', 'type'));
     }

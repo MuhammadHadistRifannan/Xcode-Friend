@@ -54,7 +54,7 @@ class FriendService
 
         $this->friendRepo->sendRequest($fromId, $toId, $message);
 
-        $sender = DB::table('jcow_accounts')->where('id', $fromId)->first();
+        $sender = \App\Models\User::query()->where('id', $fromId)->first();
         $this->notifRepo->create(
             $toId,
             'friend_request',
@@ -74,7 +74,7 @@ class FriendService
         $this->friendRepo->acceptRequest($requesterId, $userId);
 
         // Kirim notifikasi ke pengirim request
-        $user = DB::table('jcow_accounts')->where('id', $userId)->first();
+        $user = \App\Models\User::query()->where('id', $userId)->first();
         $this->notifRepo->create(
             $requesterId,
             'friend_accepted',

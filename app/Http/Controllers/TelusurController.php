@@ -12,7 +12,7 @@ class TelusurController extends Controller
     {
         $userId = Auth::id();
 
-        $query = DB::table('jcow_accounts')
+        $query = \App\Models\User::query()
             ->where('disabled', 0)
             ->where('hide_me', 0)
             ->where('id', '!=', $userId);
@@ -58,7 +58,7 @@ class TelusurController extends Controller
             ->withQueryString();
 
         // Ambil lokasi unik dari DB + gabungkan dengan daftar provinsi lengkap
-        $dbLocations = DB::table('jcow_accounts')
+        $dbLocations = \App\Models\User::query()
             ->where('disabled', 0)
             ->where('hide_me', 0)
             ->where('id', '!=', $userId)

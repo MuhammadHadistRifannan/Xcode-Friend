@@ -91,7 +91,7 @@ class FriendRepository implements FriendRepositoryInterface
 
         $excludeIds = array_merge($friendIds, $pendingIds, [$userId]);
 
-        return DB::table('jcow_accounts')
+        return \App\Models\User::query()
             ->whereNotIn('id', $excludeIds)
             ->where('disabled', 0)
             ->select('id', 'fullname', 'username', 'avatar')

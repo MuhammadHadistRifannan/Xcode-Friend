@@ -59,7 +59,7 @@ class MessageService
         ]);
 
         // Kirim notifikasi ke penerima
-        $sender = DB::table('jcow_accounts')->where('id', $senderId)->first();
+        $sender = \App\Models\User::query()->where('id', $senderId)->first();
         $this->notifRepo->create(
             $recipientId,
             'new_message',
