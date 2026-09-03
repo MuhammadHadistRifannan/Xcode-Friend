@@ -176,8 +176,10 @@ class FriendRepository implements FriendRepositoryInterface
     public function areBlocked(int $userId, int $otherId): bool
     {
         return DB::table('jcow_blacks')
-            ->where('uid', $otherId)
-            ->where('bid', $userId)
+            ->where(function ($query) use ($userId, $otherId) {
+                $query->where('uid', $userId)->where('bid', $otherId)
+                    ->orWhere('uid', $otherId)->where('bid', $userId);
+            })
             ->exists();
     }
 
@@ -226,6 +228,30 @@ class FriendRepository implements FriendRepositoryInterface
                 'bid' => $targetId,
                 'bname' => $target->username ?? '',
             ]);
+
+            // Cascade: hapus friendship (kedua arah)
+            DB::table('jcow_friends')
+                ->where(function ($q) use ($userId, $targetId) {
+                    $q->where('uid', $userId)->where('fid', $targetId)
+                        ->orWhere('uid', $targetId)->where('fid', $userId);
+                })
+                ->delete();
+
+            // Cascade: hapus follow (kedua arah)
+            DB::table('jcow_followers')
+                ->where(function ($q) use ($userId, $targetId) {
+                    $q->where('uid', $userId)->where('fid', $targetId)
+                        ->orWhere('uid', $targetId)->where('fid', $userId);
+                })
+                ->delete();
+
+            // Cascade: hapus friend request (kedua arah)
+            DB::table('jcow_friend_reqs')
+                ->where(function ($q) use ($userId, $targetId) {
+                    $q->where('uid', $userId)->where('fid', $targetId)
+                        ->orWhere('uid', $targetId)->where('fid', $userId);
+                })
+                ->delete();
         }
     }
 

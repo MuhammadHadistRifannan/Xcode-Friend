@@ -36,48 +36,50 @@ class MessageService
 
     public function send(int $senderId, int $recipientId, ?string $subject, string $message): object
     {
-        $now = time();
+        return DB::transaction(function () use ($senderId, $recipientId, $subject, $message) {
+            $now = time();
 
-        // Insert ke jcow_messages (inbox penerima)
-        $messageId = DB::table('jcow_messages')->insertGetId([
-            'from_id' => $senderId,
-            'to_id' => $recipientId,
-            'subject' => $subject ?? '',
-            'message' => $message,
-            'created' => $now,
-            'hasread' => 0,
-        ]);
+            // Insert ke jcow_messages (inbox penerima)
+            $messageId = DB::table('jcow_messages')->insertGetId([
+                'from_id' => $senderId,
+                'to_id' => $recipientId,
+                'subject' => $subject ?? '',
+                'message' => $message,
+                'created' => $now,
+                'hasread' => 0,
+            ]);
 
-        // Insert ke jcow_messages_sent (outbox pengirim)
-        DB::table('jcow_messages_sent')->insert([
-            'from_id' => $senderId,
-            'to_id' => $recipientId,
-            'subject' => $subject ?? '',
-            'message' => $message,
-            'created' => $now,
-            'hasread' => 0,
-        ]);
+            // Insert ke jcow_messages_sent (outbox pengirim)
+            DB::table('jcow_messages_sent')->insert([
+                'from_id' => $senderId,
+                'to_id' => $recipientId,
+                'subject' => $subject ?? '',
+                'message' => $message,
+                'created' => $now,
+                'hasread' => 0,
+            ]);
 
-        // Kirim notifikasi ke penerima
-        $sender = DB::table('jcow_accounts')->where('id', $senderId)->first();
-        $this->notifRepo->create(
-            $recipientId,
-            'new_message',
-            [
-                'user_id' => $senderId,
-                'user_name' => $sender->fullname ?? 'User',
-            ]
-        );
+            // Kirim notifikasi ke penerima
+            $sender = DB::table('jcow_accounts')->where('id', $senderId)->first();
+            $this->notifRepo->create(
+                $recipientId,
+                'new_message',
+                [
+                    'user_id' => $senderId,
+                    'user_name' => $sender->fullname ?? 'User',
+                ]
+            );
 
-        return (object) [
-            'id' => $messageId,
-            'from_id' => $senderId,
-            'to_id' => $recipientId,
-            'subject' => $subject ?? '',
-            'message' => $message,
-            'created' => $now,
-            'hasread' => 0,
-        ];
+            return (object) [
+                'id' => $messageId,
+                'from_id' => $senderId,
+                'to_id' => $recipientId,
+                'subject' => $subject ?? '',
+                'message' => $message,
+                'created' => $now,
+                'hasread' => 0,
+            ];
+        });
     }
 
     public function markAsRead(int $id, int $userId): bool

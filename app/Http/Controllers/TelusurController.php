@@ -12,10 +12,15 @@ class TelusurController extends Controller
     {
         $userId = Auth::id();
 
+        // Exclude blocked users (kedua arah)
+        $blockedByMe = DB::table('jcow_blacks')->where('uid', $userId)->pluck('bid');
+        $blockedMe = DB::table('jcow_blacks')->where('bid', $userId)->pluck('uid');
+        $excludedIds = $blockedByMe->merge($blockedMe)->push($userId)->unique();
+
         $query = DB::table('jcow_accounts')
             ->where('disabled', 0)
             ->where('hide_me', 0)
-            ->where('id', '!=', $userId);
+            ->whereNotIn('id', $excludedIds);
 
         // Filter Gender
         if ($request->filled('gender') && $request->gender != 'all') {
