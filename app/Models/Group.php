@@ -73,4 +73,13 @@ class Group extends Model
                     ->where('app', 'group')
                     ->orderBy('created', 'desc');
     }
+
+    /**
+     * URL logo publik. Mengembalikan null jika logo belum di-set,
+     * sehingga view bisa menampilkan placeholder.
+     */
+    public function getLogoUrlAttribute(): ?string
+    {
+        return $this->logo ? asset('storage/' . $this->logo) : null;
+    }
 }
