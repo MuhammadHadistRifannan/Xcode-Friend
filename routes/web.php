@@ -4,6 +4,10 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\StreamController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\AlbumController;
+use App\Http\Controllers\CaptchaController;
 
 // ==========================================
 // 1. AREA BERANDA / FEED
@@ -12,8 +16,25 @@ use App\Http\Controllers\HomeController;
 // Halaman Landing Page (Statistik & Feed Publik)
 Route::get('/', [HomeController::class, 'guest'])->name('home.guest');
 
-// Halaman Dashboard 3 Kolom (Hanya bisa diakses jika sudah login)
-Route::get('/beranda', [HomeController::class, 'index'])->middleware('auth')->name('beranda');
+Route::middleware('auth')->group(function () {
+    Route::get('/beranda', [HomeController::class, 'index'])->name('beranda');
+    Route::post('/stream', [StreamController::class, 'store'])->name('stream.store');
+    Route::post('/like/{stream}', [\App\Http\Controllers\LikeController::class, 'toggle'])->name('like.toggle');
+    Route::post('/comment/{stream}', [\App\Http\Controllers\CommentController::class, 'store'])->name('comment.store');
+    
+    // Profil Edit (Settings)
+    Route::get('/settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::post('/settings/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/background', [ProfileController::class, 'updateBackground'])->name('profile.background.update');
+    
+    // Album API
+    Route::get('/api/albums', [AlbumController::class, 'search'])->name('album.search');
+    Route::post('/api/albums', [AlbumController::class, 'store'])->name('album.store');
+});
+
+// Rute Profil Pengguna (contoh: xcode-friends.com/@giska) - Bisa diakses publik
+Route::get('/@{username}', [ProfileController::class, 'show'])->name('profile.show');
+
 
 Route::middleware('auth')->group(function () {
     // Messages
@@ -71,20 +92,34 @@ Route::middleware('guest')->group(function () {
     Route::get('/forgot-password', function () {
         return view('auth.forgot-password');
     })->name('password.request');
+    Route::post('/forgot-password', [\App\Http\Controllers\PasswordResetController::class, 'store'])->name('password.email');
+    Route::get('/reset-password/{token}', [\App\Http\Controllers\PasswordResetController::class, 'edit'])->name('password.reset');
+    Route::post('/reset-password', [\App\Http\Controllers\PasswordResetController::class, 'update'])->name('password.update');
 
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 
+// Captcha Image Generator
+Route::get('/captcha', [CaptchaController::class, 'generate'])->name('captcha.generate');
+
+// ==========================================
+// 3. AREA ADMIN
+// ==========================================
+Route::middleware(['auth', 'is_admin'])->group(function () {
+    Route::get('/admin', function () {
+        return '<h1>Dashboard Admin</h1><p>Selamat datang, Admin!</p><form method="POST" action="'.route('logout').'">'.csrf_field().'<button type="submit">Logout</button></form>';
+    })->name('admin.dashboard');
+});
+
+// Dev Login (Development)
 Route::get('/dev-login/bima', function () {
-    // Memaksa login menggunakan User urutan pertama (ID 1)
     $user = App\Models\User::find(1); 
     Auth::login($user);
     return redirect()->route('messages.index');
 });
 
 Route::get('/dev-login/giska', function () {
-    // Memaksa login menggunakan User urutan kedua (ID 2)
     $user = App\Models\User::find(2); 
     if ($user) {
         Auth::login($user);

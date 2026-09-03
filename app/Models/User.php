@@ -19,7 +19,7 @@ class User extends Authenticatable
     protected $fillable = [
         'username', 'fullname', 'email', 'password', 'gender',
         'birthyear', 'birthmonth', 'birthday', 'country', 'about_me',
-        'created', 'lastlogin', 'ipaddress', 'hide_age'
+        'created', 'lastlogin', 'ipaddress', 'hide_age', 'roles'
     ];
 
     protected $hidden = [
@@ -51,6 +51,12 @@ class User extends Authenticatable
     public function receivedMessages()
     {
         return $this->hasMany(Message::class, 'to_id');
+    }
+
+    // Tambahkan relasi ini di dalam class User
+    public function profile()
+    {
+        return $this->hasOne(Profile::class, 'id', 'id')->withDefault();
     }
 
     public function streams()
