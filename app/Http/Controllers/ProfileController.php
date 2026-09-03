@@ -19,9 +19,12 @@ class ProfileController extends Controller
         $videos = null;
 
         if ($tab === 'dinding') {
-            // Ambil postingan (feed) milik user ini saja
+            // Ambil postingan (feed) milik user ini saja, atau postingan di dindingnya
             $streams = Stream::with(['user', 'comments.user'])
-                        ->where('uid', $profileUser->id)
+                        ->where(function($query) use ($profileUser) {
+                            $query->where('uid', $profileUser->id)
+                                  ->orWhere('wall_id', $profileUser->id);
+                        })
                         ->orderBy('created', 'desc')
                         ->paginate(10);
         } elseif ($tab === 'menyukai') {
