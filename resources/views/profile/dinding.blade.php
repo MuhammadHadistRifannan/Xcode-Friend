@@ -290,19 +290,17 @@
                                             </div>
                                         </div>
                                     @elseif($ptCount >= 4)
-                                        <div class="grid grid-cols-2 gap-1 h-72 sm:h-96">
+                                        <div class="grid grid-cols-2 grid-rows-2 gap-1 h-72 sm:h-96">
                                             <img src="{{ $photoUrls[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
-                                            <div class="grid grid-rows-3 gap-1 h-full">
-                                                <img src="{{ $photoUrls[1] }}" onclick='openLightbox({!! $jsonPhotos !!}, 1)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
-                                                <img src="{{ $photoUrls[2] }}" onclick='openLightbox({!! $jsonPhotos !!}, 2)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
-                                                <div class="relative w-full h-full" onclick='openLightbox({!! $jsonPhotos !!}, 3)'>
-                                                    <img src="{{ $photoUrls[3] }}" class="w-full h-full object-cover cursor-pointer" alt="Post Photo">
-                                                    @if($ptCount > 4)
-                                                    <div class="absolute inset-0 bg-black/60 flex items-center justify-center cursor-pointer hover:bg-black/50 transition">
-                                                        <span class="text-white text-3xl font-bold">+{{ $ptCount - 4 }}</span>
-                                                    </div>
-                                                    @endif
+                                            <img src="{{ $photoUrls[1] }}" onclick='openLightbox({!! $jsonPhotos !!}, 1)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                            <img src="{{ $photoUrls[2] }}" onclick='openLightbox({!! $jsonPhotos !!}, 2)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                            <div class="relative w-full h-full" onclick='openLightbox({!! $jsonPhotos !!}, 3)'>
+                                                <img src="{{ $photoUrls[3] }}" class="w-full h-full object-cover cursor-pointer" alt="Post Photo">
+                                                @if($ptCount > 4)
+                                                <div class="absolute inset-0 bg-black/60 flex items-center justify-center cursor-pointer hover:bg-black/50 transition">
+                                                    <span class="text-white text-3xl font-bold">+{{ $ptCount - 4 }}</span>
                                                 </div>
+                                                @endif
                                             </div>
                                         </div>
                                     @endif
@@ -465,19 +463,17 @@
                                             </div>
                                         </div>
                                     @elseif($ptCount >= 4)
-                                        <div class="grid grid-cols-2 gap-1 h-72 sm:h-96">
+                                        <div class="grid grid-cols-2 grid-rows-2 gap-1 h-72 sm:h-96">
                                             <img src="{{ $photoUrls[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
-                                            <div class="grid grid-rows-3 gap-1 h-full">
-                                                <img src="{{ $photoUrls[1] }}" onclick='openLightbox({!! $jsonPhotos !!}, 1)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
-                                                <img src="{{ $photoUrls[2] }}" onclick='openLightbox({!! $jsonPhotos !!}, 2)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
-                                                <div class="relative w-full h-full" onclick='openLightbox({!! $jsonPhotos !!}, 3)'>
-                                                    <img src="{{ $photoUrls[3] }}" class="w-full h-full object-cover cursor-pointer" alt="Post Photo">
-                                                    @if($ptCount > 4)
-                                                    <div class="absolute inset-0 bg-black/60 flex items-center justify-center cursor-pointer hover:bg-black/50 transition">
-                                                        <span class="text-white text-3xl font-bold">+{{ $ptCount - 4 }}</span>
-                                                    </div>
-                                                    @endif
+                                            <img src="{{ $photoUrls[1] }}" onclick='openLightbox({!! $jsonPhotos !!}, 1)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                            <img src="{{ $photoUrls[2] }}" onclick='openLightbox({!! $jsonPhotos !!}, 2)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                            <div class="relative w-full h-full" onclick='openLightbox({!! $jsonPhotos !!}, 3)'>
+                                                <img src="{{ $photoUrls[3] }}" class="w-full h-full object-cover cursor-pointer" alt="Post Photo">
+                                                @if($ptCount > 4)
+                                                <div class="absolute inset-0 bg-black/60 flex items-center justify-center cursor-pointer hover:bg-black/50 transition">
+                                                    <span class="text-white text-3xl font-bold">+{{ $ptCount - 4 }}</span>
                                                 </div>
+                                                @endif
                                             </div>
                                         </div>
                                     @endif
