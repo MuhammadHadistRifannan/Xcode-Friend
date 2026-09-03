@@ -39,7 +39,7 @@
                             <li class="flex items-center gap-4 p-3 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors">
                                 <input type="checkbox" name="uids[]" value="{{ $user->id }}" id="user_{{ $user->id }}" class="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
                                 <label for="user_{{ $user->id }}" class="flex items-center gap-3 cursor-pointer w-full">
-                                    <img src="{{ $user->avatar ? asset('storage/' . $user->avatar) : asset('assets/img/default.png') }}" alt="{{ $user->fullname ?? $user->username ?? $user->name }}" class="w-10 h-10 rounded-full object-cover bg-gray-100 border border-gray-200">
+                                    <img src="{{ $user->avatar_url }}" alt="{{ $user->fullname ?? $user->username ?? $user->name }}" class="w-10 h-10 rounded-full object-cover bg-gray-100 border border-gray-200">
                                     <span class="text-gray-900 font-bold block">{{ $user->fullname ?? $user->username }}</span>
                                 </label>
                             </li>

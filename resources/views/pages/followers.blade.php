@@ -18,7 +18,7 @@
             @forelse($page->followers as $follower)
                 <li class="flex justify-between items-center px-6 py-4 hover:bg-gray-50 transition-colors">
                     <div class="flex items-center gap-4">
-                        <img src="{{ $follower->avatar ? asset('storage/'.$follower->avatar) : asset('assets/img/default.png') }}" alt="{{ $follower->username }}" class="w-12 h-12 rounded-full object-cover bg-gray-100 border border-gray-200">
+                        <img src="{{ $follower->avatar_url }}" alt="{{ $follower->username }}" class="w-12 h-12 rounded-full object-cover bg-gray-100 border border-gray-200">
                         <div>
                             <span class="text-gray-900 font-bold block">{{ $follower->fullname ?: $follower->username }}</span>
                             @if($follower->id === $page->uid)

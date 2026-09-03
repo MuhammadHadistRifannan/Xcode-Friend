@@ -48,7 +48,7 @@
                         <!-- Author Info (Bottom) -->
                         <div class="absolute bottom-0 left-0 right-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
                             <div class="flex items-center gap-2">
-                                <img src="{{ $media->user?->avatar ? asset('storage/'.$media->user->avatar) : asset('assets/img/default.png') }}" class="w-5 h-5 rounded-full border border-white shrink-0">
+                                <img src="{{ $media->user->avatar_url }}" class="w-5 h-5 rounded-full border border-white shrink-0">
                                 <span class="text-white text-xs font-medium truncate drop-shadow-md">{{ $media->user?->fullname ?? $media->user?->username ?? 'Unknown' }}</span>
                             </div>
                         </div>
@@ -67,7 +67,7 @@
                         <!-- Author Info (Top) -->
                         <div class="absolute top-0 left-0 right-0 p-3 bg-gradient-to-b from-black/60 to-transparent">
                             <div class="flex items-center gap-2">
-                                <img src="{{ $media->user?->avatar ? asset('storage/'.$media->user->avatar) : asset('assets/img/default.png') }}" class="w-5 h-5 rounded-full border border-white shrink-0">
+                                <img src="{{ $media->user->avatar_url }}" class="w-5 h-5 rounded-full border border-white shrink-0">
                                 <span class="text-white text-xs font-medium truncate drop-shadow-md">{{ $media->user?->fullname ?? $media->user?->username ?? 'Unknown' }}</span>
                             </div>
                         </div>

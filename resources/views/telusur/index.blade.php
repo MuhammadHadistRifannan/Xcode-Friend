@@ -116,11 +116,7 @@
                             <div class="bg-white rounded-[14px] p-6 shadow-sm flex flex-col items-center text-center hover:shadow-md transition w-full max-w-[220px]">
                                 <!-- Avatar -->
                                 <div class="w-16 h-16 rounded-full bg-[#f4dada] flex items-center justify-center overflow-hidden mb-3">
-                                    @if($member->avatar)
-                                        <img src="{{ asset('storage/avatars/' . $member->avatar) }}" alt="{{ $member->username }}" class="w-full h-full object-cover">
-                                    @else
-                                        <span class="text-[#b71c1c] font-bold text-2xl">{{ substr($member->fullname ?? $member->username, 0, 1) }}</span>
-                                    @endif
+                                    <img src="{{ $member->avatar_url }}" alt="{{ $member->username }}" class="w-full h-full object-cover">
                                 </div>
 
                                 <!-- Username -->

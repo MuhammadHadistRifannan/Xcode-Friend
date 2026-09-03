@@ -40,6 +40,11 @@ class User extends Authenticatable
         return $this->fullname;
     }
 
+    public function getAvatarUrlAttribute()
+    {
+        return $this->avatar ? asset('storage/avatars/' . $this->avatar) : asset('assets/img/default.png');
+    }
+
     public function friends()
     {
         return $this->belongsToMany(User::class, 'jcow_friends', 'uid', 'fid');

@@ -20,7 +20,7 @@
         <div class="lg:col-span-3 space-y-6">
             <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-6 text-center">
                 <div class="w-24 h-24 mx-auto rounded-full bg-neutral-100 border-4 border-white shadow-md mb-4 overflow-hidden relative group">
-                    <img src="{{ $user->avatar ? asset('storage/avatars/' . $user->avatar) : asset('assets/img/default.png') }}" alt="Avatar" class="w-full h-full object-cover">
+                    <img src="{{ $user->avatar_url }}" alt="Avatar" class="w-full h-full object-cover">
                 </div>
                 
                 <h3 class="text-lg font-bold text-neutral-900 mb-1">{{ $user->fullname }}</h3>
@@ -170,7 +170,7 @@
                                 <div class="flex items-center gap-8 mb-6">
                                     <div class="w-32 h-32 rounded-full border border-neutral-300 p-1 flex-shrink-0">
                                         <div class="w-full h-full rounded-full overflow-hidden bg-neutral-100">
-                                            <img src="{{ $user->avatar ? asset('storage/avatars/' . $user->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($user->fullname).'&background=E5E5E5&size=128' }}" class="w-full h-full object-cover">
+                                            <img src="{{ $user->avatar_url }}" class="w-full h-full object-cover">
                                         </div>
                                     </div>
                                     <div class="flex-1">

@@ -61,7 +61,7 @@
         <div class="flex">
             @if(isset($profile['recentFollowers']) && $profile['recentFollowers']->count() > 0)
                 @foreach($profile['recentFollowers'] as $follower)
-                    <img src="{{ $follower->avatar ? asset('storage/'.$follower->avatar) : asset('assets/img/default.png') }}" 
+                    <img src="{{ $follower->avatar_url }}" 
                          alt="{{ $follower->fullname ?: $follower->username }}" 
                          class="w-8 h-8 rounded-full border-2 border-white -ml-2 first:ml-0" 
                          title="{{ $follower->fullname ?: $follower->username }}">

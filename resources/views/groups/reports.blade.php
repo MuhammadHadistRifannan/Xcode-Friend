@@ -60,7 +60,7 @@
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
-                                    <img src="{{ $report->user?->avatar ? asset('storage/'.$report->user->avatar) : asset('assets/img/default.png') }}" 
+                                    <img src="{{ $report->user->avatar_url }}" 
                                          class="w-8 h-8 rounded-full border border-gray-200">
                                     <span class="font-bold text-sm text-gray-900">{{ $report->user?->fullname ?? $report->user?->username ?? 'Unknown User' }}</span>
                                 </div>
@@ -107,7 +107,7 @@
                                                 </div>
                                                 <div class="p-5 max-h-[50vh] overflow-y-auto">
                                                     <div class="flex items-start gap-3 mb-3">
-                                                        <img src="{{ $content->user?->avatar ? asset('storage/'.$content->user->avatar) : asset('assets/img/default.png') }}" class="w-10 h-10 rounded-full object-cover border border-gray-200 shrink-0">
+                                                        <img src="{{ $content->user->avatar_url }}" class="w-10 h-10 rounded-full object-cover border border-gray-200 shrink-0">
                                                         <div>
                                                             <span class="font-bold text-gray-900 text-sm">{{ $content->user?->fullname ?? $content->user?->username ?? 'Unknown' }}</span>
                                                             <p class="text-xs text-gray-400">{{ \Carbon\Carbon::createFromTimestamp($content->created)->diffForHumans() }}</p>

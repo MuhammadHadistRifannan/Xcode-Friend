@@ -55,7 +55,7 @@
                     <!-- Post Header: Avatar + Nama + Waktu -->
                     <div class="flex items-start justify-between mb-3 relative" x-data="{ openOptions: false }">
                         <div class="flex items-start gap-3">
-                            <img src="{{ $post->user?->avatar ? asset('storage/'.$post->user->avatar) : asset('assets/img/default.png') }}"
+                            <img src="{{ $post->user->avatar_url }}"
                                  class="w-10 h-10 rounded-full object-cover border border-gray-200 shrink-0" alt="Avatar">
                             <div>
                                 <span class="font-bold text-gray-900 text-sm">{{ $post->user?->fullname ?? $post->user?->username ?? 'Unknown User' }}</span>
@@ -151,7 +151,7 @@
                         <div class="bg-gray-50 rounded-lg p-4 mt-3 space-y-3 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
                             @foreach($post->comments as $comment)
                                 <div class="flex gap-2" id="comment-{{ $comment->id }}">
-                                    <img src="{{ $comment->user?->avatar ? asset('storage/'.$comment->user->avatar) : asset('assets/img/default.png') }}"
+                                    <img src="{{ $comment->user->avatar_url }}"
                                          class="w-8 h-8 rounded-full object-cover shrink-0 border border-gray-200" alt="Avatar">
                                     <div x-data="{ editing: false, openCommentOptions: false }">
                                         <div class="flex items-center gap-2 group">

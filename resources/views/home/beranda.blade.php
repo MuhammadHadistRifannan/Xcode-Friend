@@ -101,7 +101,7 @@
                 <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
                     <div class="flex items-center space-x-3 mb-2">
                         <a href="/@{{ $stream->user->username ?? '#' }}" class="w-10 h-10 rounded-full bg-neutral-100 overflow-hidden flex-shrink-0 border border-neutral-200 hover:ring-2 hover:ring-red-700 transition">
-                            <img src="{{ $stream->user->avatar ? asset('storage/avatars/'.$stream->user->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($stream->user->fullname ?? 'Unknown').'&background=E5E5E5' }}" class="w-full h-full object-cover">
+                            <img src="{{ $stream->user->avatar_url }}" class="w-full h-full object-cover">
                         </a>
                         <div>
                             <h4 class="text-sm font-bold text-neutral-900">
@@ -231,7 +231,7 @@
                         <form action="{{ route('comment.store', $stream->id) }}" method="POST" class="flex space-x-2 form-comment" data-stream-id="{{ $stream->id }}">
                             @csrf
                             <div class="w-8 h-8 rounded-full bg-neutral-200 overflow-hidden flex-shrink-0">
-                                <img src="{{ auth()->user()->avatar ? asset('storage/avatars/'.auth()->user()->avatar) : asset('assets/img/default.png') }}" class="w-full h-full">
+                                <img src="{{ auth()->user()->avatar_url }}" class="w-full h-full">
                             </div>
                             <input type="text" name="message" id="comment-input-{{ $stream->id }}" required placeholder="Tulis komentar..." class="flex-1 bg-neutral-50 border border-neutral-200 rounded-full px-4 text-sm focus:outline-none focus:border-red-700">
                             <button type="submit" class="text-red-700 font-bold text-sm px-2">Kirim</button>
