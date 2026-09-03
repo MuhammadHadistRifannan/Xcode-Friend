@@ -13,6 +13,7 @@ class NotificationRepository implements NotificationRepositoryInterface
         return DB::table('jcow_messages')
             ->where('to_id', $userId)
             ->where('from_id', 0)
+            ->whereNull('deleted_at')
             ->orderBy('created', 'desc')
             ->limit($perPage)
             ->get();
@@ -24,6 +25,7 @@ class NotificationRepository implements NotificationRepositoryInterface
             ->where('id', $id)
             ->where('to_id', $userId)
             ->where('from_id', 0)
+            ->whereNull('deleted_at')
             ->first();
     }
 
@@ -33,6 +35,7 @@ class NotificationRepository implements NotificationRepositoryInterface
             ->where('id', $id)
             ->where('to_id', $userId)
             ->where('from_id', 0)
+            ->whereNull('deleted_at')
             ->update(['hasread' => 1]) > 0;
     }
 
@@ -42,6 +45,7 @@ class NotificationRepository implements NotificationRepositoryInterface
             ->where('to_id', $userId)
             ->where('from_id', 0)
             ->whereRaw('hasread = 0')
+            ->whereNull('deleted_at')
             ->update(['hasread' => 1]);
     }
 
@@ -51,6 +55,7 @@ class NotificationRepository implements NotificationRepositoryInterface
             ->where('to_id', $userId)
             ->where('from_id', 0)
             ->whereRaw('hasread = 0')
+            ->whereNull('deleted_at')
             ->count();
     }
 
@@ -60,7 +65,8 @@ class NotificationRepository implements NotificationRepositoryInterface
             ->where('id', $id)
             ->where('to_id', $userId)
             ->where('from_id', 0)
-            ->delete() > 0;
+            ->whereNull('deleted_at')
+            ->update(['deleted_at' => now()]) > 0;
     }
 
     public function create(int $userId, string $type, array $data = []): void

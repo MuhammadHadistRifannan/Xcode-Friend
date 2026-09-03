@@ -144,10 +144,22 @@ class MessageController extends Controller
     {
         $userId = Auth::id();
 
-        $this->messageService->delete($id, $userId, 'inbox');
+        $message = $this->messageService->getById($id, $userId);
+
+        if (!$message) {
+            return $this->noCache(
+                redirect()->route('messages.index')->with('error', 'Pesan tidak ditemukan.')
+            );
+        }
+
+        $type = $message->to_id == $userId ? 'inbox' : 'outbox';
+
+        $this->messageService->delete($id, $userId, $type);
+
+        $route = $type === 'outbox' ? 'messages.outbox' : 'messages.index';
 
         return $this->noCache(
-            redirect()->route('messages.index')->with('success', 'Pesan berhasil dihapus.')
+            redirect()->route($route)->with('success', 'Pesan berhasil dihapus.')
         );
     }
 
