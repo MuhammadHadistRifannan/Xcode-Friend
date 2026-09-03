@@ -170,21 +170,57 @@
             <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
                 <div class="flex justify-between items-center mb-3">
                     <h4 class="text-[11px] font-bold text-neutral-800 uppercase tracking-wider">TEMAN</h4>
-                    <a href="#" class="text-[9px] font-bold text-red-700 hover:underline">Lihat Semua</a>
+                    <a href="{{ route('telusur') }}" class="text-[9px] font-bold text-red-700 hover:underline">Lihat Semua</a>
                 </div>
-                <div class="bg-neutral-50 border border-neutral-100 rounded text-center py-4 text-xs text-neutral-400">No friends yet</div>
+                @if($profileUser->friends && $profileUser->friends->count() > 0)
+                    <div class="flex flex-wrap gap-2">
+                        @foreach($profileUser->friends->take(6) as $friend)
+                            <a href="{{ url('/profile/'.$friend->username) }}" class="block">
+                                <img src="{{ $friend->avatar_url }}" alt="{{ $friend->fullname ?: $friend->username }}" class="w-10 h-10 rounded-full object-cover border border-neutral-200" title="{{ $friend->fullname ?: $friend->username }}">
+                            </a>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="bg-neutral-50 border border-neutral-100 rounded text-center py-4 text-xs text-neutral-400">No friends yet</div>
+                @endif
             </div>
 
             <!-- Groups -->
             <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
-                <h4 class="text-[11px] font-bold text-neutral-800 uppercase tracking-wider mb-3">GROUPS</h4>
-                <div class="bg-neutral-50 border border-neutral-100 rounded text-center py-4 text-xs text-neutral-400">No groups yet</div>
+                <div class="flex justify-between items-center mb-3">
+                    <h4 class="text-[11px] font-bold text-neutral-800 uppercase tracking-wider">GROUPS</h4>
+                    <a href="{{ route('groups.index') }}" class="text-[9px] font-bold text-red-700 hover:underline">Lihat Semua</a>
+                </div>
+                @if($profileUser->likedGroups && $profileUser->likedGroups->count() > 0)
+                    <div class="flex flex-wrap gap-2">
+                        @foreach($profileUser->likedGroups->take(6) as $group)
+                            <a href="{{ url('/groups/'.$group->id) }}" class="block">
+                                <img src="{{ $group->logo_url ?: asset('assets/img/default.png') }}" alt="{{ $group->name }}" class="w-10 h-10 rounded-md object-cover border border-neutral-200" title="{{ $group->name }}">
+                            </a>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="bg-neutral-50 border border-neutral-100 rounded text-center py-4 text-xs text-neutral-400">No groups yet</div>
+                @endif
             </div>
 
             <!-- Pages -->
             <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
-                <h4 class="text-[11px] font-bold text-neutral-800 uppercase tracking-wider mb-3">PAGES</h4>
-                <div class="bg-neutral-50 border border-neutral-100 rounded text-center py-4 text-xs text-neutral-400">No pages yet</div>
+                <div class="flex justify-between items-center mb-3">
+                    <h4 class="text-[11px] font-bold text-neutral-800 uppercase tracking-wider">PAGES</h4>
+                    <a href="{{ route('pages.index') }}" class="text-[9px] font-bold text-red-700 hover:underline">Lihat Semua</a>
+                </div>
+                @if($profileUser->likedPages && $profileUser->likedPages->count() > 0)
+                    <div class="flex flex-wrap gap-2">
+                        @foreach($profileUser->likedPages->take(6) as $page)
+                            <a href="{{ url('/pages/'.$page->id) }}" class="block">
+                                <img src="{{ $page->logo_url ?: asset('assets/img/default.png') }}" alt="{{ $page->name }}" class="w-10 h-10 rounded-md object-cover border border-neutral-200" title="{{ $page->name }}">
+                            </a>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="bg-neutral-50 border border-neutral-100 rounded text-center py-4 text-xs text-neutral-400">No pages yet</div>
+                @endif
             </div>
         </div>
 

@@ -113,4 +113,17 @@ class User extends Authenticatable
             'pid'              // FK dari sisi Page di pivot
         );
     }
+
+    /**
+     * Groups yang diikuti oleh user ini.
+     */
+    public function likedGroups(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(
+            Group::class,
+            'jcow_page_users',
+            'uid',
+            'pid'
+        );
+    }
 }
