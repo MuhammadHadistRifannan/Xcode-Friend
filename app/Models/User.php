@@ -101,6 +101,15 @@ class User extends Authenticatable
     }
 
     /**
+     * Groups yang dibuat oleh user ini.
+     * jcow_pages.uid = users.id (with group global scope)
+     */
+    public function createdGroups(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Group::class, 'uid');
+    }
+
+    /**
      * Pages yang disukai (liked/followed) oleh user ini.
      * Pivot: jcow_page_users (uid = user id, pid = page id)
      */

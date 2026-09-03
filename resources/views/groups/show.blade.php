@@ -3,7 +3,7 @@
 @section('content')
 {{-- Penting: hide x-cloak by default --}}
 <style>[x-cloak] { display: none !important; }</style>
-<div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+<div class="max-w-[95%] lg:max-w-5xl mx-auto w-full py-8">
     
     @if(session('success'))
         <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)" 

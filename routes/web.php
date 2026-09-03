@@ -234,7 +234,8 @@ Route::middleware('auth')->group(function () {
     
     Route::post('/stream/{id}/like', [GroupController::class, 'likeStream'])->name('stream.like');
     Route::post('/stream/{id}/comment', [GroupController::class, 'commentStream'])->name('stream.comment');
-    Route::delete('/stream/{id}', [GroupController::class, 'destroyStream'])->name('stream.destroy');
+    Route::put('/stream/{id}', [\App\Http\Controllers\StreamController::class, 'update'])->name('stream.update');
+    Route::delete('/stream/{id}', [\App\Http\Controllers\StreamController::class, 'destroy'])->name('stream.destroy');
     Route::put('/comment/{id}', [GroupController::class, 'updateComment'])->name('comment.update');
     Route::delete('/comment/{id}', [GroupController::class, 'destroyComment'])->name('comment.destroy');
 

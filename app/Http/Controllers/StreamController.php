@@ -30,8 +30,17 @@ class StreamController extends Controller
             $savedPhotos = [];
             foreach($files as $index => $file) {
                 $filename = 'POST-' . auth()->id() . '-' . time() . '-' . $index . '.' . $file->getClientOriginalExtension();
-                $file->storeAs('posts', $filename, 'public');
+                $path = $file->storeAs('posts', $filename, 'public');
                 $savedPhotos[] = $filename;
+                
+                // Tambahkan ke My Apps (Foto)
+                \App\Models\Photo::create([
+                    'sid'   => $albumId,
+                    'uri'   => 'posts/' . $filename,
+                    'des'   => $request->message ?? '',
+                    'thumb' => 'posts/' . $filename,
+                    'size'  => $file->getSize(),
+                ]);
             }
             $attachment = json_encode([
                 'photos' => $savedPhotos,
@@ -47,6 +56,42 @@ class StreamController extends Controller
                 'desc' => $request->video_desc ?? ''
             ]);
             $type = 3; // 3 = video
+            
+            // Tambahkan ke My Apps (Video)
+            \App\Models\Video::create([
+                'title'   => $request->video_title ?? 'Video Post',
+                'content' => $request->video_desc ?? ($request->message ?? ''),
+                'var1'    => $request->video_url,
+                'tags'    => $request->video_tags ?? '',
+                'cid'     => $videoAlbumId,
+                'uid'     => auth()->id(),
+                'app'     => 'video',
+                'created' => time(),
+                'updated' => time(),
+                'views'   => 0,
+                'featured'=> 0,
+                'sticky'  => 0,
+                'closed'  => 0,
+                'digg'    => 0,
+                'dugg'    => 0,
+                'photos'  => 0,
+                'rating'  => 0,
+                'blob1'   => '',
+                'thumbnail' => '',
+                'lastreply' => 0,
+                'lastreplyuname' => '',
+                'lastreplyuid' => 0,
+                'comments' => 0,
+                'stream_id' => 0,
+                'var2' => '',
+                'var3' => '',
+                'var4' => '',
+                'var5' => '',
+                'text1' => '',
+                'text2' => '',
+                'page_id' => 0,
+                'page_type' => '',
+            ]);
         }
 
         Stream::create([
@@ -63,5 +108,61 @@ class StreamController extends Controller
         ]);
 
         return back()->with('success_post', 'Status berhasil dibagikan ke jaringan!');
+    }
+
+    public function update(Request $request, $id)
+    {
+        $stream = Stream::findOrFail($id);
+        
+        if (auth()->id() !== $stream->uid) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $request->validate([
+            'message' => 'nullable|string|max:5000',
+        ]);
+
+        $stream->update([
+            'message' => $request->message ?? ''
+        ]);
+
+        return back()->with('success', 'Postingan berhasil diperbarui.');
+    }
+
+    public function destroy($id)
+    {
+        $stream = Stream::findOrFail($id);
+
+        $canDelete = false;
+        
+        if (auth()->id() === $stream->uid) {
+            $canDelete = true;
+        } else if ($stream->app === 'group') {
+            $group = \App\Models\Group::find($stream->wall_id);
+            if ($group && $group->uid === auth()->id()) {
+                $canDelete = true;
+            }
+        } else if ($stream->app === 'page') {
+            $page = \App\Models\Page::find($stream->wall_id);
+            if ($page && $page->uid === auth()->id()) {
+                $canDelete = true;
+            }
+        }
+
+        if (!$canDelete) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        if ($stream->attachment) {
+            $att = json_decode($stream->attachment, true);
+            if (isset($att['photos']) && is_array($att['photos'])) {
+                foreach ($att['photos'] as $photo) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete('posts/' . $photo);
+                }
+            }
+        }
+
+        $stream->delete();
+        return back()->with('success', 'Postingan berhasil dihapus.');
     }
 }
