@@ -50,12 +50,12 @@ class StreamController extends Controller
         }
 
         Stream::create([
-            'message' => $request->message,
+            'message' => $request->message ?? '',
             'uid' => auth()->id(),
             'created' => time(),
             'type' => $type,
             'app' => $request->input('app', 'feed'),
-            'wall_id' => $request->input('wallId', 0),
+            'wall_id' => $request->input('wall_id', 0),
             'attachment' => $attachment,
             'aid' => $request->input('aid', 0),
             'hide' => 0,

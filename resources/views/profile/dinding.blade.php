@@ -56,9 +56,11 @@
                     <img src="{{ $profileUser->avatar ? asset('storage/avatars/' . $profileUser->avatar) : asset('assets/img/default.png') }}" alt="Avatar" class="w-full h-full object-cover">
                 </div>
 
+                <!-- Username (Muncul untuk semua profil) -->
+                <p class="text-xs text-red-700 font-semibold mt-0.5 mb-3">{{ '@' . $profileUser->username }}</p>
+
                 @if(auth()->check() && auth()->user()->id !== $profileUser->id)
-                    {{-- Profil Teman: Tampilkan nama + jabatan --}}
-                    <h3 class="text-sm font-bold text-neutral-900 leading-tight">{{ $profileUser->fullname }}</h3>
+                    {{-- Profil Teman: Tampilkan jabatan --}}
                     @if($profileUser->about_me)
                         <p class="text-[11px] text-neutral-500 mt-0.5 mb-3">{{ Str::limit($profileUser->about_me, 40) }}</p>
                     @else
@@ -214,12 +216,12 @@
                     <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
                         <div class="flex justify-between items-start mb-3">
                             <div class="flex items-center space-x-3">
-                                <a href="/{{ $stream->user->username ?? '#' }}" class="w-10 h-10 rounded-full bg-neutral-100 overflow-hidden border border-neutral-200 hover:ring-2 hover:ring-red-700 transition flex-shrink-0">
-                                    <img src="{{ $stream->user->avatar ? asset('storage/avatars/'.$stream->user->avatar) : asset('assets/img/default.png') }}" class="w-full h-full object-cover">
+                                <a href="/@{{ $stream->user->username ?? '#' }}" class="w-10 h-10 rounded-full bg-neutral-100 overflow-hidden border border-neutral-200 hover:ring-2 hover:ring-red-700 transition flex-shrink-0">
+                                    <img src="{{ $stream->user->avatar ? asset('storage/avatars/'.$stream->user->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($stream->user->fullname ?? 'Unknown').'&background=E5E5E5' }}" class="w-full h-full object-cover">
                                 </a>
                                 <div>
                                     <h4 class="text-sm font-bold text-neutral-900">
-                                        <a href="/{{ $stream->user->username ?? '#' }}" class="hover:text-red-700 transition">{{ $stream->user->fullname ?? 'Unknown User' }}</a>
+                                        <a href="/@{{ $stream->user->username ?? '#' }}" class="hover:text-red-700 transition">{{ $stream->user->fullname ?? 'Unknown User' }}</a>
                                     </h4>
                                     <p class="text-[11px] text-neutral-400">
                                         {{ \Carbon\Carbon::createFromTimestamp($stream->created)->diffForHumans() }}
@@ -389,13 +391,13 @@
                     <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
                         <div class="flex justify-between items-start mb-3">
                             <div class="flex items-center space-x-3">
-                                <a href="/{{ $stream->user->username ?? '#' }}" class="w-10 h-10 rounded-full bg-neutral-100 overflow-hidden border border-neutral-200 hover:ring-2 hover:ring-red-700 transition flex-shrink-0">
-                                    <img src="{{ $stream->user->avatar ? asset('storage/avatars/'.$stream->user->avatar) : asset('assets/img/default.png') }}" class="w-full h-full object-cover">
+                                <a href="/@{{ $stream->user->username ?? '#' }}" class="w-10 h-10 rounded-full bg-neutral-100 overflow-hidden border border-neutral-200 hover:ring-2 hover:ring-red-700 transition flex-shrink-0">
+                                    <img src="{{ $stream->user->avatar ? asset('storage/avatars/'.$stream->user->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($stream->user->fullname ?? 'Unknown').'&background=E5E5E5' }}" class="w-full h-full object-cover">
                                 </a>
                                 <div>
                                     <h4 class="text-sm font-bold text-neutral-900">
-                                        <a href="/{{ $stream->user->username ?? '#' }}" class="hover:text-red-700 transition">{{ $stream->user->fullname ?? 'Unknown User' }}</a>
-                                        <br><span class="font-normal text-neutral-500">Mendaftar / Menyukai</span>
+                                        <a href="/@{{ $stream->user->username ?? '#' }}" class="hover:text-red-700 transition">{{ $stream->user->fullname ?? 'Unknown User' }}</a>
+                                        <span class="font-normal text-neutral-500">Mendaftar / Menyukai</span>
                                     </h4>
                                     <p class="text-[11px] text-neutral-400">
                                         <svg class="w-3 h-3 inline pb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg> {{ \Carbon\Carbon::createFromTimestamp($stream->created)->format('M jS Y, g:i a') }}
@@ -638,44 +640,42 @@
 
 <script>
 function switchTab(tabName) {
-    // Sembunyikan semua konten tab
-    document.getElementById('tab-content-status').classList.add('hidden');
-    document.getElementById('tab-content-unggah').classList.add('hidden');
-    document.getElementById('tab-content-video').classList.add('hidden');
-
-    // Kembalikan gaya tombol tab ke default (abu-abu)
     const tabs = ['status', 'unggah', 'video'];
+    
     tabs.forEach(t => {
+        const content = document.getElementById('tab-content-' + t);
+        if(content) {
+            content.classList.add('hidden');
+            const inputs = content.querySelectorAll('input, textarea, select');
+            inputs.forEach(input => input.disabled = true);
+        }
+
         const btn = document.getElementById('tab-btn-' + t);
-        btn.classList.remove('text-red-700', 'font-bold', 'border-red-700', 'border-b-2');
-        btn.classList.add('text-neutral-500', 'font-medium');
+        if(btn) {
+            btn.classList.remove('text-red-700', 'font-bold', 'border-red-700', 'border-b-2');
+            btn.classList.add('text-neutral-500', 'font-medium');
+        }
     });
 
-    // Tampilkan konten tab yang aktif
-    document.getElementById('tab-content-' + tabName).classList.remove('hidden');
+    const activeContent = document.getElementById('tab-content-' + tabName);
+    if(activeContent) {
+        activeContent.classList.remove('hidden');
+        const activeInputs = activeContent.querySelectorAll('input, textarea, select');
+        activeInputs.forEach(input => input.disabled = false);
+    }
 
-    // Ubah gaya tombol tab yang aktif (merah dan bold)
     const activeBtn = document.getElementById('tab-btn-' + tabName);
-    activeBtn.classList.remove('text-neutral-500', 'font-medium');
-    activeBtn.classList.add('text-red-700', 'font-bold', 'border-red-700', 'border-b-2');
-}
-
-function previewPhoto(event) {
-    const input = event.target;
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            document.getElementById('photo-preview').src = e.target.result;
-            document.getElementById('photo-preview-container').classList.remove('hidden');
-        }
-        reader.readAsDataURL(input.files[0]);
+    if(activeBtn) {
+        activeBtn.classList.remove('text-neutral-500', 'font-medium');
+        activeBtn.classList.add('text-red-700', 'font-bold', 'border-red-700', 'border-b-2');
     }
 }
-function clearPhoto() {
-    document.getElementById('photo-input-post').value = '';
-    document.getElementById('photo-preview-container').classList.add('hidden');
-    document.getElementById('photo-preview').src = '#';
-}
+
+document.addEventListener('DOMContentLoaded', function() {
+    switchTab('status');
+});
+
+
 
 
 
@@ -775,6 +775,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
 </script>
 
 @include('components.lightbox')

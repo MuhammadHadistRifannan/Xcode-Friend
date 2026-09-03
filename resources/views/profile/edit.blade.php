@@ -157,31 +157,63 @@
                     </form>
 
                 @elseif($tab === 'gambar')
-                    <!-- TAB 2: GAMBAR PENGENAL -->
-                    <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
-                        @csrf
-                        <input type="hidden" name="type" value="avatar">
-                        
-                        <h4 class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest border-b border-neutral-100 pb-2 text-center mb-6">CURRENT IDENTITY</h4>
-                        
-                        <div class="flex justify-center mb-8">
-                            <div class="w-32 h-32 rounded-full border border-neutral-300 p-1">
-                                <div class="w-full h-full rounded-full overflow-hidden bg-neutral-100">
-                                    <img src="{{ $user->avatar ? asset('storage/avatars/' . $user->avatar) : asset('assets/img/default.png') }}" class="w-full h-full object-cover">
+                    <!-- TAB 2: GAMBAR PENGENAL & BANNER SAMPUL -->
+                    <div class="space-y-12">
+                        <!-- BAGIAN: GAMBAR PENGENAL (AVATAR) -->
+                        <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+                            @csrf
+                            <input type="hidden" name="type" value="avatar">
+                            
+                            <div>
+                                <h4 class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest border-b border-neutral-100 pb-2 mb-4">AVATAR (GAMBAR PENGENAL)</h4>
+                                
+                                <div class="flex items-center gap-8 mb-6">
+                                    <div class="w-32 h-32 rounded-full border border-neutral-300 p-1 flex-shrink-0">
+                                        <div class="w-full h-full rounded-full overflow-hidden bg-neutral-100">
+                                            <img src="{{ $user->avatar ? asset('storage/avatars/' . $user->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($user->fullname).'&background=E5E5E5&size=128' }}" class="w-full h-full object-cover">
+                                        </div>
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="border-2 border-dashed border-neutral-300 rounded-lg p-6 flex flex-col items-center justify-center bg-neutral-50 hover:bg-neutral-100 transition cursor-pointer" onclick="document.getElementById('avatar_upload').click()">
+                                            <svg class="w-8 h-8 text-neutral-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                                            <p class="text-sm font-semibold text-neutral-700">Ganti Avatar</p>
+                                            <p class="text-[10px] text-neutral-500 mt-1">JPG, PNG, GIF Max 5MB</p>
+                                            <input type="file" name="avatar" id="avatar_upload" class="hidden" accept="image/*" onchange="this.form.submit()">
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        </form>
 
-                        <h4 class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest border-b border-neutral-100 pb-2 mb-4">UPDATE PARAMETERS</h4>
-                        
-                        <div class="border-2 border-dashed border-neutral-300 rounded-lg p-10 flex flex-col items-center justify-center bg-neutral-50 hover:bg-neutral-100 transition cursor-pointer" onclick="document.getElementById('avatar_upload').click()">
-                            <svg class="w-8 h-8 text-neutral-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                            <p class="text-sm font-semibold text-neutral-700">Drag and drop or click to Unggah file</p>
-                            <p class="text-[10px] text-neutral-500 mt-1">JPG, PNG, GIF Max 5MB</p>
-                            <input type="file" name="avatar" id="avatar_upload" class="hidden" accept="image/*" onchange="this.form.submit()">
-                        </div>
-
-                    </form>
+                        <!-- BAGIAN: BANNER SAMPUL (COVER) -->
+                        <form action="{{ route('profile.background.update') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+                            @csrf
+                            
+                            <div>
+                                <h4 class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest border-b border-neutral-100 pb-2 mb-4">BANNER SAMPUL</h4>
+                                
+                                <div class="mb-6">
+                                    <div class="w-full h-40 rounded-xl border border-neutral-300 p-1 mb-4">
+                                        <div class="w-full h-full rounded-lg overflow-hidden bg-neutral-100 relative">
+                                            @if($user->profile && $user->profile->background)
+                                                <img src="{{ asset('storage/backgrounds/' . $user->profile->background) }}" class="w-full h-full object-cover">
+                                            @else
+                                                <div class="w-full h-full bg-gradient-to-r from-neutral-200 to-neutral-300 flex items-center justify-center">
+                                                    <span class="text-neutral-500 text-sm font-bold opacity-50">Belum ada banner</span>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <div class="border-2 border-dashed border-neutral-300 rounded-lg p-6 flex flex-col items-center justify-center bg-neutral-50 hover:bg-neutral-100 transition cursor-pointer" onclick="document.getElementById('background_upload').click()">
+                                        <svg class="w-8 h-8 text-neutral-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                        <p class="text-sm font-semibold text-neutral-700">Unggah Banner Baru</p>
+                                        <p class="text-[10px] text-neutral-500 mt-1">Disarankan: 1200x400px (JPG, PNG, WebP Max 2MB)</p>
+                                        <input type="file" name="background" id="background_upload" class="hidden" accept="image/*" onchange="this.form.submit()">
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
 
                 @elseif($tab === 'pemberitahuan')
                     <!-- TAB 3: PEMBERITAHUAN -->
