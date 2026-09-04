@@ -114,6 +114,18 @@ class FriendService
             throw new Exception('Tidak bisa mengikuti diri sendiri.');
         }
         $this->friendRepo->follow($userId, $targetId);
+
+        $follower = \App\Models\User::query()->where('id', $userId)->first();
+        if ($follower) {
+            $this->notifRepo->create(
+                $targetId,
+                'follow',
+                [
+                    'user_id' => $userId,
+                    'user_name' => $follower->fullname ?? $follower->username ?? 'User',
+                ]
+            );
+        }
     }
 
     public function unfollow(int $userId, int $targetId): void

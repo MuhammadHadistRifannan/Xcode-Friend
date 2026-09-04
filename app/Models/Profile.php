@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 class Profile extends Model
 {
     protected $table = 'jcow_profiles';
+    public $incrementing = false;
     public $timestamps = false;
     protected $guarded = [];
 }

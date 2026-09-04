@@ -61,7 +61,27 @@ class ProfileController extends Controller
                         ->paginate(12);
         }
 
-        return view('profile.dinding', compact('profileUser', 'streams', 'photos', 'videos', 'tab'));
+        $isFollowing = false;
+        $isFriend = false;
+        $hasPendingRequest = false;
+        $hasSentRequest = false;
+        $isBlocked = false;
+
+        if (auth()->check() && auth()->user()->id !== $profileUser->id) {
+            $friendRepo = app(\App\Repositories\Contracts\FriendRepositoryInterface::class);
+            $authId = auth()->user()->id;
+            
+            $isFollowing = $friendRepo->isFollowing($authId, $profileUser->id);
+            $isFriend = $friendRepo->areFriends($authId, $profileUser->id);
+            $hasPendingRequest = $friendRepo->hasPendingRequest($authId, $profileUser->id);
+            $hasSentRequest = $friendRepo->hasPendingRequest($profileUser->id, $authId);
+            $isBlocked = $friendRepo->isBlocked($authId, $profileUser->id);
+        }
+
+        return view('profile.dinding', compact(
+            'profileUser', 'streams', 'photos', 'videos', 'tab',
+            'isFollowing', 'isFriend', 'hasPendingRequest', 'hasSentRequest', 'isBlocked'
+        ));
     }
 
     public function updateBackground(Request $request)

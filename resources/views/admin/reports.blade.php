@@ -71,16 +71,18 @@
                                     $content = null;
                                     $isComment = false;
                                     $isPostOrComment = false;
-                                    if (str_contains($report->url, '#post-')) {
-                                        $parts = explode('#post-', $report->url);
+                                    
+                                    if (str_contains($report->url, '/stream/')) {
+                                        $parts = explode('/stream/', $report->url);
                                         $contentId = $parts[1] ?? null;
                                         $isPostOrComment = true;
-                                    } elseif (str_contains($report->url, '#comment-')) {
-                                        $parts = explode('#comment-', $report->url);
+                                    } elseif (str_contains($report->url, '#')) {
+                                        $parts = explode('#', $report->url);
                                         $contentId = $parts[1] ?? null;
                                         $isComment = true;
                                         $isPostOrComment = true;
                                     }
+                                    
                                     if ($contentId) {
                                         if ($isComment) {
                                             $content = \App\Models\Comment::find($contentId);
@@ -93,7 +95,7 @@
                                 @if($content)
                                     <div x-data="{ openPostModal: false }">
                                         <button type="button" @click="openPostModal = true" class="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline inline-flex items-center gap-1">
-                                            Lihat {{ $isComment ? 'Komentar' : 'Postingan' }} <i data-lucide="external-link" class="w-3 h-3"></i>
+                                            Lihat Unggah <i data-lucide="external-link" class="w-3 h-3"></i>
                                         </button>
                                         
                                         <!-- Modal Postingan/Komentar -->

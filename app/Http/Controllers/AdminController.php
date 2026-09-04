@@ -113,4 +113,10 @@ class AdminController extends Controller
         \App\Models\Report::where('id', $id)->update(['hasread' => 1]);
         return back()->with('success', 'Laporan telah ditandai sebagai telah diselesaikan.');
     }
+
+    public function reportsDestroy($id)
+    {
+        \App\Models\Report::where('id', $id)->delete();
+        return back()->with('success', 'Laporan telah dihapus.');
+    }
 }

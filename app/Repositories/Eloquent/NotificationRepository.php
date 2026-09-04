@@ -91,6 +91,7 @@ class NotificationRepository implements NotificationRepositoryInterface
         return match ($type) {
             'friend_request' => "<a href=\"/user/{$userId}\">{$userName}</a> mengirim permintaan pertemanan.",
             'friend_accepted' => "<a href=\"/user/{$userId}\">{$userName}</a> menerima permintaan pertemanan Anda.",
+            'follow' => "<a href=\"/user/{$userId}\">{$userName}</a> mulai mengikuti Anda.",
             'new_message' => "Anda memiliki pesan baru dari <a href=\"/user/{$userId}\">{$userName}</a>.",
             'comment' => "<a href=\"/user/{$userId}\">{$userName}</a> mengomentari postingan Anda.",
             'like' => "<a href=\"/user/{$userId}\">{$userName}</a> menyukai postingan Anda.",

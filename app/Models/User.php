@@ -87,6 +87,16 @@ class User extends Authenticatable
         return $this->hasMany(Follower::class, 'uid', 'id');
     }
 
+    public function followerUsers()
+    {
+        return $this->belongsToMany(User::class, 'jcow_followers', 'fid', 'uid');
+    }
+
+    public function followingUsers()
+    {
+        return $this->belongsToMany(User::class, 'jcow_followers', 'uid', 'fid');
+    }
+
     // =========================================================================
     // RELASI PAGES
     // =========================================================================

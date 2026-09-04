@@ -93,8 +93,8 @@
             <!-- Tombol Profile & Dropdown (Sistem HOVER murni tanpa JS) -->
             <div class="relative ml-2 group">
                 <!-- Tombol Avatar -->
-                <div class="bg-red-700 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer hover:bg-red-600 transition shadow">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                <div class="w-8 h-8 rounded-full flex items-center justify-center cursor-pointer hover:opacity-80 transition shadow bg-neutral-800 overflow-hidden">
+                    <img src="{{ auth()->user()->avatar_url }}" alt="Avatar" class="w-full h-full object-cover">
                 </div>
 
                 <!-- Pembungkus Dropdown dengan Jembatan Hover (pt-2) -->

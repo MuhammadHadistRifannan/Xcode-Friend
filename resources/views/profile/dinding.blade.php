@@ -40,6 +40,7 @@
             <a href="?tab=menyukai" class="text-xs font-bold pb-3 uppercase tracking-wider transition {{ $tab === 'menyukai' ? 'text-red-700 border-b-2 border-red-700' : 'text-neutral-500 hover:text-neutral-800' }}">Menyukai</a>
             <a href="?tab=foto" class="text-xs font-bold pb-3 uppercase tracking-wider transition {{ $tab === 'foto' ? 'text-red-700 border-b-2 border-red-700' : 'text-neutral-500 hover:text-neutral-800' }}">Foto</a>
             <a href="?tab=video" class="text-xs font-bold pb-3 uppercase tracking-wider transition {{ $tab === 'video' ? 'text-red-700 border-b-2 border-red-700' : 'text-neutral-500 hover:text-neutral-800' }}">Video</a>
+            
         </div>
     </div>
 
@@ -67,39 +68,101 @@
                         <p class="text-[11px] text-neutral-500 mt-0.5 mb-3">Anggota Xcode-Friends</p>
                     @endif
 
-                    <p class="text-[10px] text-neutral-400 mb-4">
+                    <p class="text-[10px] text-neutral-400 mb-3 text-center">
                         Terakhir dilihat: {{ $profileUser->last_active ? \Carbon\Carbon::createFromTimestamp($profileUser->last_active)->diffForHumans() : 'Baru saja' }}
-                        <br>
-                        <span class="font-semibold text-neutral-600">{{ $profileUser->followers ?? 1 }}</span> Followers
                     </p>
+                    <div class="flex items-center justify-center space-x-6 mb-5 border-y border-neutral-100 py-3">
+                        <div class="text-center">
+                            <span class="block text-sm font-extrabold text-neutral-800">{{ $profileUser->followerUsers()->count() }}</span>
+                            <span class="text-[9px] font-bold text-neutral-400 uppercase tracking-wider">Pengikut</span>
+                        </div>
+                        <div class="text-center">
+                            <span class="block text-sm font-extrabold text-neutral-800">{{ $profileUser->followingUsers()->count() }}</span>
+                            <span class="text-[9px] font-bold text-neutral-400 uppercase tracking-wider">Mengikuti</span>
+                        </div>
+                    </div>
 
                     {{-- Tombol Aksi Teman --}}
                     <div class="grid grid-cols-2 gap-2 mb-4">
-                        <button id="btn-ikuti" class="flex items-center justify-center text-xs font-semibold text-neutral-700 bg-neutral-50 border border-neutral-200 py-1.5 rounded hover:bg-red-50 hover:text-red-700 hover:border-red-200 transition">
-                            <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
-                            Ikuti
-                        </button>
-                        <a href="/pesan/{{ $profileUser->username }}" class="flex items-center justify-center text-xs font-semibold text-neutral-700 bg-neutral-50 border border-neutral-200 py-1.5 rounded hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 transition">
-                            <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+                        <!-- Tombol Ikuti / Unfollow -->
+                        <form action="{{ $isFollowing ? route('friends.unfollow', $profileUser->id) : route('friends.follow', $profileUser->id) }}" method="POST" class="w-full">
+                            @csrf
+                            <button type="submit" class="w-full flex items-center justify-center text-[10px] sm:text-xs font-semibold {{ $isFollowing ? 'text-white bg-red-700 hover:bg-red-800' : 'text-neutral-700 bg-neutral-50 hover:bg-red-50 hover:text-red-700 border border-neutral-200 hover:border-red-200' }} py-1.5 rounded transition">
+                                @if($isFollowing)
+                                    <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    Mengikuti
+                                @else
+                                    <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+                                    Ikuti
+                                @endif
+                            </button>
+                        </form>
+
+                        <!-- Tombol Pesan -->
+                        <a href="{{ route('messages.create', ['to' => $profileUser->id]) }}" class="w-full flex items-center justify-center text-[10px] sm:text-xs font-semibold text-neutral-700 bg-neutral-50 border border-neutral-200 py-1.5 rounded hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 transition">
+                            <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
                             Pesan
                         </a>
-                        <button class="flex items-center justify-center text-xs font-semibold text-neutral-700 bg-neutral-50 border border-neutral-200 py-1.5 rounded hover:bg-green-50 hover:text-green-700 hover:border-green-200 transition">
-                            <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                            Tambah Teman
-                        </button>
-                        <button class="flex items-center justify-center text-xs font-semibold text-neutral-700 bg-neutral-50 border border-neutral-200 py-1.5 rounded hover:bg-red-50 hover:text-red-700 hover:border-red-200 transition">
-                            <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
-                            Blokir
-                        </button>
+
+                        <!-- Tombol Tambah Teman -->
+                        @if($isFriend)
+                            <form action="{{ route('friends.unfriend', $profileUser->id) }}" method="POST" class="w-full">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="w-full flex items-center justify-center text-[10px] sm:text-xs font-semibold text-white bg-green-600 hover:bg-green-700 py-1.5 rounded transition">
+                                    <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    Berteman
+                                </button>
+                            </form>
+                        @elseif($hasPendingRequest)
+                            <button type="button" class="w-full flex items-center justify-center text-[10px] sm:text-xs font-semibold text-neutral-500 bg-neutral-100 border border-neutral-200 py-1.5 rounded cursor-not-allowed">
+                                <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                Tertunda
+                            </button>
+                        @elseif($hasSentRequest)
+                            <form action="{{ route('friends.accept', $profileUser->id) }}" method="POST" class="w-full">
+                                @csrf
+                                <button type="submit" class="w-full flex items-center justify-center text-[10px] sm:text-xs font-semibold text-white bg-green-600 hover:bg-green-700 py-1.5 rounded transition">
+                                    <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    Terima
+                                </button>
+                            </form>
+                        @else
+                            <form action="{{ route('friends.sendRequest') }}" method="POST" class="w-full">
+                                @csrf
+                                <input type="hidden" name="uid" value="{{ $profileUser->id }}">
+                                <button type="submit" class="w-full flex items-center justify-center text-[10px] sm:text-xs font-semibold text-neutral-700 bg-neutral-50 border border-neutral-200 py-1.5 rounded hover:bg-green-50 hover:text-green-700 hover:border-green-200 transition">
+                                    <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                    Tambah
+                                </button>
+                            </form>
+                        @endif
+
+                        <!-- Tombol Blokir -->
+                        <form action="{{ $isBlocked ? route('friends.unblock', $profileUser->id) : route('friends.block', $profileUser->id) }}" method="POST" class="w-full">
+                            @csrf
+                            <button type="submit" class="w-full flex items-center justify-center text-[10px] sm:text-xs font-semibold {{ $isBlocked ? 'text-white bg-red-700 hover:bg-red-800' : 'text-neutral-700 bg-neutral-50 hover:bg-red-50 hover:text-red-700 border border-neutral-200 hover:border-red-200' }} py-1.5 rounded transition">
+                                <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
+                                {{ $isBlocked ? 'Buka Blokir' : 'Blokir' }}
+                            </button>
+                        </form>
                     </div>
 
                 @else
                     {{-- Profil Sendiri: Hanya tampilkan status --}}
-                    <p class="text-[10px] text-neutral-400 mb-4">
+                    <p class="text-[10px] text-neutral-400 mb-3 text-center">
                         Terakhir dilihat: {{ $profileUser->last_active ? \Carbon\Carbon::createFromTimestamp($profileUser->last_active)->diffForHumans() : 'Baru saja' }}
-                        <br>
-                        <span class="font-semibold text-neutral-600">{{ $profileUser->followers ?? 1 }}</span> Followers
                     </p>
+                    <div class="flex items-center justify-center space-x-6 mb-5 border-y border-neutral-100 py-3">
+                        <div class="text-center">
+                            <span class="block text-sm font-extrabold text-neutral-800">{{ $profileUser->followerUsers()->count() }}</span>
+                            <span class="text-[9px] font-bold text-neutral-400 uppercase tracking-wider">Pengikut</span>
+                        </div>
+                        <div class="text-center">
+                            <span class="block text-sm font-extrabold text-neutral-800">{{ $profileUser->followingUsers()->count() }}</span>
+                            <span class="text-[9px] font-bold text-neutral-400 uppercase tracking-wider">Mengikuti</span>
+                        </div>
+                    </div>
                 @endif
 
                 @if(auth()->check() && auth()->user()->id === $profileUser->id)
@@ -142,20 +205,49 @@
                 </div>
             </div>
             
-            <!-- Mengikuti & Teman -->
+            <!-- Pengikut -->
+            <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
+                <div class="flex justify-between items-center mb-3">
+                    <h4 class="text-[11px] font-bold text-neutral-800 uppercase tracking-wider">PENGIKUT</h4>
+                    <a href="?tab=pengikut" class="text-[9px] font-bold text-red-700 hover:underline">Lihat Semua</a>
+                </div>
+                @if($profileUser->followerUsers && $profileUser->followerUsers->count() > 0)
+                    <div class="flex flex-wrap gap-2">
+                        @foreach($profileUser->followerUsers->take(6) as $follower)
+                            <a href="{{ url('/profile/'.$follower->username) }}" class="block">
+                                <img src="{{ $follower->avatar_url }}" alt="{{ $follower->fullname ?: $follower->username }}" class="w-10 h-10 rounded-full object-cover border border-neutral-200" title="{{ $follower->fullname ?: $follower->username }}">
+                            </a>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="bg-neutral-50 border border-neutral-100 rounded text-center py-4 text-xs text-neutral-400">Belum ada pengikut</div>
+                @endif
+            </div>
+
+            <!-- Mengikuti -->
             <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
                 <div class="flex justify-between items-center mb-3">
                     <h4 class="text-[11px] font-bold text-neutral-800 uppercase tracking-wider">MENGIKUTI</h4>
-                    <a href="#" class="text-[9px] font-bold text-red-700 hover:underline">Lihat Semua</a>
+                    <a href="?tab=mengikuti" class="text-[9px] font-bold text-red-700 hover:underline">Lihat Semua</a>
                 </div>
-                <div class="bg-neutral-50 border border-neutral-100 rounded text-center py-4 text-xs text-neutral-400">No following yet</div>
+                @if($profileUser->followingUsers && $profileUser->followingUsers->count() > 0)
+                    <div class="flex flex-wrap gap-2">
+                        @foreach($profileUser->followingUsers->take(6) as $following)
+                            <a href="{{ url('/profile/'.$following->username) }}" class="block">
+                                <img src="{{ $following->avatar_url }}" alt="{{ $following->fullname ?: $following->username }}" class="w-10 h-10 rounded-full object-cover border border-neutral-200" title="{{ $following->fullname ?: $following->username }}">
+                            </a>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="bg-neutral-50 border border-neutral-100 rounded text-center py-4 text-xs text-neutral-400">Belum mengikuti siapapun</div>
+                @endif
             </div>
 
             <!-- Teman -->
             <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
                 <div class="flex justify-between items-center mb-3">
                     <h4 class="text-[11px] font-bold text-neutral-800 uppercase tracking-wider">TEMAN</h4>
-                    <a href="{{ route('telusur.index') }}" class="text-[9px] font-bold text-red-700 hover:underline">Lihat Semua</a>
+                    <a href="?tab=teman" class="text-[9px] font-bold text-red-700 hover:underline">Lihat Semua</a>
                 </div>
                 @if($profileUser->friends && $profileUser->friends->count() > 0)
                     <div class="flex flex-wrap gap-2">
@@ -166,7 +258,7 @@
                         @endforeach
                     </div>
                 @else
-                    <div class="bg-neutral-50 border border-neutral-100 rounded text-center py-4 text-xs text-neutral-400">No friends yet</div>
+                    <div class="bg-neutral-50 border border-neutral-100 rounded text-center py-4 text-xs text-neutral-400">Belum ada teman</div>
                 @endif
             </div>
 
@@ -466,6 +558,75 @@
                 
                 <div class="mt-4">{{ $streams->links() }}</div>
 
+                        @elseif($tab === 'teman')
+                <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-6 mb-6">
+                    <h4 class="text-sm font-bold text-neutral-800 uppercase tracking-widest mb-6 border-b border-neutral-100 pb-3 flex items-center">
+                        <svg class="w-4 h-4 mr-2 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                        Teman {{ $profileUser->fullname }} ({{ $profileUser->friends()->count() }})
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        @foreach($profileUser->friends as $friend)
+                            <div class="flex items-center space-x-4 p-3 rounded-xl border border-neutral-100 hover:border-red-100 hover:shadow-sm bg-neutral-50 transition group">
+                                <div class="w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-sm flex-shrink-0">
+                                    <img src="{{ $friend->avatar_url }}" class="w-full h-full object-cover group-hover:scale-110 transition duration-300">
+                                </div>
+                                <div>
+                                    <a href="{{ route('profile.show', $friend->username) }}" class="text-sm font-bold text-neutral-800 hover:text-red-700 block">{{ $friend->fullname }}</a>
+                                    <span class="text-[10px] text-neutral-500">{{ '@' . $friend->username }}</span>
+                                </div>
+                            </div>
+                        @endforeach
+                        @if($profileUser->friends->isEmpty())
+                            <p class="text-xs text-neutral-400 col-span-1 md:col-span-2 bg-neutral-50 py-4 text-center rounded-lg border border-dashed border-neutral-200">Belum ada teman.</p>
+                        @endif
+                    </div>
+                </div>
+            @elseif($tab === 'pengikut')
+                <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-6 mb-6">
+                    <h4 class="text-sm font-bold text-neutral-800 uppercase tracking-widest mb-6 border-b border-neutral-100 pb-3 flex items-center">
+                        <svg class="w-4 h-4 mr-2 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                        Pengikut {{ $profileUser->fullname }} ({{ $profileUser->followerUsers()->count() }})
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        @foreach($profileUser->followerUsers as $follower)
+                            <div class="flex items-center space-x-4 p-3 rounded-xl border border-neutral-100 hover:border-red-100 hover:shadow-sm bg-neutral-50 transition group">
+                                <div class="w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-sm flex-shrink-0">
+                                    <img src="{{ $follower->avatar_url }}" class="w-full h-full object-cover group-hover:scale-110 transition duration-300">
+                                </div>
+                                <div>
+                                    <a href="{{ route('profile.show', $follower->username) }}" class="text-sm font-bold text-neutral-800 hover:text-red-700 block">{{ $follower->fullname }}</a>
+                                    <span class="text-[10px] text-neutral-500">{{ '@' . $follower->username }}</span>
+                                </div>
+                            </div>
+                        @endforeach
+                        @if($profileUser->followerUsers->isEmpty())
+                            <p class="text-xs text-neutral-400 col-span-1 md:col-span-2 bg-neutral-50 py-4 text-center rounded-lg border border-dashed border-neutral-200">Belum ada pengikut.</p>
+                        @endif
+                    </div>
+                </div>
+            @elseif($tab === 'mengikuti')
+                <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-6 mb-6">
+                    <h4 class="text-sm font-bold text-neutral-800 uppercase tracking-widest mb-6 border-b border-neutral-100 pb-3 flex items-center">
+                        <svg class="w-4 h-4 mr-2 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6v1h12v-1a6 6 0 00-6-6zM21 12h-6"></path></svg>
+                        Yang Diikuti {{ $profileUser->fullname }} ({{ $profileUser->followingUsers()->count() }})
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        @foreach($profileUser->followingUsers as $following)
+                            <div class="flex items-center space-x-4 p-3 rounded-xl border border-neutral-100 hover:border-red-100 hover:shadow-sm bg-neutral-50 transition group">
+                                <div class="w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-sm flex-shrink-0">
+                                    <img src="{{ $following->avatar_url }}" class="w-full h-full object-cover group-hover:scale-110 transition duration-300">
+                                </div>
+                                <div>
+                                    <a href="{{ route('profile.show', $following->username) }}" class="text-sm font-bold text-neutral-800 hover:text-red-700 block">{{ $following->fullname }}</a>
+                                    <span class="text-[10px] text-neutral-500">{{ '@' . $following->username }}</span>
+                                </div>
+                            </div>
+                        @endforeach
+                        @if($profileUser->followingUsers->isEmpty())
+                            <p class="text-xs text-neutral-400 col-span-1 md:col-span-2 bg-neutral-50 py-4 text-center rounded-lg border border-dashed border-neutral-200">Belum mengikuti siapapun.</p>
+                        @endif
+                    </div>
+                </div>
             @elseif($tab === 'menyukai')
                 <div class="bg-neutral-100 rounded-xl p-4 border border-neutral-200 mb-4">
                     <h3 class="text-xs font-bold text-neutral-700 uppercase tracking-wider">MENYUKAI</h3>

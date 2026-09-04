@@ -25,7 +25,7 @@
                 
                 <h3 class="text-lg font-bold text-neutral-900 mb-1">{{ $user->fullname }}</h3>
                 <p class="text-xs text-neutral-500 mb-6">{{ $user->roles ?? 'Junior Penetration Tester' }}</p>
-                
+            </div>
         </div>
 
         <!-- KOLOM TENGAH (Tab Pengaturan Utama) -->
