@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Konversi')
+
 @section('content')
 <div class="pb-6 bg-[#fafafa]">
     <div class="w-full px-4 lg:px-20 mx-auto">
@@ -40,7 +42,7 @@
         </div>
 
         <!-- Chat Container -->
-        <div class="bg-[#f6f3f3] rounded-[24px] flex flex-col h-[650px] shadow-sm overflow-hidden">
+        <div class="bg-[#f6f3f3] rounded-[24px] flex flex-col min-h-[400px] h-[650px] shadow-sm overflow-hidden border border-gray-200">
 
             <!-- Messages Area -->
             <div class="flex-grow p-4 overflow-y-auto" id="chatContainer">
@@ -53,7 +55,7 @@
                             <div class="chat-bubble {{ $isMine ? 'bg-[#b71c1c] text-white' : 'bg-white text-gray-900' }} rounded-[14px] px-4 py-3 shadow-sm cursor-pointer select-none"
                                 data-id="{{ $msg->id }}"
                                 data-from="{{ $msg->from_id }}"
-                                data-message="{{ htmlspecialchars($msg->message) }}"
+                                data-message="{{ $msg->message }}"
                                 onclick="showContextMenu(event, this)">
 
                                 @if($msg->reply_to && $msg->replied_message)
@@ -150,10 +152,36 @@
     const replyText = document.getElementById('replyText');
     const replyToInput = document.getElementById('replyToInput');
     let selectedMsg = { id: null, from: null, message: '' };
+    let lastMessageCount = {{ count($messages) }};
+    const pollUrl = '{{ route("messages.poll", $otherUser->id) }}';
 
     if (container) {
         container.scrollTop = container.scrollHeight;
     }
+
+    function pollMessages() {
+        fetch(pollUrl, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.html) return;
+            const temp = document.createElement('div');
+            temp.innerHTML = data.html;
+            const newCount = temp.querySelectorAll('.chat-bubble').length;
+            if (newCount !== lastMessageCount) {
+                const wasAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 50;
+                container.innerHTML = data.html;
+                lastMessageCount = newCount;
+                if (wasAtBottom) {
+                    container.scrollTop = container.scrollHeight;
+                }
+            }
+        })
+        .catch(() => {});
+    }
+
+    setInterval(pollMessages, 500);
 
     function showContextMenu(e, el) {
         e.preventDefault();
@@ -223,12 +251,12 @@
         if (type === 'self') {
             if (!confirm('Hapus pesan ini untuk anda?')) return;
             const form = document.getElementById('deleteForm');
-            form.action = `/messages/${selectedMsg.id}`;
+            form.action = '{{ route('messages.destroy', ':id') }}'.replace(':id', selectedMsg.id);
             form.submit();
         } else {
             if (!confirm('Hapus pesan ini untuk semua orang?')) return;
             const form = document.getElementById('deleteEveryoneForm');
-            form.action = `/messages/delete-for-everyone/${selectedMsg.id}`;
+            form.action = '{{ route('messages.deleteForEveryone', ':id') }}'.replace(':id', selectedMsg.id);
             form.submit();
         }
     }

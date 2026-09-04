@@ -8,8 +8,10 @@ use Illuminate\Support\Facades\DB;
 
 class NotificationRepository implements NotificationRepositoryInterface
 {
-    public function getNotifications(int $userId, int $perPage = 20): Collection
+    public function getNotifications(int $userId, ?int $perPage = null): Collection
     {
+        $perPage = $perPage ?? config('pagination.notifications');
+
         return DB::table('jcow_messages')
             ->where('to_id', $userId)
             ->where('from_id', 0)
@@ -85,16 +87,16 @@ class NotificationRepository implements NotificationRepositoryInterface
 
     private function buildMessage(string $type, array $data): string
     {
-        $userName = $data['user_name'] ?? 'System';
-        $userId = $data['user_id'] ?? 0;
+        $userName = e($data['user_name'] ?? 'System');
+        $userSlug = e($data['user_name'] ?? '');
 
         return match ($type) {
-            'friend_request' => "<a href=\"/user/{$userId}\">{$userName}</a> mengirim permintaan pertemanan.",
-            'friend_accepted' => "<a href=\"/user/{$userId}\">{$userName}</a> menerima permintaan pertemanan Anda.",
-            'new_message' => "Anda memiliki pesan baru dari <a href=\"/user/{$userId}\">{$userName}</a>.",
-            'comment' => "<a href=\"/user/{$userId}\">{$userName}</a> mengomentari postingan Anda.",
-            'like' => "<a href=\"/user/{$userId}\">{$userName}</a> menyukai postingan Anda.",
-            default => $data['message'] ?? 'Notifikasi baru.',
+            'friend_request' => "<a href=\"/@" . $userSlug . "\">{$userName}</a> mengirim permintaan pertemanan.",
+            'friend_accepted' => "<a href=\"/@" . $userSlug . "\">{$userName}</a> menerima permintaan pertemanan Anda.",
+            'new_message' => "Anda memiliki pesan baru dari <a href=\"/@" . $userSlug . "\">{$userName}</a>.",
+            'comment' => "<a href=\"/@" . $userSlug . "\">{$userName}</a> mengomentari postingan Anda.",
+            'like' => "<a href=\"/@" . $userSlug . "\">{$userName}</a> menyukai postingan Anda.",
+            default => e($data['message'] ?? 'Notifikasi baru.'),
         };
     }
 }

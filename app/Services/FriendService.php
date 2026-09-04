@@ -4,14 +4,15 @@ namespace App\Services;
 
 use App\Repositories\Contracts\FriendRepositoryInterface;
 use App\Repositories\Contracts\NotificationRepositoryInterface;
-use Illuminate\Support\Facades\DB;
-use Exception;
+use App\Repositories\Contracts\AccountRepositoryInterface;
+use App\Exceptions\FriendException;
 
 class FriendService
 {
     public function __construct(
         private FriendRepositoryInterface $friendRepo,
-        private NotificationRepositoryInterface $notifRepo
+        private NotificationRepositoryInterface $notifRepo,
+        private AccountRepositoryInterface $accountRepo
     ) {}
 
     public function getFriends(int $userId)
@@ -29,7 +30,7 @@ class FriendService
         return $this->friendRepo->getOutgoingRequests($userId);
     }
 
-    public function getSuggestions(int $userId, int $limit = 10)
+    public function getSuggestions(int $userId, ?int $limit = null)
     {
         return $this->friendRepo->getSuggestions($userId, $limit);
     }
@@ -37,24 +38,24 @@ class FriendService
     public function sendRequest(int $fromId, int $toId, ?string $message = null): void
     {
         if ($fromId === $toId) {
-            throw new Exception('Tidak bisa menambahkan diri sendiri.');
+            throw new FriendException('Tidak bisa menambahkan diri sendiri.');
         }
 
         if ($this->friendRepo->areFriends($fromId, $toId)) {
-            throw new Exception('Anda sudah berteman dengan user ini.');
+            throw new FriendException('Anda sudah berteman dengan user ini.');
         }
 
         if ($this->friendRepo->hasPendingRequest($fromId, $toId)) {
-            throw new Exception('Permintaan pertemanan sudah dikirim.');
+            throw new FriendException('Permintaan pertemanan sudah dikirim.');
         }
 
         if ($this->friendRepo->areBlocked($fromId, $toId)) {
-            throw new Exception('Tidak bisa mengirim permintaan ke user ini.');
+            throw new FriendException('Tidak bisa mengirim permintaan ke user ini.');
         }
 
         $this->friendRepo->sendRequest($fromId, $toId, $message);
 
-        $sender = DB::table('jcow_accounts')->where('id', $fromId)->first();
+        $sender = $this->accountRepo->findById($fromId);
         $this->notifRepo->create(
             $toId,
             'friend_request',
@@ -68,13 +69,13 @@ class FriendService
     public function acceptRequest(int $requesterId, int $userId): void
     {
         if (!$this->friendRepo->hasPendingRequest($requesterId, $userId)) {
-            throw new Exception('Permintaan pertemanan tidak ditemukan.');
+            throw new FriendException('Permintaan pertemanan tidak ditemukan.');
         }
 
         $this->friendRepo->acceptRequest($requesterId, $userId);
 
         // Kirim notifikasi ke pengirim request
-        $user = DB::table('jcow_accounts')->where('id', $userId)->first();
+        $user = $this->accountRepo->findById($userId);
         $this->notifRepo->create(
             $requesterId,
             'friend_accepted',
@@ -88,7 +89,7 @@ class FriendService
     public function rejectRequest(int $requesterId, int $userId): void
     {
         if (!$this->friendRepo->hasPendingRequest($requesterId, $userId)) {
-            throw new Exception('Permintaan pertemanan tidak ditemukan.');
+            throw new FriendException('Permintaan pertemanan tidak ditemukan.');
         }
 
         $this->friendRepo->rejectRequest($requesterId, $userId);
@@ -97,7 +98,7 @@ class FriendService
     public function cancelRequest(int $fromId, int $toId): void
     {
         if (!$this->friendRepo->hasPendingRequest($fromId, $toId)) {
-            throw new Exception('Permintaan pertemanan tidak ditemukan.');
+            throw new FriendException('Permintaan pertemanan tidak ditemukan.');
         }
 
         $this->friendRepo->cancelRequest($fromId, $toId);
@@ -106,7 +107,7 @@ class FriendService
     public function unfriend(int $friendId, int $userId): void
     {
         if (!$this->friendRepo->areFriends($userId, $friendId)) {
-            throw new Exception('Anda tidak berteman dengan user ini.');
+            throw new FriendException('Anda tidak berteman dengan user ini.');
         }
 
         $this->friendRepo->unfriend($friendId, $userId);
@@ -120,7 +121,7 @@ class FriendService
     public function follow(int $userId, int $targetId): void
     {
         if ($userId === $targetId) {
-            throw new Exception('Tidak bisa mengikuti diri sendiri.');
+            throw new FriendException('Tidak bisa mengikuti diri sendiri.');
         }
         $this->friendRepo->follow($userId, $targetId);
     }
@@ -138,7 +139,7 @@ class FriendService
     public function block(int $userId, int $targetId): void
     {
         if ($userId === $targetId) {
-            throw new Exception('Tidak bisa memblokir diri sendiri.');
+            throw new FriendException('Tidak bisa memblokir diri sendiri.');
         }
         $this->friendRepo->block($userId, $targetId);
     }
@@ -151,6 +152,11 @@ class FriendService
     public function isBlocked(int $userId, int $targetId): bool
     {
         return $this->friendRepo->isBlocked($userId, $targetId);
+    }
+
+    public function areBlocked(int $userId, int $otherId): bool
+    {
+        return $this->friendRepo->areBlocked($userId, $otherId);
     }
 
     public function getFollowerCount(int $userId): int

@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\FriendService;
 use App\Http\Requests\SendFriendRequestRequest;
-use Illuminate\Http\Request;
+use App\Exceptions\FriendException;
 use Illuminate\Support\Facades\Auth;
 
 class FriendController extends Controller
@@ -13,7 +13,7 @@ class FriendController extends Controller
         private FriendService $friendService
     ) {}
 
-    public function index()
+    public function index(): mixed
     {
         $userId = Auth::id();
         $friends = $this->friendService->getFriends($userId);
@@ -22,7 +22,7 @@ class FriendController extends Controller
         return view('friends.index', compact('friends', 'suggestions'));
     }
 
-    public function requests()
+    public function requests(): mixed
     {
         $userId = Auth::id();
         $incoming = $this->friendService->getIncomingRequests($userId);
@@ -31,7 +31,7 @@ class FriendController extends Controller
         return view('friends.requests', compact('incoming', 'outgoing'));
     }
 
-    public function sendRequest(SendFriendRequestRequest $request)
+    public function sendRequest(SendFriendRequestRequest $request): mixed
     {
         try {
             $this->friendService->sendRequest(
@@ -41,91 +41,91 @@ class FriendController extends Controller
             );
 
             return redirect()->route('friends.requests')->with('success', 'Permintaan pertemanan berhasil dikirim.');
-        } catch (\Exception $e) {
+        } catch (FriendException $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
     }
 
-    public function accept(int $userId)
+    public function accept(int $userId): mixed
     {
         try {
             $this->friendService->acceptRequest($userId, Auth::id());
 
             return redirect()->route('friends.requests')->with('success', 'Permintaan pertemanan diterima.');
-        } catch (\Exception $e) {
+        } catch (FriendException $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
     }
 
-    public function reject(int $userId)
+    public function reject(int $userId): mixed
     {
         try {
             $this->friendService->rejectRequest($userId, Auth::id());
 
             return redirect()->route('friends.requests')->with('success', 'Permintaan pertemanan ditolak.');
-        } catch (\Exception $e) {
+        } catch (FriendException $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
     }
 
-    public function cancelRequest(int $userId)
+    public function cancelRequest(int $userId): mixed
     {
         try {
             $this->friendService->cancelRequest(Auth::id(), $userId);
 
-            return redirect()->route('friends.requests')->with('success', 'Permintaan pertemanan dibatalkan.');
-        } catch (\Exception $e) {
+            return back()->with('success', 'Permintaan pertemanan dibatalkan.');
+        } catch (FriendException $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
     }
 
-    public function unfriend(int $userId)
+    public function unfriend(int $userId): mixed
     {
         try {
             $this->friendService->unfriend($userId, Auth::id());
 
-            return redirect()->route('friends.index')->with('success', 'Pertemanan berhasil dihapus.');
-        } catch (\Exception $e) {
+            return back()->with('success', 'Pertemanan berhasil dihapus.');
+        } catch (FriendException $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
     }
 
-    public function follow(int $userId)
+    public function follow(int $userId): mixed
     {
         try {
             $this->friendService->follow(Auth::id(), $userId);
             return redirect()->back()->with('success', 'Berhasil mengikuti user ini.');
-        } catch (\Exception $e) {
+        } catch (FriendException $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
     }
 
-    public function unfollow(int $userId)
+    public function unfollow(int $userId): mixed
     {
         try {
             $this->friendService->unfollow(Auth::id(), $userId);
             return redirect()->back()->with('success', 'Berhenti mengikuti user ini.');
-        } catch (\Exception $e) {
+        } catch (FriendException $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
     }
 
-    public function block(int $userId)
+    public function block(int $userId): mixed
     {
         try {
             $this->friendService->block(Auth::id(), $userId);
-            return redirect()->route('telusur.index')->with('success', 'User berhasil diblokir.');
-        } catch (\Exception $e) {
+            return back()->with('success', 'User berhasil diblokir.');
+        } catch (FriendException $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
     }
 
-    public function unblock(int $userId)
+    public function unblock(int $userId): mixed
     {
         try {
             $this->friendService->unblock(Auth::id(), $userId);
             return redirect()->back()->with('success', 'User berhasil dibuka blokirannya.');
-        } catch (\Exception $e) {
+        } catch (FriendException $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
     }

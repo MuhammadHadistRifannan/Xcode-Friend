@@ -15,7 +15,7 @@
             </div>
 
             <!-- Filter Members -->
-            <div class="bg-white rounded-[14px] p-6 shadow-sm mb-6">
+            <div class="bg-white rounded-[14px] p-6 shadow-sm mb-6 border border-gray-200">
                 <div class="flex items-center gap-2 mb-4">
                     <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
@@ -88,11 +88,11 @@
                                 <label class="block text-xs font-bold text-gray-700 mb-1">DIURUT BERDASARKAN</label>
                                 <select name="sort" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-white focus:ring-[#b71c1c] outline-none">
                                     <option value="terbaru" {{ ($filters['sort'] ?? 'terbaru') == 'terbaru' ? 'selected' : '' }}>Terbaru</option>
-                                    <option value="terakhir_aktif" {{ ($filters['sort'] ?? '') == 'terakhir_aktif' ? 'selected' : '' }}>Terakhir Aktif</option>
-                                    <option value="paling_populer" {{ ($filters['sort'] ?? '') == 'paling_populer' ? 'selected' : '' }}>Paling Populer</option>
+                                    <option value="last_seen" {{ ($filters['sort'] ?? '') == 'last_seen' ? 'selected' : '' }}>Terakhir Aktif</option>
+                                    <option value="followers" {{ ($filters['sort'] ?? '') == 'followers' ? 'selected' : '' }}>Paling Populer</option>
                                 </select>
                             </div>
-                            <button type="submit" class="bg-[#b71c1c] hover:bg-red-800 text-white px-8 py-2.5 rounded-xl text-sm font-bold transition self-end">
+                            <button type="submit" class="bg-[#b71c1c] hover:bg-red-800 text-white px-8 py-2.5 rounded-[14px] text-sm font-bold transition self-end">
                                 PERBARUI
                             </button>
                         </div>
@@ -113,7 +113,7 @@
                                 };
                                 $age = $member->birthyear > 0 ? (int) date('Y') - $member->birthyear : null;
                             @endphp
-                            <a href="{{ route('profile.show', $member->username) }}" class="bg-white rounded-[14px] p-6 shadow-sm flex flex-col items-center text-center hover:shadow-md transition w-full max-w-[220px] block">
+                            <a href="{{ route('profile.show', $member->username) }}" class="bg-white rounded-[14px] p-6 shadow-sm flex flex-col items-center text-center hover:shadow-md transition w-full max-w-[220px] block border border-gray-200">
                                 <!-- Avatar -->
                                 <div class="w-16 h-16 rounded-full bg-[#f4dada] flex items-center justify-center overflow-hidden mb-3">
                                     @if($member->avatar)
@@ -159,7 +159,7 @@
 
         <!-- KONTEN KANAN: Sidebar -->
         <div class="w-full lg:w-[15%] space-y-6">
-            <div class="bg-white p-8 rounded-[24px] shadow-sm flex flex-col items-center">
+            <div class="bg-white p-8 rounded-[24px] shadow-sm flex flex-col items-center border border-gray-200">
                 <p class="text-[13px] font-bold text-gray-900 mb-2">Google Reviews</p>
                 <div class="flex text-[#ffc107] mb-2 gap-1">
                     @for($i=0; $i<5; $i++)
@@ -167,10 +167,10 @@
                     @endfor
                 </div>
                 <p class="text-3xl font-bold text-gray-900 mb-1">4.9</p>
-                <p class="text-xs text-blue-600 font-medium hover:underline cursor-pointer">532 Reviews</p>
+                <p class="text-xs text-blue-600 font-medium">532 Reviews</p>
             </div>
 
-            <div class="bg-white p-8 rounded-[24px] shadow-sm">
+            <div class="bg-white p-8 rounded-[24px] shadow-sm border border-gray-200">
                 <h3 class="text-[15px] font-bold text-gray-900 mb-4">Network Links</h3>
                 <ul class="space-y-3">
                     <li>

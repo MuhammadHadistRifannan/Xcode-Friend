@@ -2,98 +2,47 @@
 
 namespace App\Http\Controllers;
 
+use App\Repositories\Contracts\AccountRepositoryInterface;
+use App\Repositories\Contracts\BlockRepositoryInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class TelusurController extends Controller
 {
-    public function index(Request $request)
+    public function __construct(
+        private AccountRepositoryInterface $accountRepo,
+        private BlockRepositoryInterface $blockRepo
+    ) {}
+
+    public function index(Request $request): mixed
     {
-        $userId = Auth::id();
+        try {
+            $userId = Auth::id();
 
-        // Exclude blocked users (kedua arah)
-        $blockedByMe = DB::table('jcow_blacks')->where('uid', $userId)->pluck('bid');
-        $blockedMe = DB::table('jcow_blacks')->where('bid', $userId)->pluck('uid');
-        $excludedIds = $blockedByMe->merge($blockedMe)->push($userId)->unique();
+            $blockedByMe = $this->blockRepo->getBlockedIds($userId);
+            $blockedMe = $this->blockRepo->getBlockerIds($userId);
+            $excludedIds = $blockedByMe->merge($blockedMe)->push($userId)->unique()->toArray();
 
-        $query = DB::table('jcow_accounts')
-            ->where('disabled', 0)
-            ->where('hide_me', 0)
-            ->whereNotIn('id', $excludedIds);
+            $sort = $request->input('sort', 'terbaru');
+            $filters = array_map('trim', $request->only(['gender', 'status', 'umur_min', 'umur_max', 'lokasi']));
+            $members = $this->accountRepo->getTelusurUsers($excludedIds, $filters, $sort);
 
-        // Filter Gender
-        if ($request->filled('gender') && $request->gender != 'all') {
-            $query->where('gender', (int) $request->gender);
+            $dbLocations = $this->accountRepo->getDistinctLocations($userId);
+            $allProvinces = config('provinces.list', []);
+
+            $locations = collect($allProvinces)
+                ->merge($dbLocations)
+                ->unique()
+                ->sort()
+                ->values();
+
+            $filters['sort'] = $sort;
+
+            return view('telusur.index', compact('members', 'locations', 'filters'));
+        } catch (\Exception $e) {
+            Log::error('Telusur error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return redirect()->route('beranda')->with('error', 'Gagal memuat halaman telusur.');
         }
-
-        // Filter Status (var1)
-        if ($request->filled('status') && $request->status != 'all') {
-            $query->where('var1', $request->status);
-        }
-
-        // Filter Umur
-        $currentYear = (int) date('Y');
-        if ($request->filled('umur_min') && $request->umur_min > 0) {
-            $maxBirthYear = $currentYear - (int) $request->umur_min;
-            $query->where('birthyear', '<=', $maxBirthYear);
-        }
-        if ($request->filled('umur_max') && $request->umur_max > 0) {
-            $minBirthYear = $currentYear - (int) $request->umur_max;
-            $query->where('birthyear', '>=', $minBirthYear);
-        }
-
-        // Filter Lokasi
-        if ($request->filled('lokasi') && $request->lokasi != 'all') {
-            $query->where('location', $request->lokasi);
-        }
-
-        // Sort
-        $sort = $request->input('sort', 'terbaru');
-        if ($sort === 'terakhir_aktif') {
-            $query->orderBy('last_seen', 'desc');
-        } elseif ($sort === 'paling_populer') {
-            $query->orderBy('followers', 'desc');
-        } else {
-            $query->orderBy('created', 'desc');
-        }
-
-        $members = $query->select('id', 'username', 'fullname', 'avatar', 'gender', 'birthyear', 'location', 'var1')
-            ->paginate(12)
-            ->withQueryString();
-
-        // Ambil lokasi unik dari DB + gabungkan dengan daftar provinsi lengkap
-        $dbLocations = DB::table('jcow_accounts')
-            ->where('disabled', 0)
-            ->where('hide_me', 0)
-            ->where('id', '!=', $userId)
-            ->whereNotNull('location')
-            ->where('location', '!=', '')
-            ->distinct()
-            ->pluck('location')
-            ->toArray();
-
-        $allProvinces = [
-            'Aceh', 'Sumatera Utara', 'Sumatera Barat', 'Riau', 'Jambi',
-            'Sumatera Selatan', 'Bengkulu', 'Lampung', 'Kepulauan Bangka Belitung',
-            'Kepulauan Riau', 'DKI Jakarta', 'Jawa Barat', 'Jawa Tengah',
-            'DI Yogyakarta', 'Jawa Timur', 'Banten', 'Bali',
-            'Nusa Tenggara Barat', 'Nusa Tenggara Timur',
-            'Kalimantan Barat', 'Kalimantan Tengah', 'Kalimantan Selatan',
-            'Kalimantan Timur', 'Kalimantan Utara',
-            'Sulawesi Utara', 'Sulawesi Tengah', 'Sulawesi Selatan',
-            'Sulawesi Tenggara', 'Gorontalo', 'Sulawesi Barat',
-            'Maluku', 'Maluku Utara', 'Papua Barat', 'Papua',
-        ];
-
-        $locations = collect($allProvinces)
-            ->merge($dbLocations)
-            ->unique()
-            ->sort()
-            ->values();
-
-        $filters = $request->only(['gender', 'status', 'umur_min', 'umur_max', 'lokasi', 'sort']);
-
-        return view('telusur.index', compact('members', 'locations', 'filters'));
     }
 }

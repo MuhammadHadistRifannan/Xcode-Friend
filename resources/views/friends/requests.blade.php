@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Permintaan Pertemanan')
+
 @section('content')
 <div class="pb-6 bg-[#fafafa]">
     <div class="w-full px-4 lg:px-20 mx-auto">
@@ -42,7 +44,7 @@
 
         <!-- KONTEN KANAN: Sidebar -->
         <div class="w-full lg:w-[15%] space-y-6">
-            <div class="bg-white p-8 rounded-[24px] shadow-sm flex flex-col items-center">
+            <div class="bg-white p-8 rounded-[24px] shadow-sm flex flex-col items-center border border-gray-200">
                 <p class="text-[13px] font-bold text-gray-900 mb-2">Google Reviews</p>
                 <div class="flex text-[#ffc107] mb-2 gap-1">
                     @for($i=0; $i<5; $i++)
@@ -50,10 +52,10 @@
                     @endfor
                 </div>
                 <p class="text-3xl font-bold text-gray-900 mb-1">4.9</p>
-                <p class="text-xs text-blue-600 font-medium hover:underline cursor-pointer">532 Reviews</p>
+                <p class="text-xs text-blue-600 font-medium">532 Reviews</p>
             </div>
 
-            <div class="bg-white p-8 rounded-[24px] shadow-sm">
+            <div class="bg-white p-8 rounded-[24px] shadow-sm border border-gray-200">
                 <h3 class="text-[15px] font-bold text-gray-900 mb-4">Network Links</h3>
                 <ul class="space-y-3">
                     <li>

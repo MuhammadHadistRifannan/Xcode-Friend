@@ -40,30 +40,31 @@ Route::middleware('auth')->group(function () {
     // Messages
     Route::get('/messages', [App\Http\Controllers\MessageController::class, 'index'])->name('messages.index');
     Route::get('/messages/conversation/{userId}', [App\Http\Controllers\MessageController::class, 'conversation'])->name('messages.conversation');
-    Route::post('/messages', [App\Http\Controllers\MessageController::class, 'store'])->name('messages.store');
+    Route::get('/messages/poll/{userId}', [App\Http\Controllers\MessageController::class, 'poll'])->name('messages.poll');
+    Route::post('/messages', [App\Http\Controllers\MessageController::class, 'store'])->middleware('throttle:10,1')->name('messages.store');
     Route::delete('/messages/{id}', [App\Http\Controllers\MessageController::class, 'destroy'])->name('messages.destroy');
-    Route::post('/messages/bulk-delete', [App\Http\Controllers\MessageController::class, 'bulkDelete'])->name('messages.bulkDelete');
+    Route::post('/messages/bulk-delete', [App\Http\Controllers\MessageController::class, 'bulkDelete'])->middleware('throttle:5,1')->name('messages.bulkDelete');
     Route::post('/messages/delete-for-everyone/{id}', [App\Http\Controllers\MessageController::class, 'deleteForEveryone'])->name('messages.deleteForEveryone');
 
     // Friends
     Route::get('/friends', [App\Http\Controllers\FriendController::class, 'index'])->name('friends.index');
     Route::get('/friends/requests', [App\Http\Controllers\FriendController::class, 'requests'])->name('friends.requests');
-    Route::post('/friends/request', [App\Http\Controllers\FriendController::class, 'sendRequest'])->name('friends.sendRequest');
-    Route::post('/friends/accept/{userId}', [App\Http\Controllers\FriendController::class, 'accept'])->name('friends.accept');
-    Route::post('/friends/reject/{userId}', [App\Http\Controllers\FriendController::class, 'reject'])->name('friends.reject');
+    Route::post('/friends/request', [App\Http\Controllers\FriendController::class, 'sendRequest'])->middleware('throttle:10,1')->name('friends.sendRequest');
+    Route::post('/friends/accept/{userId}', [App\Http\Controllers\FriendController::class, 'accept'])->middleware('throttle:20,1')->name('friends.accept');
+    Route::post('/friends/reject/{userId}', [App\Http\Controllers\FriendController::class, 'reject'])->middleware('throttle:20,1')->name('friends.reject');
     Route::delete('/friends/cancel/{userId}', [App\Http\Controllers\FriendController::class, 'cancelRequest'])->name('friends.cancelRequest');
     Route::delete('/friends/unfriend/{userId}', [App\Http\Controllers\FriendController::class, 'unfriend'])->name('friends.unfriend');
-    Route::post('/friends/follow/{userId}', [App\Http\Controllers\FriendController::class, 'follow'])->name('friends.follow');
-    Route::post('/friends/unfollow/{userId}', [App\Http\Controllers\FriendController::class, 'unfollow'])->name('friends.unfollow');
-    Route::post('/friends/block/{userId}', [App\Http\Controllers\FriendController::class, 'block'])->name('friends.block');
-    Route::post('/friends/unblock/{userId}', [App\Http\Controllers\FriendController::class, 'unblock'])->name('friends.unblock');
+    Route::post('/friends/follow/{userId}', [App\Http\Controllers\FriendController::class, 'follow'])->middleware('throttle:30,1')->name('friends.follow');
+    Route::post('/friends/unfollow/{userId}', [App\Http\Controllers\FriendController::class, 'unfollow'])->middleware('throttle:30,1')->name('friends.unfollow');
+    Route::post('/friends/block/{userId}', [App\Http\Controllers\FriendController::class, 'block'])->middleware('throttle:10,1')->name('friends.block');
+    Route::post('/friends/unblock/{userId}', [App\Http\Controllers\FriendController::class, 'unblock'])->middleware('throttle:10,1')->name('friends.unblock');
 
     // Notifications
     Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
-    Route::get('/notifications/{id}/read', [App\Http\Controllers\NotificationController::class, 'markRead'])->name('notifications.markRead');
-    Route::post('/notifications/read-all', [App\Http\Controllers\NotificationController::class, 'markAllRead'])->name('notifications.markAllRead');
+    Route::post('/notifications/{id}/read', [App\Http\Controllers\NotificationController::class, 'markRead'])->middleware('throttle:30,1')->name('notifications.markRead');
+    Route::post('/notifications/read-all', [App\Http\Controllers\NotificationController::class, 'markAllRead'])->middleware('throttle:10,1')->name('notifications.markAllRead');
     Route::delete('/notifications/{id}', [App\Http\Controllers\NotificationController::class, 'destroy'])->name('notifications.destroy');
-    Route::get('/notifications/unread-count', [App\Http\Controllers\NotificationController::class, 'unreadCount'])->name('notifications.unreadCount');
+    Route::get('/notifications/unread-count', [App\Http\Controllers\NotificationController::class, 'unreadCount'])->middleware('throttle:60,1')->name('notifications.unreadCount');
 
     // Telusur (Browse Members)
     Route::get('/telusur', [App\Http\Controllers\TelusurController::class, 'index'])->name('telusur.index');
@@ -110,20 +111,4 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
     Route::get('/admin', function () {
         return '<h1>Dashboard Admin</h1><p>Selamat datang, Admin!</p><form method="POST" action="'.route('logout').'">'.csrf_field().'<button type="submit">Logout</button></form>';
     })->name('admin.dashboard');
-});
-
-// Dev Login (Development)
-Route::get('/dev-login/bima', function () {
-    $user = App\Models\User::find(1); 
-    Auth::login($user);
-    return redirect()->route('messages.index');
-});
-
-Route::get('/dev-login/giska', function () {
-    $user = App\Models\User::find(2); 
-    if ($user) {
-        Auth::login($user);
-        return redirect()->route('messages.index');
-    }
-    return 'Akun ID 2 tidak ada di database! Coba ganti angka find(2) menjadi find(3).';
 });

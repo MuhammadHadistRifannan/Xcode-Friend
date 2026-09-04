@@ -2,25 +2,25 @@
 
 namespace App\Http\Middleware;
 
+use App\Repositories\Contracts\AccountRepositoryInterface;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class UpdateLastSeen
 {
+    public function __construct(
+        private AccountRepositoryInterface $accountRepo
+    ) {}
+
     public function handle(Request $request, Closure $next)
     {
         if (Auth::check()) {
             $userId = Auth::id();
-            $lastSeen = DB::table('jcow_accounts')
-                ->where('id', $userId)
-                ->value('last_seen');
+            $lastSeen = $this->accountRepo->findLastSeen($userId);
 
             if (!$lastSeen || (time() - $lastSeen) > 60) {
-                DB::table('jcow_accounts')
-                    ->where('id', $userId)
-                    ->update(['last_seen' => time()]);
+                $this->accountRepo->updateLastSeen($userId, time());
             }
         }
 
