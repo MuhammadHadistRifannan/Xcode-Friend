@@ -14,16 +14,15 @@ class MessageRepository implements MessageRepositoryInterface
         $query = DB::table('jcow_messages')
             ->join('jcow_accounts', 'jcow_accounts.id', '=', 'jcow_messages.from_id')
             ->where('jcow_messages.to_id', $userId)
-            ->where('jcow_messages.from_id', '>', 0);
+            ->where('jcow_messages.from_id', '>', 0)
+            ->whereNull('jcow_messages.deleted_at');
 
-        // Filter by read status
         if ($status === 'unread') {
-            $query->where('jcow_messages.hasread', 0);
+            $query->whereRaw('jcow_messages.hasread = 0');
         } elseif ($status === 'read') {
-            $query->where('jcow_messages.hasread', 1);
+            $query->whereRaw('jcow_messages.hasread = 1');
         }
 
-        // Sort
         $query = match ($sort) {
             'terlama' => $query->orderBy('jcow_messages.created', 'asc'),
             'abjad_az' => $query->orderBy('jcow_accounts.fullname', 'asc'),
@@ -44,9 +43,9 @@ class MessageRepository implements MessageRepositoryInterface
     {
         $query = DB::table('jcow_messages_sent')
             ->join('jcow_accounts', 'jcow_accounts.id', '=', 'jcow_messages_sent.to_id')
-            ->where('jcow_messages_sent.from_id', $userId);
+            ->where('jcow_messages_sent.from_id', $userId)
+            ->whereNull('jcow_messages_sent.deleted_at');
 
-        // Sort
         $query = match ($sort) {
             'terlama' => $query->orderBy('jcow_messages_sent.created', 'asc'),
             'abjad_az' => $query->orderBy('jcow_accounts.fullname', 'asc'),
@@ -68,6 +67,7 @@ class MessageRepository implements MessageRepositoryInterface
         return DB::table('jcow_messages')
             ->join('jcow_accounts as sender', 'sender.id', '=', 'jcow_messages.from_id')
             ->join('jcow_accounts as receiver', 'receiver.id', '=', 'jcow_messages.to_id')
+            ->whereNull('jcow_messages.deleted_at')
             ->where(function ($query) use ($userId, $otherId) {
                 $query->where('jcow_messages.from_id', $userId)
                     ->where('jcow_messages.to_id', $otherId);
@@ -93,6 +93,7 @@ class MessageRepository implements MessageRepositoryInterface
             ->join('jcow_accounts', 'jcow_accounts.id', '=', 'jcow_messages.from_id')
             ->where('jcow_messages.id', $id)
             ->where('jcow_messages.to_id', $userId)
+            ->whereNull('jcow_messages.deleted_at')
             ->select(
                 'jcow_messages.*',
                 'jcow_accounts.fullname',
@@ -109,6 +110,7 @@ class MessageRepository implements MessageRepositoryInterface
             ->join('jcow_accounts', 'jcow_accounts.id', '=', 'jcow_messages_sent.to_id')
             ->where('jcow_messages_sent.id', $id)
             ->where('jcow_messages_sent.from_id', $userId)
+            ->whereNull('jcow_messages_sent.deleted_at')
             ->select(
                 'jcow_messages_sent.*',
                 'jcow_accounts.fullname',
@@ -123,7 +125,7 @@ class MessageRepository implements MessageRepositoryInterface
         return DB::table('jcow_messages')
             ->where('id', $id)
             ->where('to_id', $userId)
-            ->where('hasread', 0)
+            ->whereNull('deleted_at')
             ->update(['hasread' => 1]) > 0;
     }
 
@@ -132,7 +134,8 @@ class MessageRepository implements MessageRepositoryInterface
         DB::table('jcow_messages')
             ->where('to_id', $userId)
             ->where('from_id', $otherId)
-            ->where('hasread', 0)
+            ->whereRaw('hasread = 0')
+            ->whereNull('deleted_at')
             ->update(['hasread' => 1]);
     }
 
@@ -142,6 +145,7 @@ class MessageRepository implements MessageRepositoryInterface
             ->join('jcow_accounts', 'jcow_accounts.id', '=', 'jcow_messages.from_id')
             ->where('jcow_messages.to_id', $userId)
             ->where('jcow_messages.from_id', '>', 0)
+            ->whereNull('jcow_messages.deleted_at')
             ->where(function ($query) use ($keyword) {
                 $query->where('jcow_accounts.fullname', 'like', "%{$keyword}%")
                     ->orWhere('jcow_accounts.username', 'like', "%{$keyword}%")
@@ -163,6 +167,7 @@ class MessageRepository implements MessageRepositoryInterface
         return DB::table('jcow_messages_sent')
             ->join('jcow_accounts', 'jcow_accounts.id', '=', 'jcow_messages_sent.to_id')
             ->where('jcow_messages_sent.from_id', $userId)
+            ->whereNull('jcow_messages_sent.deleted_at')
             ->where(function ($query) use ($keyword) {
                 $query->where('jcow_accounts.fullname', 'like', "%{$keyword}%")
                     ->orWhere('jcow_accounts.username', 'like', "%{$keyword}%")
@@ -184,7 +189,8 @@ class MessageRepository implements MessageRepositoryInterface
         return (int) DB::table('jcow_messages')
             ->where('to_id', $userId)
             ->where('from_id', '>', 0)
-            ->where('hasread', 0)
+            ->whereRaw('hasread = 0')
+            ->whereNull('deleted_at')
             ->count();
     }
 
@@ -196,7 +202,8 @@ class MessageRepository implements MessageRepositoryInterface
         return DB::table($table)
             ->where('id', $id)
             ->where($column, $userId)
-            ->delete() > 0;
+            ->whereNull('deleted_at')
+            ->update(['deleted_at' => now()]) > 0;
     }
 
     public function bulkDelete(array $ids, int $userId, string $type = 'inbox'): int
@@ -207,6 +214,7 @@ class MessageRepository implements MessageRepositoryInterface
         return DB::table($table)
             ->whereIn('id', $ids)
             ->where($column, $userId)
-            ->delete();
+            ->whereNull('deleted_at')
+            ->update(['deleted_at' => now()]);
     }
 }

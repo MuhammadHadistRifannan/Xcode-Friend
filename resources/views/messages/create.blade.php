@@ -19,15 +19,7 @@
         <div class="flex flex-col lg:flex-row gap-6 lg:gap-12">
 
             <!-- KONTEN KIRI: Form Buat Pesan -->
-            <div class="w-full lg:w-[80%] bg-[#f6f3f3] rounded-[24px] flex flex-col min-h-[650px] shadow-sm">
-
-                <!-- Tabs -->
-                <div class="px-8 pt-8">
-                    <div class="flex space-x-8 border-b border-gray-300/60 mb-[-1px]">
-                        <a href="{{ route('messages.index') }}" class="pb-3 text-sm font-bold text-[#b71c1c] border-b-2 border-[#b71c1c] transition">KOTAK MASUK</a>
-                        <a href="{{ route('messages.outbox') }}" class="pb-3 text-sm font-medium text-gray-500 hover:text-gray-800 border-b-2 border-transparent transition">KOTAK KELUAR</a>
-                    </div>
-                </div>
+            <div class="w-full lg:w-[80%] bg-[#f6f3f3] rounded-[24px] flex flex-col shadow-sm">
 
             <!-- Form -->
             <form action="{{ route('messages.store') }}" method="POST" class="px-8 py-6 flex-grow">

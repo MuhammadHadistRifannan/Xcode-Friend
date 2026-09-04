@@ -1,4 +1,7 @@
-<div class="flex items-center gap-4 px-6 py-4 {{ !$loop->last ? 'border-b border-gray-100' : '' }} {{ $notification->hasread ? '' : 'bg-[#fafafa]' }}">
+@php
+    $notificationUrl = route('notifications.markRead', $notification->id);
+@endphp
+<a href="{{ $notificationUrl }}" class="flex items-center gap-4 px-6 py-3 {{ !$loop->last ? 'border-b border-gray-100' : '' }} {{ $notification->hasread ? '' : 'bg-[#fafafa]' }} hover:bg-gray-50 transition">
     <!-- Unread Indicator -->
     <div class="w-2 h-2 rounded-full {{ $notification->hasread ? 'bg-gray-300' : 'bg-[#b71c1c]' }} flex-shrink-0"></div>
     
@@ -21,21 +24,19 @@
     
     <!-- Content -->
     <div class="flex-grow min-w-0">
-        <p class="text-sm font-bold text-gray-900">
-            {{ match($notification->subject) {
-                'friend_request' => 'Permintaan Pertemanan',
-                'friend_accepted' => 'Pertemanan Diterima',
-                'new_message' => 'Pesan Baru',
-                'comment' => 'Komentar Baru',
-                'like' => 'Suka',
-                default => 'Notifikasi',
-            } }}
-        </p>
-        <p class="text-xs text-gray-500 truncate">{!! $notification->message !!}</p>
+        <span class="text-sm font-bold text-gray-900">{{ match($notification->subject) {
+            'friend_request' => 'Permintaan Pertemanan',
+            'friend_accepted' => 'Pertemanan Diterima',
+            'new_message' => 'Pesan Baru',
+            'comment' => 'Komentar Baru',
+            'like' => 'Suka',
+            default => 'Notifikasi',
+        } }}</span>
+        <span class="text-xs text-gray-500 ml-2">{{ strip_tags($notification->message) }}</span>
     </div>
     
     <!-- Time + Delete -->
-    <div class="flex items-center gap-2 flex-shrink-0">
+    <div class="flex items-center gap-2 flex-shrink-0" onclick="event.stopPropagation();">
         <span class="text-xs text-gray-400">{{ \Carbon\Carbon::createFromTimestamp($notification->created)->diffForHumans() }}</span>
         <form action="{{ route('notifications.destroy', $notification->id) }}" method="POST" onsubmit="return confirm('Hapus notifikasi ini?')">
             @csrf
@@ -47,4 +48,4 @@
             </button>
         </form>
     </div>
-</div>
+</a>

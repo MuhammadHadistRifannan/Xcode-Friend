@@ -78,4 +78,44 @@ class FriendController extends Controller
             return redirect()->back()->with('error', $e->getMessage());
         }
     }
+
+    public function follow(int $userId)
+    {
+        try {
+            $this->friendService->follow(Auth::id(), $userId);
+            return redirect()->back()->with('success', 'Berhasil mengikuti user ini.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+    }
+
+    public function unfollow(int $userId)
+    {
+        try {
+            $this->friendService->unfollow(Auth::id(), $userId);
+            return redirect()->back()->with('success', 'Berhenti mengikuti user ini.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+    }
+
+    public function block(int $userId)
+    {
+        try {
+            $this->friendService->block(Auth::id(), $userId);
+            return redirect()->route('telusur.index')->with('success', 'User berhasil diblokir.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+    }
+
+    public function unblock(int $userId)
+    {
+        try {
+            $this->friendService->unblock(Auth::id(), $userId);
+            return redirect()->back()->with('success', 'User berhasil dibuka blokirannya.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+    }
 }

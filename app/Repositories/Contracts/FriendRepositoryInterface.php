@@ -27,4 +27,18 @@ interface FriendRepositoryInterface
     public function unfriend(int $friendId, int $userId): void;
 
     public function areBlocked(int $userId, int $otherId): bool;
+
+    public function follow(int $userId, int $targetId): void;
+
+    public function unfollow(int $userId, int $targetId): void;
+
+    public function isFollowing(int $userId, int $targetId): bool;
+
+    public function block(int $userId, int $targetId): void;
+
+    public function unblock(int $userId, int $targetId): void;
+
+    public function isBlocked(int $userId, int $targetId): bool;
+
+    public function getFollowerCount(int $userId): int;
 }

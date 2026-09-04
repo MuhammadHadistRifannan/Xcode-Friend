@@ -9,7 +9,9 @@
             <div class="flex items-center gap-2 text-xs text-gray-500 mb-2">
                 <a href="{{ route('beranda') }}" class="hover:text-gray-700 transition">HOME</a>
                 <span>›</span>
-                <span class="text-gray-700 font-medium">MESSAGE</span>
+                <a href="{{ route('messages.index') }}" class="hover:text-gray-700 transition">MESSAGES</a>
+                <span>›</span>
+                <span class="text-gray-700 font-medium">LIHAT PESAN</span>
             </div>
             <h1 class="text-2xl font-bold text-gray-900">LIHAT PESAN</h1>
         </div>
