@@ -67,6 +67,8 @@ class MessageRepository implements MessageRepositoryInterface
         return DB::table('jcow_messages')
             ->join('jcow_accounts as sender', 'sender.id', '=', 'jcow_messages.from_id')
             ->join('jcow_accounts as receiver', 'receiver.id', '=', 'jcow_messages.to_id')
+            ->leftJoin('jcow_messages as replied', 'replied.id', '=', 'jcow_messages.reply_to')
+            ->leftJoin('jcow_accounts as replied_sender', 'replied_sender.id', '=', 'replied.from_id')
             ->whereNull('jcow_messages.deleted_at')
             ->where(function ($query) use ($userId, $otherId) {
                 $query->where('jcow_messages.from_id', $userId)
@@ -81,7 +83,9 @@ class MessageRepository implements MessageRepositoryInterface
                 'sender.username as sender_username',
                 'sender.avatar as sender_avatar',
                 'receiver.fullname as receiver_name',
-                'receiver.username as receiver_username'
+                'receiver.username as receiver_username',
+                'replied.message as replied_message',
+                'replied_sender.fullname as replied_sender_name'
             )
             ->orderBy('jcow_messages.created', 'asc')
             ->get();
@@ -216,5 +220,69 @@ class MessageRepository implements MessageRepositoryInterface
             ->where($column, $userId)
             ->whereNull('deleted_at')
             ->update(['deleted_at' => now()]);
+    }
+
+    public function getLastMessage(int $userId, int $otherId): ?object
+    {
+        return DB::table('jcow_messages')
+            ->where(function ($q) use ($userId, $otherId) {
+                $q->where('from_id', $userId)->where('to_id', $otherId)
+                  ->orWhere('from_id', $otherId)->where('to_id', $userId);
+            })
+            ->whereNull('deleted_at')
+            ->orderBy('created', 'desc')
+            ->first();
+    }
+
+    public function countUnreadBetween(int $userId, int $otherId): int
+    {
+        return (int) DB::table('jcow_messages')
+            ->where('from_id', $otherId)
+            ->where('to_id', $userId)
+            ->whereRaw('hasread = 0')
+            ->whereNull('deleted_at')
+            ->count();
+    }
+
+    public function deleteForSelf(int $messageId, int $userId): bool
+    {
+        DB::table('jcow_messages')
+            ->where('id', $messageId)
+            ->where('to_id', $userId)
+            ->update(['deleted_at' => now()]);
+
+        DB::table('jcow_messages_sent')
+            ->where('id', $messageId)
+            ->where('from_id', $userId)
+            ->update(['deleted_at' => now()]);
+
+        return true;
+    }
+
+    public function deleteForEveryone(int $messageId): bool
+    {
+        DB::table('jcow_messages')->where('id', $messageId)->delete();
+        DB::table('jcow_messages_sent')->where('id', $messageId)->delete();
+
+        return true;
+    }
+
+    public function deleteConversation(int $userId, int $otherId): bool
+    {
+        DB::table('jcow_messages')
+            ->where(function ($q) use ($userId, $otherId) {
+                $q->where('from_id', $userId)->where('to_id', $otherId)
+                  ->orWhere('from_id', $otherId)->where('to_id', $userId);
+            })
+            ->update(['deleted_at' => now()]);
+
+        DB::table('jcow_messages_sent')
+            ->where(function ($q) use ($userId, $otherId) {
+                $q->where('from_id', $userId)->where('to_id', $otherId)
+                  ->orWhere('from_id', $otherId)->where('to_id', $userId);
+            })
+            ->update(['deleted_at' => now()]);
+
+        return true;
     }
 }

@@ -18,7 +18,14 @@
                         <p class="text-sm font-bold text-gray-900">{{ $req->fullname }}</p>
                         <p class="text-xs text-gray-500">Permintaan terkirim</p>
                     </div>
-                    <span class="text-xs text-gray-400">{{ \Carbon\Carbon::createFromTimestamp($req->created)->diffForHumans() }}</span>
+                    <span class="text-xs text-gray-400 mr-2">{{ \Carbon\Carbon::createFromTimestamp($req->created)->diffForHumans() }}</span>
+                    <form action="{{ route('friends.cancelRequest', $req->fid) }}" method="POST" onsubmit="return confirm('Batalkan permintaan pertemanan?')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="px-4 py-2 border border-gray-300 rounded-[10px] text-xs font-bold text-gray-700 hover:bg-gray-50 transition">
+                            BATALKAN
+                        </button>
+                    </form>
                 </div>
             @endforeach
         </div>

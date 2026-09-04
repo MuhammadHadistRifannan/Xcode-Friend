@@ -34,12 +34,11 @@ class MessageService
         return $this->messageRepo->getById($id, $userId);
     }
 
-    public function send(int $senderId, int $recipientId, ?string $subject, string $message): object
+    public function send(int $senderId, int $recipientId, ?string $subject, string $message, ?int $replyTo = null): object
     {
-        return DB::transaction(function () use ($senderId, $recipientId, $subject, $message) {
+        return DB::transaction(function () use ($senderId, $recipientId, $subject, $message, $replyTo) {
             $now = time();
 
-            // Insert ke jcow_messages (inbox penerima)
             $messageId = DB::table('jcow_messages')->insertGetId([
                 'from_id' => $senderId,
                 'to_id' => $recipientId,
@@ -47,9 +46,9 @@ class MessageService
                 'message' => $message,
                 'created' => $now,
                 'hasread' => 0,
+                'reply_to' => $replyTo,
             ]);
 
-            // Insert ke jcow_messages_sent (outbox pengirim)
             DB::table('jcow_messages_sent')->insert([
                 'from_id' => $senderId,
                 'to_id' => $recipientId,
@@ -57,9 +56,9 @@ class MessageService
                 'message' => $message,
                 'created' => $now,
                 'hasread' => 0,
+                'reply_to' => $replyTo,
             ]);
 
-            // Kirim notifikasi ke penerima
             $sender = DB::table('jcow_accounts')->where('id', $senderId)->first();
             $this->notifRepo->create(
                 $recipientId,
@@ -78,6 +77,7 @@ class MessageService
                 'message' => $message,
                 'created' => $now,
                 'hasread' => 0,
+                'reply_to' => $replyTo,
             ];
         });
     }
@@ -113,5 +113,30 @@ class MessageService
             return $this->messageRepo->searchOutbox($userId, $keyword);
         }
         return $this->messageRepo->searchInbox($userId, $keyword);
+    }
+
+    public function getLastMessage(int $userId, int $otherId): ?object
+    {
+        return $this->messageRepo->getLastMessage($userId, $otherId);
+    }
+
+    public function countUnreadBetween(int $userId, int $otherId): int
+    {
+        return $this->messageRepo->countUnreadBetween($userId, $otherId);
+    }
+
+    public function deleteForSelf(int $messageId, int $userId): bool
+    {
+        return $this->messageRepo->deleteForSelf($messageId, $userId);
+    }
+
+    public function deleteForEveryone(int $messageId): bool
+    {
+        return $this->messageRepo->deleteForEveryone($messageId);
+    }
+
+    public function deleteConversation(int $userId, int $otherId): bool
+    {
+        return $this->messageRepo->deleteConversation($userId, $otherId);
     }
 }

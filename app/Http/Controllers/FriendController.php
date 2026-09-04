@@ -68,6 +68,17 @@ class FriendController extends Controller
         }
     }
 
+    public function cancelRequest(int $userId)
+    {
+        try {
+            $this->friendService->cancelRequest(Auth::id(), $userId);
+
+            return redirect()->route('friends.requests')->with('success', 'Permintaan pertemanan dibatalkan.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+    }
+
     public function unfriend(int $userId)
     {
         try {

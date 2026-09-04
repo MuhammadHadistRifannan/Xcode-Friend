@@ -17,6 +17,7 @@ class SendMessageRequest extends FormRequest
             'recipient_id' => 'required|integer|exists:jcow_accounts,id',
             'subject' => 'nullable|string|max:100',
             'message' => 'required|string',
+            'reply_to' => 'nullable|integer',
         ];
     }
 

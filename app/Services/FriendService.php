@@ -94,6 +94,15 @@ class FriendService
         $this->friendRepo->rejectRequest($requesterId, $userId);
     }
 
+    public function cancelRequest(int $fromId, int $toId): void
+    {
+        if (!$this->friendRepo->hasPendingRequest($fromId, $toId)) {
+            throw new Exception('Permintaan pertemanan tidak ditemukan.');
+        }
+
+        $this->friendRepo->cancelRequest($fromId, $toId);
+    }
+
     public function unfriend(int $friendId, int $userId): void
     {
         if (!$this->friendRepo->areFriends($userId, $friendId)) {

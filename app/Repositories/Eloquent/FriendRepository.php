@@ -160,6 +160,14 @@ class FriendRepository implements FriendRepositoryInterface
             ->delete();
     }
 
+    public function cancelRequest(int $fromId, int $toId): void
+    {
+        DB::table('jcow_friend_reqs')
+            ->where('uid', $fromId)
+            ->where('fid', $toId)
+            ->delete();
+    }
+
     public function unfriend(int $friendId, int $userId): void
     {
         DB::table('jcow_friends')

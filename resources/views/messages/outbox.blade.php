@@ -83,7 +83,7 @@
                     </thead>
                     <tbody class="divide-y divide-transparent">
                         @forelse($messages as $msg)
-                            <tr onclick="window.location='{{ route('messages.show', $msg->id) }}'" class="group cursor-pointer transition-colors text-gray-600 hover:bg-[#ebe5e5] rounded-lg">
+                            <tr onclick="window.location='{{ route('messages.conversation', $msg->to_id) }}'" class="group cursor-pointer transition-colors text-gray-600 hover:bg-[#ebe5e5] rounded-lg">
                                 <td class="py-4 px-2" onclick="event.stopPropagation()">
                                     <input type="checkbox" name="ids[]" value="{{ $msg->id }}" class="rounded border-gray-400 text-[#b71c1c] focus:ring-[#b71c1c]">
                                 </td>
@@ -110,6 +110,12 @@
                         @endforelse
                     </tbody>
                 </table>
+
+                @if($messages->hasPages())
+                    <div class="mt-4 px-4 py-3 bg-white rounded-[14px] shadow-sm">
+                        {{ $messages->links() }}
+                    </div>
+                @endif
             </div>
 
             <!-- Footer: Centang + Hapus -->

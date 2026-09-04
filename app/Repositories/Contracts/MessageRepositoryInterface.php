@@ -28,4 +28,14 @@ interface MessageRepositoryInterface
     public function deleteById(int $id, int $userId, string $type = 'inbox'): bool;
 
     public function bulkDelete(array $ids, int $userId, string $type = 'inbox'): int;
+
+    public function getLastMessage(int $userId, int $otherId): ?object;
+
+    public function countUnreadBetween(int $userId, int $otherId): int;
+
+    public function deleteForSelf(int $messageId, int $userId): bool;
+
+    public function deleteForEveryone(int $messageId): bool;
+
+    public function deleteConversation(int $userId, int $otherId): bool;
 }

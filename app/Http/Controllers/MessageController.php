@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\MessageService;
+use App\Services\FriendService;
 use App\Http\Requests\SendMessageRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,7 +12,8 @@ use Illuminate\Support\Facades\DB;
 class MessageController extends Controller
 {
     public function __construct(
-        private MessageService $messageService
+        private MessageService $messageService,
+        private FriendService $friendService
     ) {}
 
     private function noCache($response)
@@ -25,62 +27,34 @@ class MessageController extends Controller
     public function index(Request $request)
     {
         $userId = Auth::id();
-        $sort = $request->input('sort', 'terbaru');
-        $status = $request->input('status', 'all');
+        $search = $request->input('search');
 
-        if ($keyword = $request->input('search')) {
-            $messages = $this->messageService->search($userId, $keyword, 'inbox');
-        } else {
-            $messages = $this->messageService->getInbox($userId, 20, $sort, $status);
+        $friends = $this->friendService->getFriends($userId);
+
+        $conversations = [];
+        foreach ($friends as $friend) {
+            if ($search && stripos($friend->fullname, $search) === false && stripos($friend->username, $search) === false) {
+                continue;
+            }
+
+            $lastMessage = $this->messageService->getLastMessage($userId, $friend->id);
+            $unreadCount = $this->messageService->countUnreadBetween($userId, $friend->id);
+
+            $conversations[] = [
+                'user' => $friend,
+                'lastMessage' => $lastMessage,
+                'unreadCount' => $unreadCount,
+            ];
         }
 
-        $filters = compact('sort', 'status');
+        usort($conversations, function ($a, $b) {
+            $timeA = $a['lastMessage'] ? $a['lastMessage']->created : 0;
+            $timeB = $b['lastMessage'] ? $b['lastMessage']->created : 0;
+            return $timeB - $timeA;
+        });
 
         return $this->noCache(
-            response()->view('messages.index', compact('messages', 'filters'))
-        );
-    }
-
-    public function outbox(Request $request)
-    {
-        $userId = Auth::id();
-        $sort = $request->input('sort', 'terbaru');
-
-        if ($keyword = $request->input('search')) {
-            $messages = $this->messageService->search($userId, $keyword, 'outbox');
-        } else {
-            $messages = $this->messageService->getOutbox($userId, 20, $sort);
-        }
-
-        $filters = compact('sort');
-
-        return $this->noCache(
-            response()->view('messages.outbox', compact('messages', 'filters'))
-        );
-    }
-
-    public function create(Request $request)
-    {
-        $userId = Auth::id();
-        $toId = $request->input('to');
-        $blocked = false;
-
-        if ($toId) {
-            $blocked = DB::table('jcow_blacks')
-                ->where('uid', $toId)
-                ->where('bid', $userId)
-                ->exists();
-        }
-
-        $users = DB::table('jcow_accounts')
-            ->where('id', '!=', $userId)
-            ->where('disabled', 0)
-            ->select('id', 'fullname', 'username', 'avatar')
-            ->orderBy('fullname')
-            ->get();
-
-        return $this->noCache(
-            response()->view('messages.create', compact('users', 'toId', 'blocked'))
+            response()->view('messages.index', compact('conversations'))
         );
     }
 
@@ -96,7 +70,7 @@ class MessageController extends Controller
 
         if ($blocked) {
             return $this->noCache(
-                redirect()->route('messages.create')->with('error', 'Pengguna ini telah memblokir Anda.')
+                redirect()->route('messages.index')->with('error', 'Pengguna ini telah memblokir Anda.')
             );
         }
 
@@ -104,39 +78,33 @@ class MessageController extends Controller
             $userId,
             $recipientId,
             $request->subject,
-            $request->message
+            $request->message,
+            $request->reply_to
         );
 
         return $this->noCache(
-            redirect()->route('messages.outbox')->with('success', 'Pesan berhasil dikirim.')
+            redirect()->route('messages.conversation', $recipientId)
         );
     }
 
-    public function show(int $id)
+    public function conversation(int $userId)
     {
-        $userId = Auth::id();
+        $currentUserId = Auth::id();
 
-        $message = $this->messageService->getById($id, $userId);
+        $otherUser = DB::table('jcow_accounts')->where('id', $userId)->first();
 
-        if (!$message) {
+        if (!$otherUser) {
             return $this->noCache(
-                redirect()->route('messages.index')->with('error', 'Pesan tidak ditemukan.')
+                redirect()->route('messages.index')->with('error', 'User tidak ditemukan.')
             );
         }
 
-        $type = $message->to_id == $userId ? 'inbox' : 'outbox';
+        $messages = $this->messageService->getConversation($currentUserId, $userId);
 
-        if ($type === 'inbox') {
-            $this->messageService->markAsRead($id, $userId);
-            $otherId = $message->from_id;
-        } else {
-            $otherId = $message->to_id;
-        }
-
-        $otherUser = DB::table('jcow_accounts')->where('id', $otherId)->first();
+        $this->messageService->markConversationAsRead($currentUserId, $userId);
 
         return $this->noCache(
-            response()->view('messages.show', compact('message', 'otherUser', 'type'))
+            response()->view('messages.conversation', compact('messages', 'otherUser'))
         );
     }
 
@@ -152,32 +120,54 @@ class MessageController extends Controller
             );
         }
 
-        $type = $message->to_id == $userId ? 'inbox' : 'outbox';
-
-        $this->messageService->delete($id, $userId, $type);
-
-        $route = $type === 'outbox' ? 'messages.outbox' : 'messages.index';
+        $this->messageService->deleteForSelf($id, $userId);
 
         return $this->noCache(
-            redirect()->route($route)->with('success', 'Pesan berhasil dihapus.')
+            back()->with('success', 'Pesan berhasil dihapus.')
+        );
+    }
+
+    public function deleteForEveryone(int $id)
+    {
+        $userId = Auth::id();
+
+        $message = $this->messageService->getById($id, $userId);
+
+        if (!$message) {
+            return $this->noCache(
+                redirect()->route('messages.index')->with('error', 'Pesan tidak ditemukan.')
+            );
+        }
+
+        if ($message->from_id != $userId) {
+            return $this->noCache(
+                back()->with('error', 'Anda hanya bisa menghapus pesan yang dikirim.')
+            );
+        }
+
+        $this->messageService->deleteForEveryone($id);
+
+        return $this->noCache(
+            back()->with('success', 'Pesan berhasil dihapus untuk semua.')
         );
     }
 
     public function bulkDelete(Request $request)
     {
         $request->validate([
-            'ids' => 'required|array',
-            'ids.*' => 'integer',
-            'type' => 'required|in:inbox,outbox',
+            'user_ids' => 'required|array',
+            'user_ids.*' => 'integer',
         ]);
 
         $userId = Auth::id();
-        $this->messageService->bulkDelete($request->ids, $userId, $request->type);
 
-        $route = $request->type === 'outbox' ? 'messages.outbox' : 'messages.index';
+        foreach ($request->user_ids as $otherId) {
+            $this->messageService->deleteConversation($userId, $otherId);
+        }
 
         return $this->noCache(
-            redirect()->route($route)->with('success', 'Pesan berhasil dihapus.')
+            redirect()->route('messages.index')
+                ->with('success', count($request->user_ids) . ' percakapan berhasil dihapus.')
         );
     }
 }

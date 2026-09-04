@@ -24,6 +24,8 @@ interface FriendRepositoryInterface
 
     public function rejectRequest(int $requesterId, int $userId): void;
 
+    public function cancelRequest(int $fromId, int $toId): void;
+
     public function unfriend(int $friendId, int $userId): void;
 
     public function areBlocked(int $userId, int $otherId): bool;

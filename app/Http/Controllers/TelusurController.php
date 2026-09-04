@@ -51,7 +51,7 @@ class TelusurController extends Controller
         // Sort
         $sort = $request->input('sort', 'terbaru');
         if ($sort === 'terakhir_aktif') {
-            $query->orderBy('lastlogin', 'desc');
+            $query->orderBy('last_seen', 'desc');
         } elseif ($sort === 'paling_populer') {
             $query->orderBy('followers', 'desc');
         } else {
