@@ -36,7 +36,13 @@ class Stream extends Model
     {
         // Menggunakan Page::class karena Group juga di tabel jcow_pages 
         // tanpa global scope yang membatasi.
-        return $this->belongsTo(Page::class, 'aid', 'id');
+        return $this->belongsTo(Page::class, 'aid', 'id')->withoutGlobalScopes();
+    }
+
+    // Relasi: Mengambil data target user (Jika postingan di dinding user lain)
+    public function targetWallUser()
+    {
+        return $this->belongsTo(User::class, 'wall_id', 'id');
     }
 
     /**

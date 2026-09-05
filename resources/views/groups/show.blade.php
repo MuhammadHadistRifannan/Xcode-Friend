@@ -231,24 +231,79 @@
 
                     <!-- Attachment (Foto atau YouTube Embed) -->
                     @if($post->attachment)
-                        @php
-                            $isYoutube = str_starts_with($post->attachment, 'youtube:');
-                        @endphp
-                        @if($isYoutube)
-                            @php $ytId = str_replace('youtube:', '', $post->attachment); @endphp
-                            <div class="rounded-xl overflow-hidden mt-2 bg-black aspect-video">
-                                <iframe class="w-full h-full"
-                                    src="https://www.youtube.com/embed/{{ $ytId }}"
-                                    title="YouTube video"
-                                    frameborder="0"
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                    allowfullscreen>
-                                </iframe>
-                            </div>
-                        @else
-                            <img src="{{ asset('storage/'.$post->attachment) }}"
-                                 class="w-full rounded-xl max-h-96 object-contain bg-gray-50 border border-gray-100 mt-2"
-                                 alt="Attachment">
+                        @if($post->type == 2)
+                            @php $att = json_decode($post->attachment, true); @endphp
+                            @if(is_array($att) && isset($att['photos']))
+                                @php 
+                                    $ptCount = count($att['photos']); 
+                                    $photoUrls = array_map(fn($p) => asset('storage/posts/' . $p), $att['photos']);
+                                    $jsonPhotos = json_encode($photoUrls);
+                                @endphp
+                                <div class="mt-3 rounded-xl overflow-hidden border border-neutral-200">
+                                    @if($ptCount == 1)
+                                        <img src="{{ $photoUrls[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' class="w-full h-auto max-h-[500px] object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                    @elseif($ptCount == 2)
+                                        <div class="grid grid-cols-2 gap-1 h-64 sm:h-80">
+                                            <img src="{{ $photoUrls[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                            <img src="{{ $photoUrls[1] }}" onclick='openLightbox({!! $jsonPhotos !!}, 1)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                        </div>
+                                    @elseif($ptCount == 3)
+                                        <div class="grid grid-cols-2 gap-1 h-64 sm:h-80">
+                                            <img src="{{ $photoUrls[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                            <div class="grid grid-rows-2 gap-1 h-full">
+                                                <img src="{{ $photoUrls[1] }}" onclick='openLightbox({!! $jsonPhotos !!}, 1)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                                <img src="{{ $photoUrls[2] }}" onclick='openLightbox({!! $jsonPhotos !!}, 2)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                            </div>
+                                        </div>
+                                    @elseif($ptCount >= 4)
+                                        <div class="grid grid-cols-2 grid-rows-2 gap-1 h-72 sm:h-96">
+                                            <img src="{{ $photoUrls[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                            <img src="{{ $photoUrls[1] }}" onclick='openLightbox({!! $jsonPhotos !!}, 1)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                            <img src="{{ $photoUrls[2] }}" onclick='openLightbox({!! $jsonPhotos !!}, 2)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                            <div class="relative w-full h-full" onclick='openLightbox({!! $jsonPhotos !!}, 3)'>
+                                                <img src="{{ $photoUrls[3] }}" class="w-full h-full object-cover cursor-pointer" alt="Post Photo">
+                                                @if($ptCount > 4)
+                                                    <div class="absolute inset-0 bg-black/60 flex items-center justify-center cursor-pointer hover:bg-black/50 transition">
+                                                        <span class="text-white text-3xl font-bold">+{{ $ptCount - 4 }}</span>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
+                            @elseif(is_array($att) && isset($att['photo']))
+                                @php $singlePhoto = json_encode([asset('storage/posts/' . $att['photo'])]); @endphp
+                                <div class="mt-3 rounded-xl overflow-hidden border border-neutral-200">
+                                    <img src="{{ asset('storage/posts/' . $att['photo']) }}" onclick='openLightbox({!! $singlePhoto !!}, 0)' class="w-full h-auto cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                </div>
+                            @else
+                                <!-- Legacy Single Image -->
+                                <img src="{{ asset('storage/'.$post->attachment) }}" class="w-full rounded-xl max-h-96 object-contain bg-gray-50 border border-gray-100 mt-2" alt="Attachment">
+                            @endif
+                        @elseif($post->type == 3)
+                            @php $att = json_decode($post->attachment, true); @endphp
+                            @if(is_array($att) && isset($att['video_url']))
+                                @php
+                                    $videoUrl = $att['video_url'];
+                                    $embedUrl = '';
+                                    if (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i', $videoUrl, $matches)) {
+                                        $embedUrl = 'https://www.youtube.com/embed/' . $matches[1];
+                                    }
+                                @endphp
+                                <div class="mt-3 rounded-xl overflow-hidden border border-neutral-200">
+                                    @if($embedUrl)
+                                        <iframe src="{{ $embedUrl }}" class="w-full h-[300px]" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                                    @else
+                                        <a href="{{ $videoUrl }}" target="_blank" class="text-blue-600 hover:underline flex items-center p-3 bg-neutral-50"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Tonton Video</a>
+                                    @endif
+                                </div>
+                            @elseif(str_starts_with($post->attachment, 'youtube:'))
+                                <!-- Legacy YouTube -->
+                                @php $ytId = str_replace('youtube:', '', $post->attachment); @endphp
+                                <div class="rounded-xl overflow-hidden mt-2 bg-black aspect-video">
+                                    <iframe class="w-full h-full" src="https://www.youtube.com/embed/{{ $ytId }}" title="YouTube video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                                </div>
+                            @endif
                         @endif
                     @endif
 
@@ -401,6 +456,11 @@
                 videoUrl: '', 
                 videoId: null,
                 photoUrl: null,
+                photoUploader: { name: '', avatar: '' },
+                openPhoto(url, name, avatar) {
+                    this.photoUrl = url;
+                    this.photoUploader = { name: name, avatar: avatar };
+                },
                 openVideo(url) {
                     this.videoUrl = url;
                     let match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^&?\/\s]{11})/);
@@ -427,10 +487,33 @@
                 <div x-show="mediaTab === 'photo'" class="p-4" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
                     @if($recentPhotos->count() > 0)
                         <div class="grid grid-cols-3 gap-2 mb-4">
-                            @foreach($recentPhotos as $photo)
-                                <div @click="photoUrl = '{{ asset('storage/'.$photo->attachment) }}'" class="aspect-square bg-gray-100 rounded-md overflow-hidden block group relative cursor-pointer">
-                                    <img src="{{ asset('storage/'.$photo->attachment) }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
-                                </div>
+                            @php $renderedPhotosCount = 0; @endphp
+                            @foreach($recentPhotos as $photoStream)
+                                @php
+                                    $photosArray = [];
+                                    if ($photoStream->type == 2) {
+                                        $att = json_decode($photoStream->attachment, true);
+                                        if (is_array($att)) {
+                                            if (isset($att['photos'])) {
+                                                foreach($att['photos'] as $p) $photosArray[] = 'posts/' . $p;
+                                            } elseif (isset($att['photo'])) {
+                                                $photosArray[] = 'posts/' . $att['photo'];
+                                            }
+                                        } else {
+                                            $photosArray[] = $photoStream->attachment;
+                                        }
+                                    } else {
+                                        $photosArray[] = $photoStream->attachment;
+                                    }
+                                @endphp
+                                @foreach($photosArray as $photoFile)
+                                    @if($renderedPhotosCount < 6)
+                                    <div @click="openPhoto('{{ asset('storage/'.$photoFile) }}', '{{ $photoStream->user?->fullname ?? $photoStream->user?->username ?? 'Unknown' }}', '{{ $photoStream->user?->avatar_url }}')" class="aspect-square bg-gray-100 rounded-md overflow-hidden block group relative cursor-pointer">
+                                        <img src="{{ asset('storage/'.$photoFile) }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                                    </div>
+                                    @php $renderedPhotosCount++; @endphp
+                                    @endif
+                                @endforeach
                             @endforeach
                         </div>
                     @else
@@ -447,8 +530,22 @@
                 <div x-show="mediaTab === 'video'" class="p-4" style="display: none;" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
                     @if($recentVideos->count() > 0)
                         <div class="grid grid-cols-3 gap-2 mb-4">
+                            @php $renderedVideosCount = 0; @endphp
                             @foreach($recentVideos as $video)
-                                @php $ytId = str_replace('youtube:', '', $video->attachment); @endphp
+                                @php
+                                    $ytId = '';
+                                    if ($video->type == 3) {
+                                        $att = json_decode($video->attachment, true);
+                                        if (is_array($att) && isset($att['video_url'])) {
+                                            if (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i', $att['video_url'], $matches)) {
+                                                $ytId = $matches[1];
+                                            }
+                                        }
+                                    } elseif (str_starts_with($video->attachment, 'youtube:')) {
+                                        $ytId = str_replace('youtube:', '', $video->attachment);
+                                    }
+                                @endphp
+                                @if($ytId && $renderedVideosCount < 6)
                                 <div @click="openVideo('https://www.youtube.com/watch?v={{ $ytId }}')" class="aspect-square bg-gray-100 rounded-md overflow-hidden block relative group border border-gray-200 cursor-pointer">
                                     <img src="https://img.youtube.com/vi/{{ $ytId }}/mqdefault.jpg" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300 opacity-90 group-hover:opacity-100">
                                     <div class="absolute inset-0 flex items-center justify-center">
@@ -457,6 +554,8 @@
                                         </div>
                                     </div>
                                 </div>
+                                @php $renderedVideosCount++; @endphp
+                                @endif
                             @endforeach
                         </div>
                     @else
@@ -511,12 +610,19 @@
                     x-transition:leave-start="opacity-100"
                     x-transition:leave-end="opacity-0">
                     
-                    <div class="relative w-full h-full max-w-5xl max-h-[90vh] flex items-center justify-center" @click.away="photoUrl = null">
-                        <button type="button" @click="photoUrl = null" class="absolute -top-12 right-0 text-white hover:text-red-500 transition-colors flex items-center gap-2 text-sm font-bold bg-white/10 px-3 py-1.5 rounded-lg backdrop-blur-md z-10">
-                            Tutup <i data-lucide="x" class="w-4 h-4"></i>
-                        </button>
-                        
-                        <img :src="photoUrl" class="w-full h-full object-contain rounded-lg shadow-2xl">
+                    <div class="flex flex-col w-full max-w-3xl" @click.away="photoUrl = null">
+                        <!-- Top bar: uploader left, close button right -->
+                        <div class="flex items-center justify-between bg-white/10 backdrop-blur-md px-4 py-2 rounded-t-lg mb-2">
+                            <div class="flex items-center gap-2">
+                                <img :src="photoUploader.avatar" class="w-7 h-7 rounded-full border-2 border-white/50 object-cover shrink-0">
+                                <span class="text-white text-sm font-semibold" x-text="photoUploader.name"></span>
+                            </div>
+                            <button type="button" @click="photoUrl = null" class="text-white hover:text-red-400 transition-colors flex items-center gap-1.5 text-sm font-bold">
+                                Tutup <i data-lucide="x" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+
+                        <img :src="photoUrl" class="w-full h-full max-h-[72vh] object-contain rounded-b-lg shadow-2xl">
                     </div>
                 </div>
             </div>

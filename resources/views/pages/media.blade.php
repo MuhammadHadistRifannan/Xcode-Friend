@@ -29,6 +29,11 @@
             videoUrl: '', 
             videoId: null,
             photoUrl: null,
+            photoUploader: { name: '', avatar: '' },
+            openPhoto(url, name, avatar) {
+                this.photoUrl = url;
+                this.photoUploader = { name: name, avatar: avatar };
+            },
             openVideo(url) {
                 this.videoUrl = url;
                 let match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^&?\/\s]{11})/);
@@ -40,9 +45,27 @@
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 @foreach($mediaList as $media)
                 @if($type === 'photo')
+                    @php
+                        $photosArray = [];
+                        if ($media->type == 2) {
+                            $att = json_decode($media->attachment, true);
+                            if (is_array($att)) {
+                                if (isset($att['photos'])) {
+                                    foreach($att['photos'] as $p) $photosArray[] = 'posts/' . $p;
+                                } elseif (isset($att['photo'])) {
+                                    $photosArray[] = 'posts/' . $att['photo'];
+                                }
+                            } else {
+                                $photosArray[] = $media->attachment;
+                            }
+                        } else {
+                            $photosArray[] = $media->attachment;
+                        }
+                    @endphp
+                    @foreach($photosArray as $photoFile)
                     <!-- Photo Card -->
-                    <div @click="photoUrl = '{{ asset('storage/'.$media->attachment) }}'" class="group aspect-square bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden relative block cursor-pointer">
-                        <img src="{{ asset('storage/'.$media->attachment) }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                    <div @click="openPhoto('{{ asset('storage/'.$photoFile) }}', '{{ $media->user?->fullname ?? $media->user?->username ?? 'Unknown' }}', '{{ $media->user?->avatar_url }}')" class="group aspect-square bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden relative block cursor-pointer">
+                        <img src="{{ asset('storage/'.$photoFile) }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                         <!-- Overlay -->
                         <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         <!-- Author Info (Bottom) -->
@@ -53,9 +76,23 @@
                             </div>
                         </div>
                     </div>
+                    @endforeach
                 @elseif($type === 'video')
                     <!-- Video Card -->
-                    @php $ytId = str_replace('youtube:', '', $media->attachment); @endphp
+                    @php
+                        $ytId = '';
+                        if ($media->type == 3) {
+                            $att = json_decode($media->attachment, true);
+                            if (is_array($att) && isset($att['video_url'])) {
+                                if (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i', $att['video_url'], $matches)) {
+                                    $ytId = $matches[1];
+                                }
+                            }
+                        } elseif (str_starts_with($media->attachment, 'youtube:')) {
+                            $ytId = str_replace('youtube:', '', $media->attachment);
+                        }
+                    @endphp
+                    @if($ytId)
                     <div class="group aspect-square bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden relative block cursor-pointer" @click="openVideo('https://www.youtube.com/watch?v={{ $ytId }}')">
                         <img src="https://img.youtube.com/vi/{{ $ytId }}/hqdefault.jpg" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                         <!-- Play Button Overlay -->
@@ -72,6 +109,7 @@
                             </div>
                         </div>
                     </div>
+                @endif
                 @endif
             @endforeach
             </div>
@@ -120,12 +158,19 @@
                 x-transition:leave-start="opacity-100"
                 x-transition:leave-end="opacity-0">
                 
-                <div class="relative w-full h-full max-w-5xl max-h-[90vh] flex items-center justify-center" @click.away="photoUrl = null">
-                    <button type="button" @click="photoUrl = null" class="absolute -top-12 right-0 text-white hover:text-red-500 transition-colors flex items-center gap-2 text-sm font-bold bg-white/10 px-3 py-1.5 rounded-lg backdrop-blur-md z-10">
-                        Tutup <i data-lucide="x" class="w-4 h-4"></i>
-                    </button>
-                    
-                    <img :src="photoUrl" class="w-full h-full object-contain rounded-lg shadow-2xl">
+                <div class="flex flex-col w-full max-w-3xl" @click.away="photoUrl = null">
+                    <!-- Top bar: uploader left, close button right -->
+                    <div class="flex items-center justify-between bg-white/10 backdrop-blur-md px-4 py-2 rounded-t-lg mb-2">
+                        <div class="flex items-center gap-2">
+                            <img :src="photoUploader.avatar" class="w-7 h-7 rounded-full border-2 border-white/50 object-cover shrink-0">
+                            <span class="text-white text-sm font-semibold" x-text="photoUploader.name"></span>
+                        </div>
+                        <button type="button" @click="photoUrl = null" class="text-white hover:text-red-400 transition-colors flex items-center gap-1.5 text-sm font-bold">
+                            Tutup <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                    <img :src="photoUrl" class="w-full h-full max-h-[72vh] object-contain rounded-b-lg shadow-2xl">
                 </div>
             </div>
         </div>

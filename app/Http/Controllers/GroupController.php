@@ -105,13 +105,22 @@ class GroupController extends Controller
         
         $recentPhotos = \App\Models\Stream::where('wall_id', $group->id)
             ->where('attachment', '!=', '')
-            ->where('attachment', 'not like', 'youtube:%')
+            ->where(function($q) {
+                $q->where('type', 2)
+                  ->orWhere(function($sq) {
+                      $sq->where('type', '!=', 3)->where('attachment', 'not like', 'youtube:%');
+                  });
+            })
             ->orderBy('created', 'desc')
             ->take(9)
             ->get();
 
         $recentVideos = \App\Models\Stream::where('wall_id', $group->id)
-            ->where('attachment', 'like', 'youtube:%')
+            ->where('attachment', '!=', '')
+            ->where(function($q) {
+                $q->where('type', 3)
+                  ->orWhere('attachment', 'like', 'youtube:%');
+            })
             ->orderBy('created', 'desc')
             ->take(9)
             ->get();
@@ -126,14 +135,21 @@ class GroupController extends Controller
             abort(403, 'Anda tidak memiliki akses ke halaman ini.');
         }
 
-        $query = \App\Models\Stream::where('wall_id', $group->id);
+        $query = \App\Models\Stream::where('wall_id', $group->id)->where('attachment', '!=', '');
 
         if ($type === 'photo') {
-            $query->where('attachment', '!=', '')
-                  ->where('attachment', 'not like', 'youtube:%');
+            $query->where(function($q) {
+                $q->where('type', 2)
+                  ->orWhere(function($sq) {
+                      $sq->where('type', '!=', 3)->where('attachment', 'not like', 'youtube:%');
+                  });
+            });
             $title = 'Foto Grup';
         } elseif ($type === 'video') {
-            $query->where('attachment', 'like', 'youtube:%');
+            $query->where(function($q) {
+                $q->where('type', 3)
+                  ->orWhere('attachment', 'like', 'youtube:%');
+            });
             $title = 'Vidio Grup';
         } else {
             abort(404);

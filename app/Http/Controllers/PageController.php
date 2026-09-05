@@ -385,14 +385,21 @@ class PageController extends Controller
 
     public function media(Page $page, $type)
     {
-        $query = \App\Models\Stream::where('wall_id', $page->id)->where('app', 'page');
+        $query = \App\Models\Stream::where('wall_id', $page->id)->where('app', 'page')->where('attachment', '!=', '');
 
         if ($type === 'photo') {
-            $query->where('attachment', '!=', '')
-                  ->where('attachment', 'not like', 'youtube:%');
+            $query->where(function($q) {
+                $q->where('type', 2)
+                  ->orWhere(function($sq) {
+                      $sq->where('type', '!=', 3)->where('attachment', 'not like', 'youtube:%');
+                  });
+            });
             $title = 'Foto Halaman';
         } elseif ($type === 'video') {
-            $query->where('attachment', 'like', 'youtube:%');
+            $query->where(function($q) {
+                $q->where('type', 3)
+                  ->orWhere('attachment', 'like', 'youtube:%');
+            });
             $title = 'Vidio Halaman';
         } else {
             abort(404);

@@ -35,12 +35,9 @@ class HomeController extends Controller
                             ->take(4)
                             ->get();
 
-        // Ambil Feed Komunitas (Global) - Mengecualikan postingan grup dan pages
-        $publicStreams = Stream::with(['user', 'comments.user'])
-                            ->where(function($query) {
-                                $query->whereNotIn('app', ['group', 'page'])
-                                      ->orWhereNull('app');
-                            })
+        // Ambil Feed Komunitas (Global) - Tidak menampilkan unggahan halaman
+        $publicStreams = Stream::with(['user', 'comments.user', 'targetPage', 'targetWallUser'])
+                            ->where('app', '!=', 'page')
                             ->orderBy('created', 'desc')
                             ->take(5)
                             ->get();
@@ -59,12 +56,9 @@ class HomeController extends Controller
         $followingCount = $user->following()->count();
         $followerCount = $user->followers()->count();
 
-        // Ambil Feed Berita (Seluruh unggahan dari semua pengguna secara global, diurutkan berdasarkan waktu)
-        $streams = Stream::with(['user', 'comments.user'])
-                    ->where(function($query) {
-                        $query->whereNotIn('app', ['group', 'page'])
-                              ->orWhereNull('app');
-                    })
+        // Ambil Feed Berita (Seluruh unggahan dari semua pengguna secara global, kecuali halaman)
+        $streams = Stream::with(['user', 'comments.user', 'targetPage', 'targetWallUser'])
+                    ->where('app', '!=', 'page')
                     ->orderBy('created', 'desc')
                     ->paginate(12);
 

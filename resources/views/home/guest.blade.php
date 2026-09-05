@@ -86,7 +86,16 @@
                 </div>
                 <div>
                     <p class="text-sm text-neutral-800"><span class="font-bold">{{ $stream->user->fullname ?? 'User Tidak Diketahui' }}</span> wrote a new post</p>
-                    <p class="text-[11px] text-neutral-400">{{ \Carbon\Carbon::createFromTimestamp($stream->created)->diffForHumans() }}</p>
+                    <p class="text-[11px] text-neutral-400">
+                        {{ \Carbon\Carbon::createFromTimestamp($stream->created)->diffForHumans() }}
+                        @if($stream->app === 'group' && $stream->targetPage)
+                            &bull; Mengunggah di Grup <a href="{{ url('/groups/' . $stream->targetPage->id) }}" class="font-semibold text-neutral-600 hover:text-red-700 hover:underline">{{ $stream->targetPage->name }}</a>
+                        @elseif($stream->app === 'page' && $stream->targetPage)
+                            &bull; Mengunggah di Halaman <a href="{{ url('/pages/' . $stream->targetPage->id) }}" class="font-semibold text-neutral-600 hover:text-red-700 hover:underline">{{ $stream->targetPage->name }}</a>
+                        @elseif($stream->app === 'feed' && $stream->wall_id != $stream->uid && $stream->targetWallUser)
+                            &bull; Mengunggah di Profil <a href="{{ url('/@' . $stream->targetWallUser->username) }}" class="font-semibold text-neutral-600 hover:text-red-700 hover:underline">{{ $stream->targetWallUser->fullname ?? $stream->targetWallUser->username }}</a>
+                        @endif
+                    </p>
                 </div>
             </div>
 
