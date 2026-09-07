@@ -61,7 +61,8 @@ class FriendService
             'friend_request',
             [
                 'user_id' => $fromId,
-                'user_name' => $sender->fullname ?? 'User',
+                'user_name' => $sender->username ?? 'user',
+                'display_name' => $sender->fullname ?? 'User',
             ]
         );
     }
@@ -81,7 +82,8 @@ class FriendService
             'friend_accepted',
             [
                 'user_id' => $userId,
-                'user_name' => $user->fullname ?? 'User',
+                'user_name' => $user->username ?? 'user',
+                'display_name' => $user->fullname ?? 'User',
             ]
         );
     }

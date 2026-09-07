@@ -57,7 +57,8 @@ class MessageService
                 'new_message',
                 [
                     'user_id' => $senderId,
-                    'user_name' => $sender->fullname ?? 'User',
+                    'user_name' => $sender->username ?? 'user',
+                    'display_name' => $sender->fullname ?? 'User',
                 ]
             );
 

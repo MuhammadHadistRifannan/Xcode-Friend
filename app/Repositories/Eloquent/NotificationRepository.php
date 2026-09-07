@@ -87,7 +87,7 @@ class NotificationRepository implements NotificationRepositoryInterface
 
     private function buildMessage(string $type, array $data): string
     {
-        $userName = e($data['user_name'] ?? 'System');
+        $userName = e($data['display_name'] ?? $data['user_name'] ?? 'System');
         $userSlug = e($data['user_name'] ?? '');
 
         return match ($type) {

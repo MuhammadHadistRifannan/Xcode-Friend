@@ -68,7 +68,7 @@ class MessageController extends Controller
             $userId = Auth::id();
             $recipientId = $request->recipient_id;
 
-            $blocked = $this->blockRepo->isBlockedByRecipient($recipientId, $userId);
+            $blocked = $this->friendService->areBlocked($userId, $recipientId);
 
             if ($blocked) {
                 return $this->noCache(
@@ -122,8 +122,6 @@ class MessageController extends Controller
 
             $messages = $this->messageService->getConversation($currentUserId, $userId);
 
-            $this->messageService->markConversationAsRead($currentUserId, $userId);
-
             return response()->view('messages.conversation', compact('messages', 'otherUser'))
                 ->header('Cache-Control', 'private, max-age=30');
         } catch (\Exception $e) {
@@ -137,6 +135,11 @@ class MessageController extends Controller
     {
         try {
             $currentUserId = Auth::id();
+
+            $areBlocked = $this->friendService->areBlocked($currentUserId, $userId);
+            if ($areBlocked) {
+                return response()->json(['html' => '']);
+            }
 
             $this->messageService->markConversationAsRead($currentUserId, $userId);
 

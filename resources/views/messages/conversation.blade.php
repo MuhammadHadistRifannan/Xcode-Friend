@@ -166,16 +166,11 @@
         .then(r => r.json())
         .then(data => {
             if (!data.html) return;
-            const temp = document.createElement('div');
-            temp.innerHTML = data.html;
-            const newCount = temp.querySelectorAll('.chat-bubble').length;
-            if (newCount !== lastMessageCount) {
-                const wasAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 50;
-                container.innerHTML = data.html;
-                lastMessageCount = newCount;
-                if (wasAtBottom) {
-                    container.scrollTop = container.scrollHeight;
-                }
+            const wasAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 50;
+            container.innerHTML = data.html;
+            lastMessageCount = container.querySelectorAll('.chat-bubble').length;
+            if (wasAtBottom) {
+                container.scrollTop = container.scrollHeight;
             }
         })
         .catch(() => {});
