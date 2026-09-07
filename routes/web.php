@@ -85,7 +85,17 @@ Route::middleware('auth')->group(function () {
 // ==========================================
 // 2. AREA OTENTIKASI (LOGIN & REGISTER)
 // ==========================================
+// Offline Route
+Route::get('/offline', function () {
+    // Redirect ke home jika offline mode non-aktif
+    $offlineMode = \Illuminate\Support\Facades\DB::table('jcow_gvars')->where('gkey', 'offline_mode')->value('gvalue');
+    if ($offlineMode != '1') return redirect('/');
+    
+    $reason = \Illuminate\Support\Facades\DB::table('jcow_gvars')->where('gkey', 'offline_reason')->value('gvalue');
+    return view('offline', compact('reason'));
+})->name('offline');
 
+// Standard Auth Routes
 Route::middleware('guest')->group(function () {
     Route::get('/login', function () {
         return view('auth.login');
@@ -121,8 +131,11 @@ Route::prefix('admin')->group(function () {
         
         // Members Management
         Route::get('/members', [\App\Http\Controllers\AdminMemberController::class, 'index'])->name('admin.members');
+        Route::get('/members/{id}', [\App\Http\Controllers\AdminMemberController::class, 'show'])->name('admin.members.show');
         Route::put('/members/{id}/role', [\App\Http\Controllers\AdminMemberController::class, 'updateRole'])->name('admin.members.role');
+        Route::patch('/members/{id}/status', [\App\Http\Controllers\AdminMemberController::class, 'updateStatus'])->name('admin.members.status');
         Route::delete('/members/{id}/ban', [\App\Http\Controllers\AdminMemberController::class, 'banMember'])->name('admin.members.ban');
+        Route::delete('/members/{id}', [\App\Http\Controllers\AdminMemberController::class, 'destroy'])->name('admin.members.destroy');
         
         // Site Configuration
         Route::get('/site-configuration', [\App\Http\Controllers\AdminSettingsController::class, 'index'])->name('admin.site-config');
@@ -141,9 +154,15 @@ Route::prefix('admin')->group(function () {
         Route::post('/themes/blocks', [\App\Http\Controllers\AdminBlockController::class, 'update'])->name('admin.themes.blocks.update');
         Route::get('/menu', [\App\Http\Controllers\AdminController::class, 'menu'])->name('admin.menu');
         Route::get('/user-roles', [\App\Http\Controllers\AdminController::class, 'userRoles'])->name('admin.user-roles');
+        Route::post('/user-roles', [\App\Http\Controllers\AdminController::class, 'storeRole'])->name('admin.roles.store');
+        Route::delete('/user-roles/{id}', [\App\Http\Controllers\AdminController::class, 'destroyRole'])->name('admin.roles.destroy');
         Route::get('/translate', [\App\Http\Controllers\AdminController::class, 'translate'])->name('admin.translate');
         Route::get('/reports', [\App\Http\Controllers\AdminController::class, 'reports'])->name('admin.reports');
         Route::patch('/reports/{id}/resolve', [\App\Http\Controllers\AdminController::class, 'reportsResolve'])->name('admin.reports.resolve');
+        Route::delete('/reports/{id}', [\App\Http\Controllers\AdminController::class, 'reportsDestroy'])->name('admin.reports.destroy');
+        // Stream Monitor
+        Route::get('/stream-monitor', [\App\Http\Controllers\AdminStreamController::class, 'index'])->name('admin.stream-monitor');
+        Route::delete('/stream-monitor/{id}', [\App\Http\Controllers\AdminStreamController::class, 'destroy'])->name('admin.stream-monitor.destroy');
     });
 });
 

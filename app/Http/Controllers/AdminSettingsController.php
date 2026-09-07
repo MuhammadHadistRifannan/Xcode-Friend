@@ -45,6 +45,8 @@ class AdminSettingsController extends Controller
             
             'locations' => isset($settingsData['locations']) ? json_decode($settingsData['locations'], true) : ['Indonesia', 'USA', 'Japan', 'Australia', 'Austria'],
             
+            'words_filter' => $settingsData['words_filter'] ?? 'anjing,babi,bangsat,kontol,memek,ngentot',
+            
             'max_miniblog_length' => $settingsData['max_miniblog_length'] ?? '280',
             'recaptcha_signup' => $settingsData['recaptcha_signup'] ?? '1',
             'recaptcha_login' => $settingsData['recaptcha_login'] ?? '0',
@@ -76,6 +78,9 @@ class AdminSettingsController extends Controller
                 [$this->valueColumn => $value]
             );
         }
+
+        // Clear the settings cache
+        \App\Helpers\SettingHelper::clearCache();
 
         return back()->with('success', 'Pengaturan situs berhasil diperbarui!');
     }

@@ -9,8 +9,9 @@ class StreamController extends Controller
 {
     public function store(Request $request)
     {
+        $maxLength = \App\Helpers\SettingHelper::get('max_miniblog_length', 5000);
         $request->validate([
-            'message' => 'nullable|string|max:5000',
+            'message' => 'nullable|string|max:' . $maxLength,
             'photos.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'photos' => 'nullable|array|max:10', // Max 10 photos
             'video_url' => 'nullable|string|max:255',
@@ -18,6 +19,18 @@ class StreamController extends Controller
 
         if (empty($request->message) && !$request->hasFile('photos') && empty($request->video_url)) {
             return back()->withErrors(['message' => 'Postingan tidak boleh kosong.']);
+        }
+
+        $message = $request->message ?? '';
+        $wordsFilter = \App\Helpers\SettingHelper::get('words_filter', '');
+        if ($wordsFilter && !empty($message)) {
+            $badWords = array_map('trim', explode(',', strtolower($wordsFilter)));
+            foreach ($badWords as $word) {
+                if (!empty($word)) {
+                    $pattern = '/\b' . preg_quote($word, '/') . '\b/i';
+                    $message = preg_replace($pattern, str_repeat('*', strlen($word)), $message);
+                }
+            }
         }
 
         $attachment = '';
@@ -95,7 +108,7 @@ class StreamController extends Controller
         }
 
         Stream::create([
-            'message' => $request->message ?? '',
+            'message' => $message,
             'uid' => auth()->id(),
             'created' => time(),
             'type' => $type,
@@ -118,12 +131,25 @@ class StreamController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        $maxLength = \App\Helpers\SettingHelper::get('max_miniblog_length', 5000);
         $request->validate([
-            'message' => 'nullable|string|max:5000',
+            'message' => 'nullable|string|max:' . $maxLength,
         ]);
 
+        $message = $request->message ?? '';
+        $wordsFilter = \App\Helpers\SettingHelper::get('words_filter', '');
+        if ($wordsFilter && !empty($message)) {
+            $badWords = array_map('trim', explode(',', strtolower($wordsFilter)));
+            foreach ($badWords as $word) {
+                if (!empty($word)) {
+                    $pattern = '/\b' . preg_quote($word, '/') . '\b/i';
+                    $message = preg_replace($pattern, str_repeat('*', strlen($word)), $message);
+                }
+            }
+        }
+
         $stream->update([
-            'message' => $request->message ?? ''
+            'message' => $message
         ]);
 
         return back()->with('success', 'Postingan berhasil diperbarui.');

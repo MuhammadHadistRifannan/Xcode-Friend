@@ -203,6 +203,11 @@
                 
                 <div class="space-y-8">
                     <div>
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">WORDS FILTER</label>
+                        <div class="mb-4">
+                            <textarea name="words_filter" rows="3" class="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-md focus:ring-red-500 focus:border-red-500 block p-2.5">{{ old('words_filter', $settings['words_filter']) }}</textarea>
+                            <p class="text-[10px] text-gray-400 mt-1.5">Daftar kata yang akan disensor otomatis (pisahkan dengan koma). Contoh: anjing,babi,bangsat</p>
+                        </div>
                         <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">MAXIMUM MINI-BLOG LENGTH</label>
                         <div class="flex items-center gap-3 text-sm text-gray-800">
                             <input type="number" name="max_miniblog_length" value="{{ old('max_miniblog_length', $settings['max_miniblog_length']) }}" class="w-24 bg-gray-50 border border-gray-200 text-sm rounded-md focus:ring-red-500 focus:border-red-500 p-2.5">

@@ -16,10 +16,22 @@ class CommentController extends Controller
 
         $stream = Stream::findOrFail($streamId);
 
+        $message = $request->message;
+        $wordsFilter = \App\Helpers\SettingHelper::get('words_filter', '');
+        if ($wordsFilter && !empty($message)) {
+            $badWords = array_map('trim', explode(',', strtolower($wordsFilter)));
+            foreach ($badWords as $word) {
+                if (!empty($word)) {
+                    $pattern = '/\b' . preg_quote($word, '/') . '\b/i';
+                    $message = preg_replace($pattern, str_repeat('*', strlen($word)), $message);
+                }
+            }
+        }
+
         $comment = Comment::create([
             'target_id' => (string) $stream->uid,
             'uid' => auth()->id(),
-            'message' => $request->message,
+            'message' => $message,
             'created' => time(),
             'stream_id' => $streamId
         ]);

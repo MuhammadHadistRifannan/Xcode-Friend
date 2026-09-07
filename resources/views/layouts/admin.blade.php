@@ -43,19 +43,20 @@
                         Menu
                     </a>
 
-                    <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-600 hover:bg-gray-50 hover:text-gray-900">
-                        <i data-lucide="mail" class="w-4 h-4 text-gray-400"></i>
-                        Emailing
-                    </a>
-
+                    
                     <a href="{{ route('admin.themes') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('admin.themes', 'admin.themes.blocks') ? 'bg-red-50 text-red-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                         <i data-lucide="palette" class="w-4 h-4 {{ request()->routeIs('admin.themes', 'admin.themes.blocks') ? 'text-red-500' : 'text-gray-400' }}"></i>
                         Themes & Blocks
                     </a>
 
-                    <a href="{{ route('admin.members') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('admin.members') ? 'bg-red-50 text-red-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-                        <i data-lucide="users" class="w-4 h-4 {{ request()->routeIs('admin.members') ? 'text-red-500' : 'text-gray-400' }}"></i>
+                    <a href="{{ route('admin.members') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('admin.members', 'admin.members.show') ? 'bg-red-50 text-red-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <i data-lucide="users" class="w-4 h-4 {{ request()->routeIs('admin.members', 'admin.members.show') ? 'text-red-500' : 'text-gray-400' }}"></i>
                         Members
+                    </a>
+
+                    <a href="{{ route('admin.stream-monitor') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('admin.stream-monitor') ? 'bg-red-50 text-red-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <i data-lucide="activity" class="w-4 h-4 {{ request()->routeIs('admin.stream-monitor') ? 'text-red-500' : 'text-gray-400' }}"></i>
+                        Stream Monitor
                     </a>
 
                     <a href="{{ route('admin.reports') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('admin.reports') ? 'bg-red-50 text-red-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">

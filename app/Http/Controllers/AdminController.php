@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use App\Models\User;
+use App\Models\Report;
 
 class AdminController extends Controller
 {
@@ -13,110 +16,124 @@ class AdminController extends Controller
 
     public function loginProcess(Request $request)
     {
-        // TODO: Ganti dengan logika autentikasi sesungguhnya saat middleware sudah ada
-        return redirect()->route('admin.dashboard');
+        $request->validate([
+            'email'    => 'required|email',
+            'password' => 'required',
+        ]);
+
+        $credentials = $request->only('email', 'password');
+
+        if (\Illuminate\Support\Facades\Auth::attempt($credentials)) {
+            $user = \Illuminate\Support\Facades\Auth::user();
+
+            // Only admin can login via this route
+            if ($user->level == 1 || in_array(strtolower($user->roles ?? ''), ['admin', 'administrator'])) {
+                $request->session()->regenerate();
+                return redirect()->route('admin.dashboard');
+            }
+
+            \Illuminate\Support\Facades\Auth::logout();
+            return back()->withErrors(['email' => 'Akun ini tidak memiliki akses admin.']);
+        }
+
+        return back()->withErrors(['email' => 'Email atau password salah.'])->withInput();
     }
 
     public function dashboard()
     {
         $stats = [
-            'total_members' => \Illuminate\Support\Facades\DB::table('jcow_accounts')->count(),
-            'pending_members' => \Illuminate\Support\Facades\DB::table('jcow_accounts')->where('disabled', 1)->count(),
-            'total_photos' => \Illuminate\Support\Facades\DB::table('jcow_story_photos')->count(),
-            'total_videos' => \Illuminate\Support\Facades\DB::table('jcow_stories')->where('app', 'video')->count(),
+            'total_members'    => User::count(),
+            'active_members'   => User::where('disabled', 0)->count(),
+            'pending_members'  => User::where('disabled', 1)->count(),
+            'suspended_members'=> User::where('disabled', 2)->count(),
+            'total_streams'    => DB::table('jcow_streams')->count(),
+            'total_comments'   => DB::table('jcow_comments')->count(),
+            'total_photos'     => DB::table('jcow_story_photos')->count(),
+            'total_videos'     => DB::table('jcow_stories')->where('app', 'video')->count(),
+            'total_groups'     => DB::table('jcow_groups')->count(),
+            'total_pages'      => DB::table('jcow_pages')->count(),
+            'pending_reports'  => DB::table('jcow_reports')->where('hasread', 0)->count(),
         ];
-        
-        return view('admin.dashboard', compact('stats'));
+
+        // Recent 5 members
+        $recentMembers = User::orderBy('id', 'desc')->limit(5)->get();
+
+        // Recent 5 reports
+        $recentReports = DB::table('jcow_reports')
+            ->where('hasread', 0)
+            ->orderBy('created', 'desc')
+            ->limit(5)
+            ->get();
+
+        // DB status
+        $dbStatus = true;
+        try { DB::connection()->getPdo(); } catch (\Exception $e) { $dbStatus = false; }
+
+        return view('admin.dashboard', compact('stats', 'recentMembers', 'recentReports', 'dbStatus'));
     }
 
     public function siteConfiguration()
     {
-        $config = [
-            'site_name' => 'X-CODE NETWORK',
-            'slogan' => 'Advanced Infrastructure Management',
-            'keywords' => 'x-code, network, cybersecurity, control panel, infrastructure, devops',
-            'webmaster_email' => 'sysadmin@x-code.network',
-            'footer_message' => '© 2024 X-CODE TECHNOLOGY NETWORK. ALL RIGHTS RESERVED.',
-            'network_viewing' => 'Registered Members Only',
-            'account_verification' => 'Email Verification Link',
-            'pending_limit' => 5,
-            'website_offline' => false,
-            'offline_reason' => 'The X-CODE network is currently undergoing scheduled maintenance. Please check back later.',
-            'max_name_length' => 200,
-            'enable_on_signup' => true,
-            'enable_on_login' => false,
-            'locations' => ['Indonesia', 'USA', 'Japan', 'Australia', 'Austria']
-        ];
-        
-        return view('admin.site-config', compact('config'));
+        return redirect()->route('admin.site-config');
     }
 
     public function modules()
     {
-        $community_modules = [
-            ['name' => 'BLOGS', 'desc' => 'User-generated long-form editorial publishing system.', 'type' => 'CORE', 'version' => 'V1.0.1'],
-            ['name' => 'EVENTS', 'desc' => 'Schedule events.', 'type' => 'CORE', 'version' => 'V1.3.0'],
-            ['name' => 'FEED', 'desc' => 'Algorithmic timeline and chronological activity stream.', 'type' => 'COMP', 'version' => 'V1.8.3'],
-            ['name' => 'PHOTOS', 'desc' => 'High-resolution image processing and gallery deployment.', 'type' => 'COMP', 'version' => 'V1.1.0'],
-        ];
-
-        $core_modules = [
-            ['name' => 'ACCOUNT', 'desc' => 'User lifecycle, authentication, and security credentials.', 'type' => 'CORE', 'version' => 'V4.0.0'],
-            ['name' => 'ADMIN CP', 'desc' => 'Global command center and architecture overrides.', 'type' => 'CORE', 'version' => 'V5.0.3'],
-            ['name' => 'BLOCK / UNBLOCK', 'desc' => 'Inter-user access and social restriction routing.', 'type' => 'CORE', 'version' => 'V0.4.1'],
-        ];
-
-        return view('admin.modules', compact('community_modules', 'core_modules'));
+        $modules = DB::table('jcow_modules')->get();
+        return view('admin.modules', compact('modules'));
     }
 
     public function menu()
     {
-        $community_menu = [
-            ['id' => 1, 'active' => true, 'weight' => 1, 'name' => 'Browse', 'path' => 'browse'],
-            ['id' => 2, 'active' => true, 'weight' => 2, 'name' => 'News Feed', 'path' => 'feed'],
-            ['id' => 3, 'active' => true, 'weight' => 6, 'name' => 'Blogs', 'path' => 'blogs'],
-            ['id' => 4, 'active' => true, 'weight' => 11, 'name' => 'Videos', 'path' => 'videos'],
-        ];
-
-        $personal_menu = [
-            ['id' => 5, 'active' => true, 'weight' => 2, 'name' => 'Dashboard', 'path' => 'dashboard'],
-            ['id' => 6, 'active' => true, 'weight' => 3, 'name' => 'Photos', 'path' => 'photos/mine'],
-            ['id' => 7, 'active' => true, 'weight' => 4, 'name' => 'Blogs', 'path' => 'blogs/mine'],
-            ['id' => 8, 'active' => true, 'weight' => 5, 'name' => 'Videos', 'path' => 'videos/mine'],
-            ['id' => 9, 'active' => true, 'weight' => 25, 'name' => 'My account', 'path' => 'account'],
-            ['id' => 10, 'active' => true, 'weight' => 26, 'name' => 'Invite', 'path' => 'invite'],
-        ];
-
+        $community_menu = DB::table('jcow_menu')->where('type', 'community')->orderBy('weight')->get();
+        $personal_menu  = DB::table('jcow_menu')->where('type', 'personal')->orderBy('weight')->get();
         return view('admin.menu', compact('community_menu', 'personal_menu'));
     }
 
     public function userRoles()
     {
-        $current_roles = ['Guest', 'General member', 'Administrator'];
+        $roles = DB::table('jcow_roles')->get();
+        return view('admin.user-roles', compact('roles'));
+    }
 
-        return view('admin.user-roles', compact('current_roles'));
+    public function storeRole(Request $request)
+    {
+        $request->validate(['name' => 'required|string|max:100']);
+        DB::table('jcow_roles')->insert(['name' => $request->name]);
+        return back()->with('success', "Role '{$request->name}' berhasil ditambahkan.");
+    }
+
+    public function destroyRole($id)
+    {
+        // Protect default roles (id 1-3 assumed core)
+        if ($id <= 3) {
+            return back()->with('error', 'Role inti tidak bisa dihapus.');
+        }
+        DB::table('jcow_roles')->where('id', $id)->delete();
+        return back()->with('success', 'Role berhasil dihapus.');
     }
 
     public function translate()
     {
-        return view('admin.translate');
+        $langs = DB::table('jcow_langs')->select('lang')->distinct()->get()->pluck('lang');
+        return view('admin.translate', compact('langs'));
     }
 
     public function reports()
     {
-        $reports = \App\Models\Report::with('user')->orderBy('created', 'desc')->get();
+        $reports = Report::with('user')->orderBy('created', 'desc')->paginate(20);
         return view('admin.reports', compact('reports'));
     }
 
     public function reportsResolve($id)
     {
-        \App\Models\Report::where('id', $id)->update(['hasread' => 1]);
-        return back()->with('success', 'Laporan telah ditandai sebagai telah diselesaikan.');
+        Report::where('id', $id)->update(['hasread' => 1]);
+        return back()->with('success', 'Laporan telah ditandai sebagai selesai.');
     }
 
     public function reportsDestroy($id)
     {
-        \App\Models\Report::where('id', $id)->delete();
+        Report::where('id', $id)->delete();
         return back()->with('success', 'Laporan telah dihapus.');
     }
 }
