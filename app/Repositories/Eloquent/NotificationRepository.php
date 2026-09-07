@@ -96,6 +96,7 @@ class NotificationRepository implements NotificationRepositoryInterface
             'new_message' => "Anda memiliki pesan baru dari <a href=\"/@" . $userSlug . "\">{$userName}</a>.",
             'comment' => "<a href=\"/@" . $userSlug . "\">{$userName}</a> mengomentari postingan Anda.",
             'like' => "<a href=\"/@" . $userSlug . "\">{$userName}</a> menyukai postingan Anda.",
+            'group_invite' => "<a href=\"/@" . $userSlug . "\">{$userName}</a> mengundang Anda untuk bergabung ke grup <a href=\"/groups/" . ($data['group_id'] ?? '') . "\">" . e($data['group_name'] ?? 'Grup') . "</a>.",
             default => e($data['message'] ?? 'Notifikasi baru.'),
         };
     }

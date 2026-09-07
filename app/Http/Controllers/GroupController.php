@@ -476,17 +476,15 @@ class GroupController extends Controller
             'uids.*' => 'exists:jcow_accounts,id'
         ]);
 
-        $message = "Halo! Saya mengundang Anda untuk bergabung ke grup: " . $group->name . ". Silakan klik link ini untuk melihat: " . url('groups/' . $group->id);
+        $notificationRepo = app(\App\Repositories\Contracts\NotificationRepositoryInterface::class);
+        $currentUser = Auth::user();
         
         foreach ($request->uids as $uid) {
-            DB::table('jcow_messages')->insert([
-                'uid' => $uid,
-                'fid' => Auth::id(),
-                'title' => 'Undangan Grup: ' . $group->name,
-                'message' => $message,
-                'hasread' => 0,
-                'created' => time(),
-                'replyto' => 0
+            $notificationRepo->create($uid, 'group_invite', [
+                'user_name' => $currentUser->username ?? $currentUser->name ?? '',
+                'display_name' => $currentUser->name ?? '',
+                'group_id' => $group->id,
+                'group_name' => $group->name
             ]);
         }
         
