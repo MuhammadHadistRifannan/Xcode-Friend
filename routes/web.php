@@ -51,12 +51,12 @@ Route::get('/@{username}', [ProfileController::class, 'show'])->name('profile.sh
 Route::middleware('auth')->group(function () {
     // Messages
     Route::get('/messages', [App\Http\Controllers\MessageController::class, 'index'])->name('messages.index');
-    Route::get('/messages/outbox', [App\Http\Controllers\MessageController::class, 'outbox'])->name('messages.outbox');
-    Route::get('/messages/create', [App\Http\Controllers\MessageController::class, 'create'])->name('messages.create');
-    Route::post('/messages', [App\Http\Controllers\MessageController::class, 'store'])->name('messages.store');
-    Route::get('/messages/{id}', [App\Http\Controllers\MessageController::class, 'show'])->name('messages.show');
+    Route::get('/messages/conversation/{userId}', [App\Http\Controllers\MessageController::class, 'conversation'])->name('messages.conversation');
+    Route::get('/messages/poll/{userId}', [App\Http\Controllers\MessageController::class, 'poll'])->name('messages.poll');
+    Route::post('/messages', [App\Http\Controllers\MessageController::class, 'store'])->middleware('throttle:10,1')->name('messages.store');
     Route::delete('/messages/{id}', [App\Http\Controllers\MessageController::class, 'destroy'])->name('messages.destroy');
-    Route::post('/messages/bulk-delete', [App\Http\Controllers\MessageController::class, 'bulkDelete'])->name('messages.bulkDelete');
+    Route::post('/messages/bulk-delete', [App\Http\Controllers\MessageController::class, 'bulkDelete'])->middleware('throttle:5,1')->name('messages.bulkDelete');
+    Route::post('/messages/delete-for-everyone/{id}', [App\Http\Controllers\MessageController::class, 'deleteForEveryone'])->name('messages.deleteForEveryone');
 
     // Friends
     Route::get('/friends', [App\Http\Controllers\FriendController::class, 'index'])->name('friends.index');

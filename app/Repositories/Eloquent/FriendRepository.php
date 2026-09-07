@@ -3,11 +3,18 @@
 namespace App\Repositories\Eloquent;
 
 use App\Repositories\Contracts\FriendRepositoryInterface;
+use App\Repositories\Contracts\AccountRepositoryInterface;
+use App\Repositories\Contracts\BlockRepositoryInterface;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class FriendRepository implements FriendRepositoryInterface
 {
+    public function __construct(
+        private AccountRepositoryInterface $accountRepo,
+        private BlockRepositoryInterface $blockRepo
+    ) {}
+
     public function getFriends(int $userId): Collection
     {
         return DB::table('jcow_friends')
@@ -70,34 +77,9 @@ class FriendRepository implements FriendRepositoryInterface
             ->exists();
     }
 
-    public function getSuggestions(int $userId, int $limit = 10): Collection
+    public function getSuggestions(int $userId, ?int $limit = null): Collection
     {
-        // Ambil ID yang sudah berteman
-        $friendIds = DB::table('jcow_friends')
-            ->where('uid', $userId)
-            ->pluck('fid')
-            ->toArray();
-
-        // Ambil ID yang sudah ada di pending request
-        $pendingIds = DB::table('jcow_friend_reqs')
-            ->where('uid', $userId)
-            ->orWhere('fid', $userId)
-            ->pluck('uid')
-            ->merge(DB::table('jcow_friend_reqs')
-                ->where('uid', $userId)
-                ->orWhere('fid', $userId)
-                ->pluck('fid'))
-            ->toArray();
-
-        $excludeIds = array_merge($friendIds, $pendingIds, [$userId]);
-
-        return \App\Models\User::query()
-            ->whereNotIn('id', $excludeIds)
-            ->where('disabled', 0)
-            ->select('id', 'fullname', 'username', 'avatar')
-            ->inRandomOrder()
-            ->limit($limit)
-            ->get();
+        return $this->accountRepo->getSuggestions($userId, $limit);
     }
 
     public function sendRequest(int $fromId, int $toId, ?string $message = null): void
@@ -160,6 +142,14 @@ class FriendRepository implements FriendRepositoryInterface
             ->delete();
     }
 
+    public function cancelRequest(int $fromId, int $toId): void
+    {
+        DB::table('jcow_friend_reqs')
+            ->where('uid', $fromId)
+            ->where('fid', $toId)
+            ->delete();
+    }
+
     public function unfriend(int $friendId, int $userId): void
     {
         DB::table('jcow_friends')
@@ -175,10 +165,7 @@ class FriendRepository implements FriendRepositoryInterface
 
     public function areBlocked(int $userId, int $otherId): bool
     {
-        return DB::table('jcow_blacks')
-            ->where('uid', $otherId)
-            ->where('bid', $userId)
-            ->exists();
+        return $this->blockRepo->areBlocked($userId, $otherId);
     }
 
     public function follow(int $userId, int $targetId): void
@@ -193,24 +180,15 @@ class FriendRepository implements FriendRepositoryInterface
                 'uid' => $targetId,
                 'fid' => $userId,
             ]);
-
-            DB::table('jcow_accounts')->where('id', $targetId)->increment('followers');
         }
     }
 
     public function unfollow(int $userId, int $targetId): void
     {
-        $deleted = DB::table('jcow_followers')
+        DB::table('jcow_followers')
             ->where('uid', $targetId)
             ->where('fid', $userId)
             ->delete();
-
-        if ($deleted) {
-            DB::table('jcow_accounts')
-                ->where('id', $targetId)
-                ->where('followers', '>', 0)
-                ->decrement('followers');
-        }
     }
 
     public function isFollowing(int $userId, int $targetId): bool
@@ -223,35 +201,18 @@ class FriendRepository implements FriendRepositoryInterface
 
     public function block(int $userId, int $targetId): void
     {
-        $exists = DB::table('jcow_blacks')
-            ->where('uid', $userId)
-            ->where('bid', $targetId)
-            ->exists();
-
-        if (!$exists) {
-            $target = DB::table('jcow_accounts')->where('id', $targetId)->first();
-            DB::table('jcow_blacks')->insert([
-                'uid' => $userId,
-                'bid' => $targetId,
-                'bname' => $target->username ?? '',
-            ]);
-        }
+        $target = $this->accountRepo->findById($targetId);
+        $this->blockRepo->block($userId, $targetId, $target->username ?? '');
     }
 
     public function unblock(int $userId, int $targetId): void
     {
-        DB::table('jcow_blacks')
-            ->where('uid', $userId)
-            ->where('bid', $targetId)
-            ->delete();
+        $this->blockRepo->unblock($userId, $targetId);
     }
 
     public function isBlocked(int $userId, int $targetId): bool
     {
-        return DB::table('jcow_blacks')
-            ->where('uid', $userId)
-            ->where('bid', $targetId)
-            ->exists();
+        return $this->blockRepo->isBlocked($userId, $targetId);
     }
 
     public function getFollowerCount(int $userId): int

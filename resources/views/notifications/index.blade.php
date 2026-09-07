@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Notifikasi')
+
 @section('content')
 <div class="pb-6 bg-[#fafafa]">
     <div class="w-full px-4 lg:px-20 mx-auto">
@@ -17,7 +19,7 @@
                     <form action="{{ route('notifications.markAllRead') }}" method="POST">
                         @csrf
                         <button type="submit" class="text-sm font-bold text-[#b71c1c] hover:text-red-800 transition">
-                            MARK ALL READ
+                            TANDAI SEMUA SUDAH DIBACA
                         </button>
                     </form>
                 @endif
@@ -27,25 +29,27 @@
         <div class="flex flex-col lg:flex-row gap-6 lg:gap-12">
 
             <!-- KONTEN KIRI: Notifications -->
-            <div class="w-full lg:w-[80%] bg-[#f6f3f3] rounded-[24px] flex flex-col shadow-sm pt-8">
+            <div class="w-full lg:w-[85%] bg-[#f6f3f3] rounded-[24px] flex flex-col min-h-[400px] h-[650px] pt-8 shadow-sm overflow-hidden border border-gray-200">
 
             <!-- Info Banner -->
+            @if($notifications->where('hasread', 0)->count() > 0)
             <div class="mx-8 mb-4 bg-white border-l-4 border-[#3b82f6] rounded-r-lg p-4 flex items-start gap-3">
                 <div class="w-6 h-6 rounded-full bg-[#3b82f6] flex items-center justify-center flex-shrink-0 mt-0.5">
                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                 </div>
-                <p class="text-sm text-gray-600">Go to 'Admin CP' - 'Themes' - 'Manage Blocks' to edit this message.</p>
+                <p class="text-sm text-gray-600">Anda memiliki {{ $notifications->where('hasread', 0)->count() }} notifikasi yang belum dibaca.</p>
             </div>
+            @endif
 
             <!-- Section Header -->
             <div class="px-8 mb-2">
-                <h2 class="text-sm font-bold text-gray-900">Recent Activity</h2>
+                <h2 class="text-sm font-bold text-gray-900">Aktivitas Terkini</h2>
             </div>
 
             <!-- Notifications List -->
-            <div class="px-8 pb-8 flex-grow">
+            <div class="px-8 pb-8 flex-grow overflow-y-auto">
                 @if($notifications->count() > 0)
                     <div class="bg-white rounded-[14px] shadow-sm overflow-hidden">
                         @foreach($notifications as $notification)
@@ -62,7 +66,7 @@
 
         <!-- KONTEN KANAN: Sidebar -->
         <div class="w-full lg:w-[15%] space-y-6">
-            <div class="bg-white p-8 rounded-[24px] shadow-sm flex flex-col items-center">
+            <div class="bg-white p-8 rounded-[24px] shadow-sm flex flex-col items-center border border-gray-200">
                 <p class="text-[13px] font-bold text-gray-900 mb-2">Google Reviews</p>
                 <div class="flex text-[#ffc107] mb-2 gap-1">
                     @for($i=0; $i<5; $i++)
@@ -70,10 +74,10 @@
                     @endfor
                 </div>
                 <p class="text-3xl font-bold text-gray-900 mb-1">4.9</p>
-                <p class="text-xs text-blue-600 font-medium hover:underline cursor-pointer">532 Reviews</p>
+                <p class="text-xs text-blue-600 font-medium">532 Reviews</p>
             </div>
 
-            <div class="bg-white p-8 rounded-[24px] shadow-sm">
+            <div class="bg-white p-8 rounded-[24px] shadow-sm border border-gray-200">
                 <h3 class="text-[15px] font-bold text-gray-900 mb-4">Network Links</h3>
                 <ul class="space-y-3">
                     <li>
