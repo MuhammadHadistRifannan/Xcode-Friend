@@ -43,71 +43,59 @@
                 </button>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                
-                <!-- LEFT COLUMN -->
+            <div class="space-y-6">
+                <!-- Header Code -->
                 <div class="bg-white rounded border border-[#e5e5e5] shadow-sm overflow-hidden">
                     <div class="bg-[#f8f9fa] border-b border-[#e5e5e5] px-5 py-4">
-                        <h3 class="text-[12px] font-bold text-gray-800 tracking-wider">LEFT COLUMN</h3>
-                        <p class="text-[11px] text-gray-500 mt-1">Usually contains navigation and stats.</p>
+                        <h3 class="text-[12px] font-bold text-gray-800 tracking-wider">HEADER CODE</h3>
+                        <p class="text-[11px] text-gray-500 mt-1">Inserted just before the closing &lt;/head&gt; tag. Ideal for CSS, Meta tags, or tracking scripts.</p>
                     </div>
-                    <div class="p-5 space-y-4">
-                        @for($i = 0; $i < 5; $i++)
-                            @php $currentBlock = $blocks['left_column'][$i] ?? ''; @endphp
-                            <div>
-                                <label class="block text-[10px] font-bold text-[#888888] tracking-widest uppercase mb-1.5">SLOT 0{{ $i + 1 }}</label>
-                                <select name="blocks[left_column][]" class="w-full bg-[#fcfcfc] border border-[#e5e5e5] text-[#333333] text-[13px] rounded focus:border-[#cc0000] focus:ring-1 focus:ring-[#cc0000] block p-2 outline-none">
-                                    <option value="">-- None --</option>
-                                    @foreach($availableBlocks as $b)
-                                        <option value="{{ $b }}" {{ $currentBlock == $b ? 'selected' : '' }}>{{ $b }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        @endfor
+                    <div class="p-5">
+                        <textarea name="header_code" rows="5" class="w-full bg-[#fcfcfc] border border-[#e5e5e5] text-[#333333] text-[13px] font-mono rounded focus:border-[#cc0000] focus:ring-1 focus:ring-[#cc0000] p-3 outline-none" placeholder="<!-- Your HTML or script here -->">{{ $blocks['header_code'] }}</textarea>
                     </div>
                 </div>
 
-                <!-- CENTER COLUMN -->
+                <!-- Footer Code -->
                 <div class="bg-white rounded border border-[#e5e5e5] shadow-sm overflow-hidden">
                     <div class="bg-[#f8f9fa] border-b border-[#e5e5e5] px-5 py-4">
-                        <h3 class="text-[12px] font-bold text-gray-800 tracking-wider">CENTER COLUMN</h3>
-                        <p class="text-[11px] text-gray-500 mt-1">Main content area (Feed, Posts).</p>
+                        <h3 class="text-[12px] font-bold text-gray-800 tracking-wider">FOOTER CODE</h3>
+                        <p class="text-[11px] text-gray-500 mt-1">Inserted just before the closing &lt;/body&gt; tag. Ideal for Analytics or JS scripts.</p>
                     </div>
-                    <div class="p-5 space-y-4">
-                        @for($i = 0; $i < 5; $i++)
-                            @php $currentBlock = $blocks['center_column'][$i] ?? ''; @endphp
-                            <div>
-                                <label class="block text-[10px] font-bold text-[#888888] tracking-widest uppercase mb-1.5">SLOT 0{{ $i + 1 }}</label>
-                                <select name="blocks[center_column][]" class="w-full bg-[#fcfcfc] border border-[#e5e5e5] text-[#333333] text-[13px] rounded focus:border-[#cc0000] focus:ring-1 focus:ring-[#cc0000] block p-2 outline-none">
-                                    <option value="">-- None --</option>
-                                    @foreach($availableBlocks as $b)
-                                        <option value="{{ $b }}" {{ $currentBlock == $b ? 'selected' : '' }}>{{ $b }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        @endfor
+                    <div class="p-5">
+                        <textarea name="footer_code" rows="5" class="w-full bg-[#fcfcfc] border border-[#e5e5e5] text-[#333333] text-[13px] font-mono rounded focus:border-[#cc0000] focus:ring-1 focus:ring-[#cc0000] p-3 outline-none" placeholder="<!-- Your HTML or script here -->">{{ $blocks['footer_code'] }}</textarea>
                     </div>
                 </div>
 
-                <!-- RIGHT COLUMN -->
+                <!-- Left Column -->
                 <div class="bg-white rounded border border-[#e5e5e5] shadow-sm overflow-hidden">
                     <div class="bg-[#f8f9fa] border-b border-[#e5e5e5] px-5 py-4">
-                        <h3 class="text-[12px] font-bold text-gray-800 tracking-wider">RIGHT COLUMN</h3>
-                        <p class="text-[11px] text-gray-500 mt-1">Ideal for suggestions and ads.</p>
+                        <h3 class="text-[12px] font-bold text-gray-800 tracking-wider">LEFT COLUMN HTML</h3>
+                        <p class="text-[11px] text-gray-500 mt-1">Displays on the left sidebar (below the user menu).</p>
                     </div>
-                    <div class="p-5 space-y-4">
-                        @for($i = 0; $i < 5; $i++)
-                            @php $currentBlock = $blocks['right_column'][$i] ?? ''; @endphp
-                            <div>
-                                <label class="block text-[10px] font-bold text-[#888888] tracking-widest uppercase mb-1.5">SLOT 0{{ $i + 1 }}</label>
-                                <select name="blocks[right_column][]" class="w-full bg-[#fcfcfc] border border-[#e5e5e5] text-[#333333] text-[13px] rounded focus:border-[#cc0000] focus:ring-1 focus:ring-[#cc0000] block p-2 outline-none">
-                                    <option value="">-- None --</option>
-                                    @foreach($availableBlocks as $b)
-                                        <option value="{{ $b }}" {{ $currentBlock == $b ? 'selected' : '' }}>{{ $b }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        @endfor
+                    <div class="p-5">
+                        <textarea name="left_column" rows="6" class="w-full bg-[#fcfcfc] border border-[#e5e5e5] text-[#333333] text-[13px] font-mono rounded focus:border-[#cc0000] focus:ring-1 focus:ring-[#cc0000] p-3 outline-none" placeholder="<!-- Ad code or widget HTML here -->">{{ $blocks['left_column'] }}</textarea>
+                    </div>
+                </div>
+
+                <!-- Center Column -->
+                <div class="bg-white rounded border border-[#e5e5e5] shadow-sm overflow-hidden">
+                    <div class="bg-[#f8f9fa] border-b border-[#e5e5e5] px-5 py-4">
+                        <h3 class="text-[12px] font-bold text-gray-800 tracking-wider">CENTER COLUMN HTML</h3>
+                        <p class="text-[11px] text-gray-500 mt-1">Displays at the top of the main content feed.</p>
+                    </div>
+                    <div class="p-5">
+                        <textarea name="center_column" rows="6" class="w-full bg-[#fcfcfc] border border-[#e5e5e5] text-[#333333] text-[13px] font-mono rounded focus:border-[#cc0000] focus:ring-1 focus:ring-[#cc0000] p-3 outline-none" placeholder="<!-- Ad code or widget HTML here -->">{{ $blocks['center_column'] }}</textarea>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="bg-white rounded border border-[#e5e5e5] shadow-sm overflow-hidden">
+                    <div class="bg-[#f8f9fa] border-b border-[#e5e5e5] px-5 py-4">
+                        <h3 class="text-[12px] font-bold text-gray-800 tracking-wider">RIGHT COLUMN HTML</h3>
+                        <p class="text-[11px] text-gray-500 mt-1">Displays on the right sidebar (below sponsored ads/suggestions).</p>
+                    </div>
+                    <div class="p-5">
+                        <textarea name="right_column" rows="6" class="w-full bg-[#fcfcfc] border border-[#e5e5e5] text-[#333333] text-[13px] font-mono rounded focus:border-[#cc0000] focus:ring-1 focus:ring-[#cc0000] p-3 outline-none" placeholder="<!-- Ad code or widget HTML here -->">{{ $blocks['right_column'] }}</textarea>
                     </div>
                 </div>
 

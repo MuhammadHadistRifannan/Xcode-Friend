@@ -8,6 +8,30 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    @php
+        $activeTheme = \App\Helpers\SettingHelper::get('theme_color', 'red');
+    @endphp
+
+    @if($activeTheme === 'dark')
+    <style>
+        body, main, aside { background-color: #121212 !important; color: #e5e5e5 !important; }
+        .bg-white, .bg-\[\#f9f9f9\], .bg-\[\#f5f5f5\] { background-color: #1e1e1e !important; border-color: #333 !important; color: #e5e5e5 !important; }
+        .text-gray-900, .text-neutral-900, .text-gray-800, .text-black, .text-gray-700, .text-gray-600 { color: #f5f5f5 !important; }
+        .text-gray-500, .text-gray-400, .text-neutral-500 { color: #aaa !important; }
+        .border-gray-200, .border-gray-100, .border-\[\#e5e5e5\] { border-color: #333 !important; }
+        .bg-gray-50, .bg-\[\#f8f9fa\], .bg-gray-100, .bg-gray-200 { background-color: #2a2a2a !important; }
+        .hover\:bg-gray-50:hover, .hover\:bg-gray-200:hover { background-color: #333 !important; }
+    </style>
+    @elseif($activeTheme === 'blue')
+    <style>
+        .text-red-600, .text-red-500, .text-red-700, .text-\[\#b90000\], .text-\[\#cc0000\] { color: #2563eb !important; }
+        .bg-red-600, .bg-red-50, .bg-red-100, .bg-\[\#b90000\], .bg-\[\#cc0000\], .bg-\[\#990000\] { background-color: #2563eb !important; color: white !important; }
+        .hover\:bg-red-700:hover, .hover\:bg-\[\#a00000\]:hover, .hover\:bg-red-100:hover { background-color: #1d4ed8 !important; }
+        .hover\:text-red-500:hover, .hover\:text-red-400:hover { color: #60a5fa !important; }
+        .border-red-700, .border-\[\#cc0000\] { border-color: #2563eb !important; }
+        .focus\:border-\[\#cc0000\]:focus, .focus\:ring-\[\#cc0000\]:focus { border-color: #2563eb !important; --tw-ring-color: #2563eb !important; }
+    </style>
+    @endif
     <style> body { background-color: #f5f5f5; } </style>
 </head>
 <body class="flex flex-col h-screen overflow-hidden antialiased text-neutral-900">
@@ -15,7 +39,7 @@
 
 
     <!-- Layout Admin -->
-    <div class="flex-grow flex w-full max-w-[1400px] mx-auto overflow-hidden">
+    <div class="flex-grow flex w-full h-full overflow-hidden">
         
         <!-- Sidebar Management Tools -->
         <aside class="w-64 bg-white border-r border-gray-200 h-full overflow-y-auto hidden md:flex flex-col flex-shrink-0">

@@ -1,7 +1,7 @@
 @props(['action', 'app' => 'feed', 'aid' => 0, 'wallId' => 0])
 @php
     $photoAlbums = \App\Models\Album::where('app', 'photos')->where('gid', auth()->id())->get();
-    $videoAlbums = \App\Models\Album::where('app', 'videos')->where('gid', auth()->id())->get();
+    $videoAlbums = \App\Models\Album::where('app', 'video')->where('gid', auth()->id())->get();
 @endphp
 <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
     <h3 class="text-xs font-bold text-neutral-800 uppercase border-l-4 border-red-700 pl-2 mb-4">BAGI CEPAT</h3>
@@ -178,7 +178,7 @@
                                 </div>
                             </div>
                             <span class="text-xs text-neutral-400 font-medium hidden sm:inline">atau</span>
-                            <button type="button" onclick="toggleAlbumMode('videos', 'create')" class="inline-flex justify-center items-center bg-white border border-neutral-200 hover:border-red-200 hover:bg-red-50 text-neutral-700 hover:text-red-700 text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-sm w-full sm:w-auto">
+                            <button type="button" onclick="toggleAlbumMode('video', 'create')" class="inline-flex justify-center items-center bg-white border border-neutral-200 hover:border-red-200 hover:bg-red-50 text-neutral-700 hover:text-red-700 text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-sm w-full sm:w-auto">
                                 <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                                 Buat album baru
                             </button>
@@ -224,16 +224,31 @@
                             </div>
                         </div>
                         <div class="flex space-x-3 pt-3">
-                            <button type="button" onclick="toggleAlbumMode('videos', 'select')" class="flex-1 bg-white border border-neutral-200 hover:bg-neutral-50 hover:border-neutral-300 text-neutral-700 font-bold text-xs px-4 py-3 rounded-xl transition shadow-sm">Kembali</button>
-                            <button type="button" onclick="saveNewAlbum('videos')" class="flex-1 bg-[#990000] hover:bg-red-800 text-white font-bold text-xs px-4 py-3 rounded-xl transition shadow-md">Simpan Album</button>
+                            <button type="button" onclick="toggleAlbumMode('video', 'select')" class="flex-1 bg-white border border-neutral-200 hover:bg-neutral-50 hover:border-neutral-300 text-neutral-700 font-bold text-xs px-4 py-3 rounded-xl transition shadow-sm">Kembali</button>
+                            <button type="button" onclick="saveNewAlbum('video')" class="flex-1 bg-[#990000] hover:bg-red-800 text-white font-bold text-xs px-4 py-3 rounded-xl transition shadow-md">Simpan Album</button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="flex justify-end mt-4">
-            <button type="submit" class="bg-[#990000] text-white font-bold px-6 py-2 rounded shadow-sm text-sm hover:bg-red-800 transition">Bagikan</button>
+        <div class="flex items-center justify-between mt-4 border-t border-neutral-100 pt-4">
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="w-3.5 h-3.5 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <select name="privacy" class="appearance-none bg-neutral-50 border border-neutral-200 text-neutral-600 text-xs font-semibold rounded-full pl-8 pr-8 py-2 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition cursor-pointer">
+                    <option value="public">Publik</option>
+                    <option value="friends">Teman</option>
+                    <option value="private">Hanya Saya</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-neutral-400">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+            </div>
+            <button type="submit" class="bg-[#990000] text-white font-bold px-6 py-2 rounded-full shadow-sm text-sm hover:bg-red-800 transition flex items-center">
+                Bagikan
+            </button>
         </div>
     </form>
 </div>

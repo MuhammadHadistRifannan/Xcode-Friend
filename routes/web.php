@@ -8,6 +8,7 @@ use App\Http\Controllers\StreamController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AlbumController;
 use App\Http\Controllers\CaptchaController;
+use App\Http\Controllers\SearchController;
 
 // Local Controllers
 use App\Http\Controllers\PageController;
@@ -46,6 +47,11 @@ Route::middleware('auth')->group(function () {
 // Rute Profil Pengguna (contoh: xcode-friends.com/@giska) - Bisa diakses publik
 Route::get('/@{username}', [ProfileController::class, 'show'])->name('profile.show');
 
+// ==========================================
+// SEARCH ROUTES
+// ==========================================
+Route::get('/search', [SearchController::class, 'index'])->name('search.index');
+Route::get('/search/autocomplete', [SearchController::class, 'autocomplete'])->name('search.autocomplete');
 
 
 Route::middleware('auth')->group(function () {
@@ -88,7 +94,7 @@ Route::middleware('auth')->group(function () {
 // Offline Route
 Route::get('/offline', function () {
     // Redirect ke home jika offline mode non-aktif
-    $offlineMode = \Illuminate\Support\Facades\DB::table('jcow_gvars')->where('gkey', 'offline_mode')->value('gvalue');
+    $offlineMode = \Illuminate\Support\Facades\DB::table('jcow_gvars')->where('gkey', 'offline')->value('gvalue');
     if ($offlineMode != '1') return redirect('/');
     
     $reason = \Illuminate\Support\Facades\DB::table('jcow_gvars')->where('gkey', 'offline_reason')->value('gvalue');
@@ -152,7 +158,10 @@ Route::prefix('admin')->group(function () {
         Route::post('/themes/update', [\App\Http\Controllers\AdminThemeController::class, 'update'])->name('admin.themes.update');
         Route::get('/themes/blocks', [\App\Http\Controllers\AdminBlockController::class, 'index'])->name('admin.themes.blocks');
         Route::post('/themes/blocks', [\App\Http\Controllers\AdminBlockController::class, 'update'])->name('admin.themes.blocks.update');
-        Route::get('/menu', [\App\Http\Controllers\AdminController::class, 'menu'])->name('admin.menu');
+        Route::get('/menu', [\App\Http\Controllers\AdminMenuController::class, 'index'])->name('admin.menu');
+        Route::post('/menu', [\App\Http\Controllers\AdminMenuController::class, 'store'])->name('admin.menu.store');
+        Route::put('/menu/bulk', [\App\Http\Controllers\AdminMenuController::class, 'updateBulk'])->name('admin.menu.updateBulk');
+        Route::delete('/menu/{id}', [\App\Http\Controllers\AdminMenuController::class, 'destroy'])->name('admin.menu.destroy');
         Route::get('/user-roles', [\App\Http\Controllers\AdminController::class, 'userRoles'])->name('admin.user-roles');
         Route::post('/user-roles', [\App\Http\Controllers\AdminController::class, 'storeRole'])->name('admin.roles.store');
         Route::delete('/user-roles/{id}', [\App\Http\Controllers\AdminController::class, 'destroyRole'])->name('admin.roles.destroy');

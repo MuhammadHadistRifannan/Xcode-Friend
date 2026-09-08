@@ -35,9 +35,9 @@ class HomeController extends Controller
                             ->take(4)
                             ->get();
 
-        // Ambil Feed Komunitas (Global) - Tidak menampilkan unggahan halaman
         $publicStreams = Stream::with(['user', 'comments.user', 'targetPage', 'targetWallUser'])
                             ->where('app', '!=', 'page')
+                            ->visibleTo(null)
                             ->orderBy('created', 'desc')
                             ->take(5)
                             ->get();
@@ -59,6 +59,7 @@ class HomeController extends Controller
         // Ambil Feed Berita (Seluruh unggahan dari semua pengguna secara global, kecuali halaman)
         $streams = Stream::with(['user', 'comments.user', 'targetPage', 'targetWallUser'])
                     ->where('app', '!=', 'page')
+                    ->visibleTo($user)
                     ->orderBy('created', 'desc')
                     ->paginate(12);
 

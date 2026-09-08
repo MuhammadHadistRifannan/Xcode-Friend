@@ -21,15 +21,24 @@
             </div>
         @endif
 
+        <div class="mb-6 flex gap-2">
+            <a href="{{ route('admin.reports') }}" class="px-4 py-2 rounded-lg text-sm font-bold transition-colors {{ !request('status') ? 'bg-gray-800 text-white shadow-md' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50' }}">
+                Semua ({{ number_format($stats['total']) }})
+            </a>
+            <a href="{{ route('admin.reports', ['status' => 'pending']) }}" class="px-4 py-2 rounded-lg text-sm font-bold transition-colors {{ request('status') === 'pending' ? 'bg-yellow-600 text-white shadow-md' : 'bg-white text-gray-600 border border-gray-200 hover:bg-yellow-50 hover:text-yellow-600' }}">
+                <i data-lucide="clock" class="w-4 h-4 inline-block mr-1"></i> Menunggu ({{ number_format($stats['pending']) }})
+            </a>
+            <a href="{{ route('admin.reports', ['status' => 'resolved']) }}" class="px-4 py-2 rounded-lg text-sm font-bold transition-colors {{ request('status') === 'resolved' ? 'bg-green-600 text-white shadow-md' : 'bg-white text-gray-600 border border-gray-200 hover:bg-green-50 hover:text-green-600' }}">
+                <i data-lucide="check-circle" class="w-4 h-4 inline-block mr-1"></i> Selesai ({{ number_format($stats['resolved']) }})
+            </a>
+        </div>
+
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div class="px-6 py-5 border-b border-gray-200 flex justify-between items-center bg-gray-50">
                 <h2 class="text-lg font-bold text-gray-900 flex items-center gap-2">
                     <i data-lucide="alert-triangle" class="w-5 h-5 text-red-500"></i>
                     User Reports
                 </h2>
-                <div class="text-sm font-medium text-gray-500">
-                    Total: {{ $reports->count() }} Laporan
-                </div>
             </div>
 
             <div class="overflow-x-auto">
@@ -199,6 +208,12 @@
                     </tbody>
                 </table>
             </div>
+
+            @if($reports->hasPages())
+                <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
+                    {{ $reports->appends(request()->query())->links() }}
+                </div>
+            @endif
         </div>
         
     </div>

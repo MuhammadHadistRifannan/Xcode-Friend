@@ -16,7 +16,7 @@ class PhotoController extends Controller
     public function index()
     {
         // Eager load relasi latestPhoto agar tidak terjadi N+1 query
-        $albums = Album::with('latestPhoto')->get();
+        $albums = Album::where('app', 'photos')->where('gid', auth()->id())->with('latestPhoto')->get();
 
         return view('photos.index', compact('albums'));
     }
@@ -27,8 +27,8 @@ class PhotoController extends Controller
      */
     public function create()
     {
-        // Ambil semua album dari tabel jcow_story_categories
-        $albums = Album::orderBy('name')->get();
+        // Ambil semua album milik user dari tabel jcow_story_categories
+        $albums = Album::where('app', 'photos')->where('gid', auth()->id())->orderBy('name')->get();
 
         return view('foto.upload', compact('albums'));
     }
@@ -70,7 +70,7 @@ class PhotoController extends Controller
                 $album = Album::create([
                     'name'        => $request->new_album_name,
                     'description' => '',
-                    'gid'         => 0,
+                    'gid'         => auth()->id(),
                     'weight'      => 0,
                     'app'         => 'photos',
                     'uri'         => '',

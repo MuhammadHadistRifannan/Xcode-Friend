@@ -25,6 +25,7 @@ class ProfileController extends Controller
                             $query->where('uid', $profileUser->id)
                                   ->orWhere('wall_id', $profileUser->id);
                         })
+                        ->visibleTo(auth()->user())
                         ->orderBy('created', 'desc')
                         ->paginate(10);
         } elseif ($tab === 'menyukai') {
@@ -33,11 +34,13 @@ class ProfileController extends Controller
                         ->whereHas('likedBy', function($q) use ($profileUser) {
                             $q->where('uid', $profileUser->id);
                         })
+                        ->visibleTo(auth()->user())
                         ->orderBy('created', 'desc')
                         ->paginate(10);
         } elseif ($tab === 'foto') {
             $photos = Stream::where('uid', $profileUser->id)
                         ->where('attachment', '!=', '')
+                        ->visibleTo(auth()->user())
                         ->where(function($q) {
                             $q->where('type', 2)
                               ->orWhere(function($q2) {
@@ -50,6 +53,7 @@ class ProfileController extends Controller
         } elseif ($tab === 'video') {
             $videos = Stream::where('uid', $profileUser->id)
                         ->where('attachment', '!=', '')
+                        ->visibleTo(auth()->user())
                         ->where(function($q) {
                             $q->where('type', 3)
                               ->orWhere(function($q2) {

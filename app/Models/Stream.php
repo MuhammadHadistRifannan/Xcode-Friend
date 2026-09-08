@@ -11,7 +11,7 @@ class Stream extends Model
 
     protected $table = 'jcow_streams';
     public $timestamps = false; // Karena pakai UNIX timestamp 'created'
-    protected $fillable = ['message', 'wall_id', 'uid', 'attachment', 'created', 'type', 'app', 'aid', 'hide', 'likes'];
+    protected $fillable = ['message', 'wall_id', 'uid', 'attachment', 'created', 'type', 'app', 'aid', 'hide', 'likes', 'privacy'];
 
     // Relasi: 1 Postingan dimiliki oleh 1 User
     public function user()
@@ -51,5 +51,39 @@ class Stream extends Model
     public function getCreatedAtAttribute()
     {
         return \Carbon\Carbon::createFromTimestamp($this->created);
+    }
+
+    /**
+     * Scope: Hanya tampilkan postingan yang bisa dilihat oleh user tertentu
+     * berdasarkan pengaturan privasi (public, friends, private)
+     */
+    public function scopeVisibleTo($query, $user = null)
+    {
+        if (!$user) {
+            // Guest hanya bisa melihat postingan public
+            return $query->where('privacy', 'public');
+        }
+
+        return $query->where(function ($q) use ($user) {
+            // 1. Postingan Public
+            $q->where('privacy', 'public')
+              // 2. Postingan Private tapi milik user sendiri
+              ->orWhere(function ($q2) use ($user) {
+                  $q2->where('privacy', 'private')->where('uid', $user->id);
+              })
+              // 3. Postingan Friends
+              ->orWhere(function ($q3) use ($user) {
+                  $q3->where('privacy', 'friends')
+                     ->where(function ($q4) use ($user) {
+                         $q4->where('uid', $user->id) // Postingan sendiri
+                            ->orWhereIn('uid', function ($sub) use ($user) {
+                                // Atau postingan teman
+                                $sub->select('fid')
+                                    ->from('jcow_friends')
+                                    ->where('uid', $user->id);
+                            });
+                     });
+              });
+        });
     }
 }

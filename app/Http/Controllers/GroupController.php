@@ -303,10 +303,21 @@ class GroupController extends Controller
     {
         $comment = Comment::findOrFail($id);
         $stream = Stream::findOrFail($comment->stream_id);
-        $group = Group::findOrFail($stream->wall_id);
+        
+        $canDelete = false;
+        $user = auth()->user();
+        $isAdmin = $user && ($user->level == 1 || in_array(strtolower($user->roles ?? ''), ['admin', 'administrator']));
 
-        // Hanya pembuat komentar atau admin grup yang bisa menghapus komentar
-        if (Auth::id() !== $comment->uid && Auth::id() !== $group->uid) {
+        if (Auth::id() === $comment->uid || Auth::id() === $stream->uid || $isAdmin) {
+            $canDelete = true;
+        } elseif ($stream->app === 'group' && $stream->wall_id > 0) {
+            $group = Group::find($stream->wall_id);
+            if ($group && $group->uid === Auth::id()) {
+                $canDelete = true;
+            }
+        }
+
+        if (!$canDelete) {
             abort(403, 'Unauthorized action.');
         }
 
