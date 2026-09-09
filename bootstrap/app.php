@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'is_admin' => \App\Http\Middleware\IsAdmin::class,
         ]);
         $middleware->web(append: [
+            \App\Http\Middleware\EnsureAccountIsActive::class,
             \App\Http\Middleware\UpdateLastSeen::class,
         ]);
     })

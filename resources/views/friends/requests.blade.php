@@ -27,6 +27,7 @@
                     <div class="flex space-x-8 w-full sm:w-[60%] mb-[-1px]">
                         <a href="{{ route('friends.index') }}" class="pb-3 text-sm font-medium text-gray-500 hover:text-gray-800 border-b-2 border-transparent transition">TEMAN</a>
                         <a href="{{ route('friends.requests') }}" class="pb-3 text-sm font-bold text-[#b71c1c] border-b-2 border-[#b71c1c]">PERMINTAAN PERTEMANAN</a>
+                        <a href="{{ route('friends.blacklist') }}" class="pb-3 text-sm font-medium text-gray-500 hover:text-gray-800 border-b-2 border-transparent transition">BLACKLIST</a>
                     </div>
                 </div>
             </div>

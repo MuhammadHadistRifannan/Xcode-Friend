@@ -43,4 +43,6 @@ interface FriendRepositoryInterface
     public function isBlocked(int $userId, int $targetId): bool;
 
     public function getFollowerCount(int $userId): int;
+
+    public function getBlockedUsers(int $userId): Collection;
 }

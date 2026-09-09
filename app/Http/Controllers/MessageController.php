@@ -76,13 +76,19 @@ class MessageController extends Controller
                 );
             }
 
-            $this->messageService->send(
+            $result = $this->messageService->send(
                 $userId,
                 $recipientId,
                 $request->subject,
                 $request->message,
                 $request->reply_to
             );
+
+            if (isset($result->spam_detected) && $result->spam_detected) {
+                return $this->noCache(
+                    redirect()->route('messages.conversation', $recipientId)->with('error', 'Pesan Anda terdeteksi sebagai spam dan tidak terkirim.')
+                );
+            }
 
             return $this->noCache(
                 redirect()->route('messages.conversation', $recipientId)

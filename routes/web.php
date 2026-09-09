@@ -68,6 +68,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/friends/unfriend/{userId}', [App\Http\Controllers\FriendController::class, 'unfriend'])->name('friends.unfriend');
     Route::post('/friends/follow/{userId}', [App\Http\Controllers\FriendController::class, 'follow'])->middleware('throttle:30,1')->name('friends.follow');
     Route::post('/friends/unfollow/{userId}', [App\Http\Controllers\FriendController::class, 'unfollow'])->middleware('throttle:30,1')->name('friends.unfollow');
+    Route::get('/blacklist', [App\Http\Controllers\FriendController::class, 'blacklist'])->name('friends.blacklist');
     Route::post('/friends/block/{userId}', [App\Http\Controllers\FriendController::class, 'block'])->middleware('throttle:10,1')->name('friends.block');
     Route::post('/friends/unblock/{userId}', [App\Http\Controllers\FriendController::class, 'unblock'])->middleware('throttle:10,1')->name('friends.unblock');
 

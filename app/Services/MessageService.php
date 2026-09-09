@@ -12,7 +12,8 @@ class MessageService
     public function __construct(
         private MessageRepositoryInterface $messageRepo,
         private NotificationRepositoryInterface $notifRepo,
-        private AccountRepositoryInterface $accountRepo
+        private AccountRepositoryInterface $accountRepo,
+        private SpamService $spamService
     ) {}
 
     public function getConversation(int $userId, int $otherId)
@@ -27,6 +28,21 @@ class MessageService
 
     public function send(int $senderId, int $recipientId, ?string $subject, string $message, ?int $replyTo = null): object
     {
+        $isSpam = $this->spamService->recordThisPosting($senderId, $message);
+        if ($isSpam) {
+            return (object) [
+                'id' => 0,
+                'from_id' => $senderId,
+                'to_id' => $recipientId,
+                'subject' => $subject ?? '',
+                'message' => '',
+                'created' => time(),
+                'hasread' => 0,
+                'reply_to' => $replyTo,
+                'spam_detected' => true,
+            ];
+        }
+
         return DB::transaction(function () use ($senderId, $recipientId, $subject, $message, $replyTo) {
             $now = time();
 

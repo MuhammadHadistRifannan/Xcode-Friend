@@ -165,4 +165,9 @@ class FriendService
     {
         return $this->friendRepo->getFollowerCount($userId);
     }
+
+    public function getBlockedUsers(int $userId)
+    {
+        return $this->friendRepo->getBlockedUsers($userId);
+    }
 }
