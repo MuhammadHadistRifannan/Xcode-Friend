@@ -25,66 +25,40 @@ class AdminBlockController extends Controller
 
     public function index()
     {
-        $table = $this->getTable();
-        $keyName = $this->getKeyName();
-        $valName = $this->getValueName();
-
-        // Ambil konfigurasi blok dari database
-        $configRecord = DB::table($table)->where($keyName, 'layout_blocks')->first();
-        
-        // Default blocks jika belum ada konfigurasi
+        // Get raw HTML blocks from jcow_gvars
         $blocks = [
-            'left_column' => ['User Menu', 'Site Stats'],
-            'center_column' => ['Main Feed', 'Recent Photos'],
-            'right_column' => ['Sponsored Ads', 'Trending Topics', 'Suggested Friends'],
+            'header_code' => \App\Helpers\SettingHelper::get('theme_block_header_code', ''),
+            'footer_code' => \App\Helpers\SettingHelper::get('theme_block_footer_code', ''),
+            'left_column' => \App\Helpers\SettingHelper::get('theme_block_left_column', ''),
+            'right_column' => \App\Helpers\SettingHelper::get('theme_block_right_column', ''),
+            'center_column' => \App\Helpers\SettingHelper::get('theme_block_center_column', ''),
         ];
 
-        if ($configRecord && !empty($configRecord->$valName)) {
-            $blocks = json_decode($configRecord->$valName, true) ?? $blocks;
-        }
-
-        $availableBlocks = [
-            'User Menu',
-            'Site Stats',
-            'Main Feed',
-            'Recent Photos',
-            'Sponsored Ads',
-            'Trending Topics',
-            'Suggested Friends',
-            'Custom HTML',
-            'Online Members',
-            'Recent Blogs',
-            'Recent Videos'
-        ];
-
-        return view('admin.themes.blocks', compact('blocks', 'availableBlocks'));
+        return view('admin.themes.blocks', compact('blocks'));
     }
 
     public function update(Request $request)
     {
-        $request->validate([
-            'blocks' => 'required|array',
-            'blocks.left_column' => 'nullable|array',
-            'blocks.center_column' => 'nullable|array',
-            'blocks.right_column' => 'nullable|array',
-        ]);
+        $table = Schema::hasTable('jcow_gvars') ? 'jcow_gvars' : 'jcow_settings';
+        $keyName = Schema::hasTable('jcow_gvars') ? 'gkey' : 'setting_name';
+        $valName = Schema::hasTable('jcow_gvars') ? 'gvalue' : 'setting_value';
 
-        // Bersihkan array dari null
-        $blocksData = [
-            'left_column' => array_filter($request->blocks['left_column'] ?? []),
-            'center_column' => array_filter($request->blocks['center_column'] ?? []),
-            'right_column' => array_filter($request->blocks['right_column'] ?? []),
+        $blocksToSave = [
+            'theme_block_header_code' => $request->input('header_code') ?? '',
+            'theme_block_footer_code' => $request->input('footer_code') ?? '',
+            'theme_block_left_column' => $request->input('left_column') ?? '',
+            'theme_block_right_column' => $request->input('right_column') ?? '',
+            'theme_block_center_column' => $request->input('center_column') ?? '',
         ];
 
-        $table = $this->getTable();
-        $keyName = $this->getKeyName();
-        $valName = $this->getValueName();
+        foreach ($blocksToSave as $key => $html) {
+            DB::table($table)->updateOrInsert(
+                [$keyName => $key],
+                [$valName => $html ?? '']
+            );
+            \Illuminate\Support\Facades\Cache::forget('jcow_setting_' . $key);
+        }
 
-        DB::table($table)->updateOrInsert(
-            [$keyName => 'layout_blocks'],
-            [$valName => json_encode($blocksData)]
-        );
-
-        return back()->with('success', 'Susunan block berhasil disimpan.');
+        return back()->with('success', 'Kode HTML Blocks berhasil disimpan.');
     }
 }

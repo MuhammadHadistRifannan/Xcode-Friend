@@ -265,7 +265,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Load album saat pertama kali
     fetchAlbums('photos', 'photo-album-select');
-    fetchAlbums('videos', 'video-album-select');
+    fetchAlbums('video', 'video-album-select');
 
     // Fungsi toggle mode (Pilih <-> Buat Baru)
     window.toggleAlbumMode = function(type, mode) {

@@ -15,6 +15,9 @@ class SettingHelper
         return Cache::rememberForever('jcow_setting_' . $key, function () use ($key, $default) {
             try {
                 $value = DB::table('jcow_gvars')->where('gkey', $key)->value('gvalue');
+                if ($value === null) {
+                    $value = DB::table('jcow_texts')->where('tkey', $key)->value('tvalue');
+                }
                 return $value !== null ? $value : $default;
             } catch (\Exception $e) {
                 return $default;

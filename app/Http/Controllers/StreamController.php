@@ -15,6 +15,7 @@ class StreamController extends Controller
             'photos.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'photos' => 'nullable|array|max:10', // Max 10 photos
             'video_url' => 'nullable|string|max:255',
+            'privacy' => 'nullable|in:public,friends,private',
         ]);
 
         if (empty($request->message) && !$request->hasFile('photos') && empty($request->video_url)) {
@@ -39,6 +40,13 @@ class StreamController extends Controller
         $videoAlbumId = $request->input('video_album_id', 0);
 
         if ($request->hasFile('photos')) {
+            if ($albumId == 0) {
+                $defaultAlbum = \App\Models\Album::firstOrCreate(
+                    ['gid' => auth()->id(), 'app' => 'photos', 'name' => 'Unggahan Beranda'],
+                    ['description' => 'Foto yang diunggah langsung dari beranda', 'weight' => 0, 'var1' => 'public', 'uri' => '', 'var2' => '', 'var3' => '', 'var4' => '', 'var5' => '']
+                );
+                $albumId = $defaultAlbum->id;
+            }
             $files = $request->file('photos');
             $savedPhotos = [];
             foreach($files as $index => $file) {
@@ -61,6 +69,13 @@ class StreamController extends Controller
             ]);
             $type = 2; // 2 = gambar
         } elseif (!empty($request->video_url)) {
+            if ($videoAlbumId == 0) {
+                $defaultAlbum = \App\Models\Album::firstOrCreate(
+                    ['gid' => auth()->id(), 'app' => 'video', 'name' => 'Unggahan Beranda'],
+                    ['description' => 'Video yang diunggah langsung dari beranda', 'weight' => 0, 'var1' => 'public', 'uri' => '', 'var2' => '', 'var3' => '', 'var4' => '', 'var5' => '']
+                );
+                $videoAlbumId = $defaultAlbum->id;
+            }
             // Kita bisa juga simpan judul_video, desc_video, dll jika diperlukan nanti
             $attachment = json_encode([
                 'video_url' => $request->video_url,
@@ -117,7 +132,8 @@ class StreamController extends Controller
             'attachment' => $attachment,
             'aid' => $request->input('aid', 0),
             'hide' => 0,
-            'likes' => 0
+            'likes' => 0,
+            'privacy' => $request->input('privacy', 'public')
         ]);
 
         return back()->with('success_post', 'Status berhasil dibagikan ke jaringan!');
@@ -161,7 +177,10 @@ class StreamController extends Controller
 
         $canDelete = false;
         
-        if (auth()->id() === $stream->uid) {
+        $user = auth()->user();
+        $isAdmin = $user && ($user->level == 1 || in_array(strtolower($user->roles ?? ''), ['admin', 'administrator']));
+
+        if (auth()->id() === $stream->uid || $isAdmin) {
             $canDelete = true;
         } else if ($stream->app === 'group') {
             $group = \App\Models\Group::find($stream->wall_id);

@@ -22,9 +22,9 @@ class CheckOfflineMode
             return $next($request);
         }
 
-        // Cek status offline_mode dari database
+        // Cek status offline dari database
         try {
-            $offlineMode = DB::table('jcow_gvars')->where('gkey', 'offline_mode')->value('gvalue');
+            $offlineMode = DB::table('jcow_gvars')->where('gkey', 'offline')->value('gvalue');
             
             if ($offlineMode == '1') {
                 // Biarkan administrator tetap bisa akses frontend walau offline mode

@@ -6,12 +6,16 @@
  <!-- Header Page -->
  <h2 class="text-xs font-bold text-neutral-800 uppercase tracking-widest mb-6">DASHBOARD</h2>
 
- <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
- <!-- KOLOM KIRI: Menu Navigasi Samping -->
- <div class="lg:col-span-3 space-y-6">
+        <!-- KOLOM KIRI: Menu Navigasi Samping -->
+        <div class="lg:col-span-3 space-y-6">
+            @php $leftColumnHtml = \App\Helpers\SettingHelper::get('theme_block_left_column', ''); @endphp
+            @if($leftColumnHtml)
+                <div class="mb-4">{!! $leftColumnHtml !!}</div>
+            @endif
 
- <!-- My Apps Block -->
+            <!-- My Apps Block -->
  <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
  <h3 class="text-xs font-bold text-neutral-800 uppercase border-l-4 border-red-700 pl-2 mb-4">MY APPS</h3>
  <div class="grid grid-cols-2 gap-4">
@@ -88,10 +92,15 @@
  </div>
  </div>
 
- <!-- KOLOM TENGAH: BAGI CEPAT & FEED BERITA -->
- <div class="lg:col-span-6 space-y-6">
+    <!-- KOLOM TENGAH: BAGI CEPAT & FEED BERITA -->
+    <div class="lg:col-span-6 space-y-6">
 
- <!-- Buat Post (Bagi Cepat) -->
+        @php $centerColumnHtml = \App\Helpers\SettingHelper::get('theme_block_center_column', ''); @endphp
+        @if($centerColumnHtml)
+            <div class="mb-4">{!! $centerColumnHtml !!}</div>
+        @endif
+
+        <!-- Buat Post (Bagi Cepat) -->
  <x-feed-upload action="{{ route('stream.store') }}" app="feed" aid="0" wallId="0" />
 
  <!-- Feed Berita -->
@@ -101,12 +110,12 @@
  <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5" x-data="{ editingStream: false, openOptions: false }">
  <div class="flex justify-between items-start mb-2">
  <div class="flex items-center space-x-3">
- <a href="/@{{ $stream->user->username ?? '#' }}" class="w-10 h-10 rounded-full bg-neutral-100 overflow-hidden flex-shrink-0 border border-neutral-200 hover:ring-2 hover:ring-red-700 transition">
+ <a href="/{{ '@' . ($stream->user->username ?? '') }}" class="w-10 h-10 rounded-full bg-neutral-100 overflow-hidden flex-shrink-0 border border-neutral-200 hover:ring-2 hover:ring-red-700 transition">
  <img src="{{ $stream->user->avatar_url }}" class="w-full h-full object-cover">
  </a>
  <div>
  <h4 class="text-sm font-bold text-neutral-900">
- <a href="/@{{ $stream->user->username ?? '#' }}" class="hover:text-red-700 transition">{{ $stream->user->fullname ?? 'Unknown User' }}</a> 
+ <a href="/{{ '@' . ($stream->user->username ?? '') }}" class="hover:text-red-700 transition">{{ $stream->user->fullname ?? 'Unknown User' }}</a> 
  @if($stream->type == 1 && !$stream->attachment)
  <span class="font-normal text-neutral-500">memperbarui status</span>
  @elseif($stream->type == 2)
@@ -117,8 +126,16 @@
  <span class="font-normal text-neutral-500">memposting</span>
  @endif
  </h4>
- <p class="text-[11px] text-neutral-400">
+ <p class="text-[11px] text-neutral-400 flex flex-wrap items-center gap-x-1">
  {{ \Carbon\Carbon::createFromTimestamp($stream->created)->diffForHumans() }}
+ &bull;
+ @if($stream->privacy === 'private')
+ <svg class="w-3 h-3" title="Hanya Saya" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+ @elseif($stream->privacy === 'friends')
+ <svg class="w-3 h-3" title="Teman" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+ @else
+ <svg class="w-3 h-3" title="Publik" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+ @endif
  @if($stream->app === 'group' && $stream->targetPage)
  &bull; Mengunggah di Grup <a href="{{ url('/groups/' . $stream->targetPage->id) }}" class="font-semibold text-neutral-600 hover:text-red-700 hover:underline">{{ $stream->targetPage->name }}</a>
  @elseif($stream->app === 'page' && $stream->targetPage)
@@ -344,10 +361,14 @@
 
  </div>
 
- <!-- KOLOM KANAN: Review & Links -->
- <div class="lg:col-span-3 space-y-6">
- <x-sidebar-right />
- </div>
+    <!-- KOLOM KANAN: Review & Links -->
+    <div class="lg:col-span-3 space-y-6">
+        @php $rightColumnHtml = \App\Helpers\SettingHelper::get('theme_block_right_column', ''); @endphp
+        @if($rightColumnHtml)
+            <div class="mb-4">{!! $rightColumnHtml !!}</div>
+        @endif
+        <x-sidebar-right />
+    </div>
 
  </div>
 </div>
@@ -392,3 +413,4 @@
 
 @include('components.feed-scripts')
 @endsection
+

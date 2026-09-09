@@ -14,7 +14,7 @@ class VideoController extends Controller
      */
     public function index()
     {
-        $albums = AlbumVideo::with('videos')->get();
+        $albums = AlbumVideo::where('gid', auth()->id())->with('videos')->get();
         $isPublic = false;
 
         return view('video.index', compact('albums', 'isPublic'));
@@ -25,6 +25,7 @@ class VideoController extends Controller
      */
     public function publicIndex()
     {
+        // For public index, we might still want to show all albums or specific user albums
         $albums = AlbumVideo::with('videos')->get();
         $isPublic = true;
 
@@ -36,7 +37,7 @@ class VideoController extends Controller
      */
     public function create()
     {
-        $albums = AlbumVideo::orderBy('name')->get();
+        $albums = AlbumVideo::where('gid', auth()->id())->orderBy('name')->get();
 
         return view('video.create', compact('albums'));
     }
@@ -82,7 +83,7 @@ class VideoController extends Controller
                     'description' => '',
                     'app'         => 'video',
                     'weight'      => 0,
-                    'gid'         => 0, // Wajib diisi karena di DB tidak ada default
+                    'gid'         => auth()->id(), // Wajib diisi karena di DB tidak ada default
                     'var1'        => '',
                     'var2'        => '',
                     'var3'        => '',
@@ -107,7 +108,7 @@ class VideoController extends Controller
                 'var1'    => $request->youtube_url,       // URL YouTube
                 'tags'    => $request->tags ?? '',
                 'cid'     => $albumId ?? 0,               // 0 = tanpa album
-                'uid'     => 1,                           // TODO: ganti dengan auth()->id()
+                'uid'     => auth()->id(),                           // auth()->id()
                 'app'     => 'video',
                 'created' => time(),
                 'updated' => time(),
