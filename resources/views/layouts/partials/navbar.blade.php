@@ -1,4 +1,4 @@
-<nav class="bg-[#0A0A0A] text-white border-b border-neutral-800 relative z-50">
+<nav class="bg-[#0A0A0A] text-white border-b border-neutral-800 sticky top-0 z-50 w-full">
     <div class="max-w-[96%] mx-auto px-4 sm:px-6 h-14 flex items-center justify-between relative">
 
         <!-- BAGIAN KIRI: Logo -->

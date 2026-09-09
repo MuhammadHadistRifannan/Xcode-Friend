@@ -40,9 +40,10 @@
 
     <style> body { background-color: #FAFAFA; } </style>
     
-    {!! $headerCode !!}
 </head>
 <body class="flex flex-col min-h-screen antialiased text-neutral-900">
+
+    {!! $headerCode !!}
 
     <!-- Memanggil Navbar -->
     @include('layouts.partials.navbar')

@@ -48,7 +48,7 @@ class HomeController extends Controller
     /**
      * Menampilkan Beranda/Dashboard untuk User (Sudah Login)
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
 
@@ -62,6 +62,10 @@ class HomeController extends Controller
                     ->visibleTo($user)
                     ->orderBy('created', 'desc')
                     ->paginate(12);
+                    
+        if ($request->ajax()) {
+            return view('home.partials._feed-items', compact('streams'))->render();
+        }
 
         return view('home.beranda', compact('user', 'followingCount', 'followerCount', 'streams'));
     }
