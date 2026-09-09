@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="bg-[#f5f5f5] min-h-[calc(100vh-64px)] py-8">
+<div class="bg-[#f5f5f5] min-h-[calc(100vh-64px)] py-8 -mt-10 -mb-10">
     <div class="max-w-4xl mx-auto px-4 sm:px-6">
 
         {{-- ===== HEADER ===== --}}
@@ -355,3 +355,4 @@
     </div>
 </div>
 @endsection
+

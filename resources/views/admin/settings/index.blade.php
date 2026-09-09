@@ -38,25 +38,25 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-1.5">Slogan</label>
-                            <input type="text" name="slogan" value="{{ old('slogan', $settings['slogan']) }}" class="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-md focus:ring-red-500 focus:border-red-500 block p-2.5">
+                            <input type="text" name="site_slogan" value="{{ old('site_slogan', $settings['site_slogan']) }}" class="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-md focus:ring-red-500 focus:border-red-500 block p-2.5">
                         </div>
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold text-gray-700 mb-1.5">Keywords</label>
-                        <input type="text" name="keywords" value="{{ old('keywords', $settings['keywords']) }}" class="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-md focus:ring-red-500 focus:border-red-500 block p-2.5">
+                        <input type="text" name="site_keywords" value="{{ old('site_keywords', $settings['site_keywords']) }}" class="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-md focus:ring-red-500 focus:border-red-500 block p-2.5">
                         <p class="text-[10px] text-gray-400 mt-1.5">Comma separated list of keywords for search engine optimization.</p>
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold text-gray-700 mb-1.5">Webmaster Email</label>
-                        <input type="email" name="contact_email" value="{{ old('contact_email', $settings['contact_email']) }}" class="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-md focus:ring-red-500 focus:border-red-500 block p-2.5">
+                        <input type="email" name="site_email" value="{{ old('site_email', $settings['site_email']) }}" class="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-md focus:ring-red-500 focus:border-red-500 block p-2.5">
                         <p class="text-[10px] text-gray-400 mt-1.5">System notifications and critical alerts will be sent from this address.</p>
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold text-gray-700 mb-1.5">Footer Message</label>
-                        <input type="text" name="footer_message" value="{{ old('footer_message', $settings['footer_message']) }}" class="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-md focus:ring-red-500 focus:border-red-500 block p-2.5">
+                        <input type="text" name="footermsg" value="{{ old('footermsg', $settings['footermsg']) }}" class="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-md focus:ring-red-500 focus:border-red-500 block p-2.5">
                     </div>
                 </div>
             </div>
@@ -72,17 +72,17 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">NETWORK VISITING</label>
-                            <select name="network_visiting" class="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-md focus:ring-red-500 focus:border-red-500 block p-2.5">
-                                <option value="Registered Members Only" {{ old('network_visiting', $settings['network_visiting']) == 'Registered Members Only' ? 'selected' : '' }}>Registered Members Only</option>
-                                <option value="Publicly Accessible" {{ old('network_visiting', $settings['network_visiting']) == 'Publicly Accessible' ? 'selected' : '' }}>Publicly Accessible</option>
+                            <select name="private_network" class="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-md focus:ring-red-500 focus:border-red-500 block p-2.5">
+                                <option value="1" {{ old('private_network', $settings['private_network']) == '1' ? 'selected' : '' }}>Registered Members Only</option>
+                                <option value="0" {{ old('private_network', $settings['private_network']) == '0' ? 'selected' : '' }}>Publicly Accessible</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">ACCOUNT VERIFICATION</label>
-                            <select name="account_verification" class="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-md focus:ring-red-500 focus:border-red-500 block p-2.5">
-                                <option value="Email Verification Link" {{ old('account_verification', $settings['account_verification']) == 'Email Verification Link' ? 'selected' : '' }}>Email Verification Link</option>
-                                <option value="Admin Approval" {{ old('account_verification', $settings['account_verification']) == 'Admin Approval' ? 'selected' : '' }}>Admin Approval</option>
-                                <option value="None" {{ old('account_verification', $settings['account_verification']) == 'None' ? 'selected' : '' }}>None</option>
+                            <select name="acc_verify" class="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-md focus:ring-red-500 focus:border-red-500 block p-2.5">
+                                <option value="1" {{ old('acc_verify', $settings['acc_verify']) == '1' ? 'selected' : '' }}>Email Verification Link</option>
+                                <option value="2" {{ old('acc_verify', $settings['acc_verify']) == '2' ? 'selected' : '' }}>Admin Approval</option>
+                                <option value="0" {{ old('acc_verify', $settings['acc_verify']) == '0' ? 'selected' : '' }}>None</option>
                             </select>
                         </div>
                     </div>
@@ -91,7 +91,7 @@
                         <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">PENDING MEMBERS SUBMISSION LIMIT</label>
                         <div class="flex items-center gap-3 text-sm text-gray-800">
                             <span>Pending members can submit up to</span>
-                            <input type="number" name="pending_limit" value="{{ old('pending_limit', $settings['pending_limit']) }}" class="w-20 bg-gray-50 border border-gray-200 text-center text-sm rounded-md focus:ring-red-500 focus:border-red-500 p-2">
+                            <input type="number" name="pending_post_limit" value="{{ old('pending_post_limit', $settings['pending_post_limit']) }}" class="w-20 bg-gray-50 border border-gray-200 text-center text-sm rounded-md focus:ring-red-500 focus:border-red-500 p-2">
                             <span>items per day.</span>
                         </div>
                     </div>
@@ -114,7 +114,7 @@
                         
                         <!-- Toggle Switch -->
                         <label class="relative inline-flex items-center cursor-pointer mt-1">
-                            <input type="checkbox" name="offline_mode" value="1" class="sr-only peer" {{ old('offline_mode', $settings['offline_mode']) == '1' ? 'checked' : '' }}>
+                            <input type="checkbox" name="offline" value="1" class="sr-only peer" {{ old('offline', $settings['offline']) == '1' ? 'checked' : '' }}>
                             <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
                         </label>
                     </div>
@@ -210,7 +210,7 @@
                         </div>
                         <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">MAXIMUM MINI-BLOG LENGTH</label>
                         <div class="flex items-center gap-3 text-sm text-gray-800">
-                            <input type="number" name="max_miniblog_length" value="{{ old('max_miniblog_length', $settings['max_miniblog_length']) }}" class="w-24 bg-gray-50 border border-gray-200 text-sm rounded-md focus:ring-red-500 focus:border-red-500 p-2.5">
+                            <input type="number" name="miniblog_maximum" value="{{ old('miniblog_maximum', $settings['miniblog_maximum']) }}" class="w-24 bg-gray-50 border border-gray-200 text-sm rounded-md focus:ring-red-500 focus:border-red-500 p-2.5">
                             <span class="text-xs text-gray-500">characters</span>
                         </div>
                     </div>
@@ -222,7 +222,7 @@
                             <!-- Signup Checkbox -->
                             <label class="flex items-start gap-3 cursor-pointer group">
                                 <div class="flex items-center h-5 mt-0.5">
-                                    <input type="checkbox" name="recaptcha_signup" value="1" {{ old('recaptcha_signup', $settings['recaptcha_signup']) == '1' ? 'checked' : '' }} class="w-4 h-4 text-blue-500 bg-white border-gray-300 rounded focus:ring-blue-500">
+                                    <input type="checkbox" name="enable_recaptcha_reg" value="1" {{ old('enable_recaptcha_reg', $settings['disable_recaptcha_reg']) == '0' ? 'checked' : '' }} class="w-4 h-4 text-blue-500 bg-white border-gray-300 rounded focus:ring-blue-500">
                                 </div>
                                 <div>
                                     <div class="text-sm font-medium text-gray-800">Enable on Signup</div>
@@ -233,7 +233,7 @@
                             <!-- Login Checkbox -->
                             <label class="flex items-start gap-3 cursor-pointer group">
                                 <div class="flex items-center h-5 mt-0.5">
-                                    <input type="checkbox" name="recaptcha_login" value="1" {{ old('recaptcha_login', $settings['recaptcha_login']) == '1' ? 'checked' : '' }} class="w-4 h-4 text-blue-500 bg-white border-gray-300 rounded focus:ring-blue-500">
+                                    <input type="checkbox" name="enable_recaptcha_login" value="1" {{ old('enable_recaptcha_login', $settings['disable_recaptcha_login']) == '0' ? 'checked' : '' }} class="w-4 h-4 text-blue-500 bg-white border-gray-300 rounded focus:ring-blue-500">
                                 </div>
                                 <div>
                                     <div class="text-sm font-medium text-gray-800">Enable on Login</div>

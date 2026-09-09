@@ -27,49 +27,48 @@
         </div>
 
         <div class="bg-white rounded border border-[#e5e5e5] p-6 shadow-sm mb-10">
-            <div class="flex flex-col md:flex-row gap-8 items-start">
-                
-                <!-- Thumbnail -->
-                <div class="w-full md:w-1/3">
-                    <div class="aspect-video bg-gray-100 rounded-lg border border-gray-200 overflow-hidden relative group">
-                        <!-- Placeholder Image (Abstract/Gradient) -->
-                        <div class="absolute inset-0 bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center">
-                            <i data-lucide="layout" class="w-16 h-16 text-gray-500 opacity-50"></i>
+            <form action="{{ route('admin.themes.update') }}" method="POST">
+                @csrf
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    @foreach($availableThemes as $key => $label)
+                    <!-- Theme Option -->
+                    <label class="relative cursor-pointer group">
+                        <input type="radio" name="theme_color" value="{{ $key }}" class="peer sr-only" {{ $activeTheme === $key ? 'checked' : '' }}>
+                        <div class="h-32 rounded-lg border-2 border-gray-200 group-hover:border-gray-300 peer-checked:border-[#cc0000] peer-checked:ring-1 peer-checked:ring-[#cc0000] flex flex-col items-center justify-center transition-all relative overflow-hidden bg-gray-50 peer-checked:bg-white">
+                            
+                            @if($key === 'red')
+                            <div class="absolute inset-0 bg-red-100 opacity-50"></div>
+                            <div class="w-8 h-8 rounded-full bg-[#cc0000] mb-2 shadow-sm z-10 ring-2 ring-white"></div>
+                            @elseif($key === 'blue')
+                            <div class="absolute inset-0 bg-blue-100 opacity-50"></div>
+                            <div class="w-8 h-8 rounded-full bg-blue-600 mb-2 shadow-sm z-10 ring-2 ring-white"></div>
+                            @elseif($key === 'dark')
+                            <div class="absolute inset-0 bg-gray-900 opacity-90"></div>
+                            <div class="w-8 h-8 rounded-full bg-gray-700 border border-gray-600 mb-2 shadow-sm z-10 ring-2 ring-gray-800"></div>
+                            @endif
+                            
+                            <span class="text-[13px] font-bold z-10 {{ $key === 'dark' ? 'text-white' : 'text-gray-800' }}">{{ $label }}</span>
+                            
+                            <!-- Checkmark for active -->
+                            <div class="absolute top-3 right-3 w-5 h-5 bg-[#cc0000] text-white rounded-full flex items-center justify-center opacity-0 peer-checked:opacity-100 transition-opacity z-10 shadow-sm">
+                                <i data-lucide="check" class="w-3 h-3"></i>
+                            </div>
                         </div>
-                    </div>
+                    </label>
+                    @endforeach
                 </div>
 
-                <!-- Theme Details -->
-                <div class="w-full md:w-2/3 flex flex-col h-full justify-between">
-                    <div>
-                        <div class="flex items-center gap-3 mb-2">
-                            <h3 class="text-xl font-bold text-gray-900">{{ $activeTheme }}</h3>
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-800 border border-green-200 animate-pulse">
-                                ACTIVATED
-                            </span>
-                        </div>
-                        <p class="text-[13px] text-gray-500 mb-6 leading-relaxed">
-                            This is the default system theme built for optimal performance and modern aesthetics. It provides a clean, responsive layout out of the box.
-                        </p>
-                    </div>
-
-                    <div class="flex items-center gap-4">
-                        <a href="{{ route('admin.themes.blocks') }}" class="bg-[#cc0000] hover:bg-[#a00000] text-white text-[11px] font-bold py-2.5 px-6 rounded transition-colors uppercase tracking-wide flex items-center gap-2">
-                            <i data-lucide="layout-template" class="w-3.5 h-3.5"></i>
-                            MANAGE BLOCKS
-                        </a>
-                        <form action="{{ route('admin.themes.update') }}" method="POST" class="inline">
-                            @csrf
-                            <!-- Jika suatu saat ada pilihan tema, ini contoh inputnya -->
-                            <input type="hidden" name="theme" value="System Standard Theme">
-                            <button type="button" class="text-gray-500 hover:text-gray-700 text-[11px] font-bold py-2.5 px-4 rounded border border-gray-200 hover:bg-gray-50 transition-colors uppercase tracking-wide">
-                                THEME SETTINGS
-                            </button>
-                        </form>
-                    </div>
+                <div class="flex items-center gap-4 pt-4 border-t border-gray-100">
+                    <button type="submit" class="bg-[#cc0000] hover:bg-[#a00000] text-white text-[11px] font-bold py-2.5 px-6 rounded transition-colors uppercase tracking-wide flex items-center gap-2">
+                        <i data-lucide="save" class="w-3.5 h-3.5"></i>
+                        SAVE THEME
+                    </button>
+                    <a href="{{ route('admin.themes.blocks') }}" class="text-gray-500 hover:text-gray-700 text-[11px] font-bold py-2.5 px-4 rounded border border-gray-200 hover:bg-gray-50 transition-colors uppercase tracking-wide flex items-center gap-2">
+                        <i data-lucide="layout-template" class="w-3.5 h-3.5"></i>
+                        MANAGE BLOCKS
+                    </a>
                 </div>
-
-            </div>
+            </form>
         </div>
 
     </div>

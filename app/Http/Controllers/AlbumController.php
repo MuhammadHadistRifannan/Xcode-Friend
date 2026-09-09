@@ -34,7 +34,7 @@ class AlbumController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:150',
-            'type' => 'required|in:photos,videos',
+            'type' => 'required|in:photos,video',
         ]);
 
         $album = Album::create([

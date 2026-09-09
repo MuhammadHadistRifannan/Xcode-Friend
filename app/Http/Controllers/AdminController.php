@@ -87,12 +87,7 @@ class AdminController extends Controller
         return view('admin.modules', compact('modules'));
     }
 
-    public function menu()
-    {
-        $community_menu = DB::table('jcow_menu')->where('type', 'community')->orderBy('weight')->get();
-        $personal_menu  = DB::table('jcow_menu')->where('type', 'personal')->orderBy('weight')->get();
-        return view('admin.menu', compact('community_menu', 'personal_menu'));
-    }
+
 
     public function userRoles()
     {
@@ -123,10 +118,27 @@ class AdminController extends Controller
         return view('admin.translate', compact('langs'));
     }
 
-    public function reports()
+    public function reports(Request $request)
     {
-        $reports = Report::with('user')->orderBy('created', 'desc')->paginate(20);
-        return view('admin.reports', compact('reports'));
+        $query = Report::with('user')->orderBy('created', 'desc');
+        
+        if ($request->has('status')) {
+            if ($request->status === 'pending') {
+                $query->where('hasread', 0);
+            } elseif ($request->status === 'resolved') {
+                $query->where('hasread', 1);
+            }
+        }
+        
+        $reports = $query->paginate(20)->withQueryString();
+        
+        $stats = [
+            'total' => Report::count(),
+            'pending' => Report::where('hasread', 0)->count(),
+            'resolved' => Report::where('hasread', 1)->count(),
+        ];
+        
+        return view('admin.reports', compact('reports', 'stats'));
     }
 
     public function reportsResolve($id)
