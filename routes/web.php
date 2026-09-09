@@ -279,7 +279,12 @@ Route::middleware('auth')->group(function () {
 // ==========================================
 // 8. OTHER ROUTES
 // ==========================================
-Route::get('/desain-profil', [ProfileDesignController::class, 'index'])->name('desain-profil.index');
+Route::middleware('auth')->group(function () {
+    Route::get('/desain-profil', [ProfileDesignController::class, 'index'])->name('desain-profil.index');
+    Route::post('/desain-profil', [ProfileDesignController::class, 'save'])->name('desain-profil.save');
+    Route::delete('/desain-profil/background', [ProfileDesignController::class, 'destroyBackground'])->name('desain-profil.destroy-bg');
+});
+
 Route::get('/undang', [InvitationController::class, 'index'])->name('undang.index');
 // ==========================================
 // Captcha & Extra Routes (from Remote)

@@ -18,7 +18,7 @@ class StreamController extends Controller
             'privacy' => 'nullable|in:public,friends,private',
         ]);
 
-        if (empty($request->message) && !$request->hasFile('photos') && empty($request->video_url)) {
+        if (empty($request->message) && !$request->hasFile('photos') && empty($request->video_url) && !$request->hasFile('music_file')) {
             return back()->withErrors(['message' => 'Postingan tidak boleh kosong.']);
         }
 
@@ -38,6 +38,22 @@ class StreamController extends Controller
         $type = 1; // 1 = teks
         $albumId = $request->input('album_id', 0);
         $videoAlbumId = $request->input('video_album_id', 0);
+
+        if ($albumId == 0 && $request->hasFile('photos')) {
+            $defaultPhotoAlbum = \App\Models\Album::firstOrCreate(
+                ['gid' => auth()->id(), 'app' => 'photos', 'name' => 'Timeline Photos'],
+                ['description' => 'Foto dari postingan timeline', 'weight' => 0]
+            );
+            $albumId = $defaultPhotoAlbum->id;
+        }
+
+        if ($videoAlbumId == 0 && !empty($request->video_url)) {
+            $defaultVideoAlbum = \App\Models\Album::firstOrCreate(
+                ['gid' => auth()->id(), 'app' => 'video', 'name' => 'Timeline Videos'],
+                ['description' => 'Video dari postingan timeline', 'weight' => 0]
+            );
+            $videoAlbumId = $defaultVideoAlbum->id;
+        }
 
         if ($request->hasFile('photos')) {
             if ($albumId == 0) {

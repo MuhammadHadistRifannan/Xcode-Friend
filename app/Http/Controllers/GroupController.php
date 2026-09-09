@@ -469,8 +469,8 @@ class GroupController extends Controller
     {
         if ($group->uid !== Auth::id()) abort(403);
 
-        $existingMemberIds = $group->members()->pluck('users.id')->toArray();
-        $pendingMemberIds = $group->pendingMembers()->pluck('users.id')->toArray();
+        $existingMemberIds = $group->members()->pluck('jcow_accounts.id')->toArray();
+        $pendingMemberIds = $group->pendingMembers()->pluck('jcow_accounts.id')->toArray();
         $excludeIds = array_merge([Auth::id()], $existingMemberIds, $pendingMemberIds);
         
         $users = \App\Models\User::whereNotIn('id', $excludeIds)->get();

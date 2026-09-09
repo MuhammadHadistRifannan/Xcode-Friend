@@ -99,6 +99,23 @@ class VideoController extends Controller
                 $albumId = $album?->id;
             }
 
+            if (!$albumId) {
+                $defaultAlbum = AlbumVideo::firstOrCreate(
+                    ['gid' => auth()->id(), 'app' => 'video', 'name' => 'Timeline Videos'],
+                    [
+                        'description' => 'Video default',
+                        'weight'      => 0,
+                        'var1'        => '',
+                        'var2'        => '',
+                        'var3'        => '',
+                        'var4'        => '',
+                        'var5'        => '',
+                        'uri'         => '',
+                    ]
+                );
+                $albumId = $defaultAlbum->id;
+            }
+
             // ── Simpan Video ────────────────────────────────────────────
             // Catatan: jcow_stories memiliki kolom blob1 NOT NULL.
             // Kolom ini digunakan oleh sistem lain; kita isi dengan '' (empty string).

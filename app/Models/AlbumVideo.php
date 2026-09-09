@@ -31,7 +31,7 @@ class AlbumVideo extends Model
     protected static function booted(): void
     {
         static::addGlobalScope('video_app', function ($query) {
-            $query->where('app', 'video');
+            $query->whereIn('app', ['video', 'videos']);
         });
     }
 
@@ -60,7 +60,7 @@ class AlbumVideo extends Model
     public function videos()
     {
         return $this->hasMany(Video::class, 'cid', 'id')
-                    ->where('app', 'video')
+                    ->whereIn('app', ['video', 'videos'])
                     ->orderBy('created', 'asc');
     }
 
@@ -71,7 +71,7 @@ class AlbumVideo extends Model
     public function latestVideo()
     {
         return $this->hasOne(Video::class, 'cid', 'id')
-                    ->where('app', 'video')
+                    ->whereIn('app', ['video', 'videos'])
                     ->orderBy('id', 'desc');
     }
 

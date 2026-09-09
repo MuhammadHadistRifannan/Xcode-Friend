@@ -192,6 +192,21 @@
  </div>
  @endif
 
+    @if($stream->app === 'music' && $stream->attachment)
+    <div class="mb-4 bg-neutral-50 rounded-xl border border-neutral-200 p-4 flex items-center gap-4 shadow-sm">
+        <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center text-red-600 flex-shrink-0">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
+        </div>
+        <div class="flex-1 min-w-0">
+            <h5 class="text-sm font-bold text-neutral-800 truncate mb-2">{{ $stream->message ?: 'Lagu tanpa judul' }}</h5>
+            <audio controls class="w-full h-8 outline-none" preload="none">
+                <source src="{{ asset('storage/music/' . $stream->attachment) }}" type="audio/mpeg">
+                Browser Anda tidak mendukung elemen audio.
+            </audio>
+        </div>
+    </div>
+    @endif
+
  @if($stream->type == 2 && $stream->attachment)
  @php $att = json_decode($stream->attachment, true); @endphp
  @if(isset($att['photos']) && is_array($att['photos']))

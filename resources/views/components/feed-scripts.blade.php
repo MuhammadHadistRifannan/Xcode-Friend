@@ -87,6 +87,8 @@ function switchTab(tabName) {
         activeBtn.classList.remove('text-neutral-500', 'font-medium');
         activeBtn.classList.add('text-red-700', 'font-bold', 'border-red-700', 'border-b-2');
     }
+
+    }
 }
 
 // Inisialisasi tab saat halaman pertama dimuat
@@ -128,8 +130,23 @@ function clearPhotoHome() {
     if(clearBtn) clearBtn.classList.add('hidden');
 }
 
-
-
+function previewMusic(event) {
+    const input = event.target;
+    const nameLabel = document.getElementById('music-file-name');
+    if (input.files && input.files.length > 0) {
+        if (nameLabel) {
+            nameLabel.textContent = input.files[0].name;
+            nameLabel.classList.remove('text-neutral-700');
+            nameLabel.classList.add('text-green-600');
+        }
+    } else {
+        if (nameLabel) {
+            nameLabel.textContent = 'Klik untuk memilih file audio';
+            nameLabel.classList.remove('text-green-600');
+            nameLabel.classList.add('text-neutral-700');
+        }
+    }
+}
 // Function to handle Reply
 function replyTo(streamId, username) {
     const input = document.querySelector('#comment-form-' + streamId + ' input[name="message"]');

@@ -39,8 +39,8 @@
     @endif
 
     <style> body { background-color: #FAFAFA; } </style>
-    
     {!! $headerCode !!}
+    @stack('styles')
 </head>
 <body class="flex flex-col min-h-screen antialiased text-neutral-900">
 
