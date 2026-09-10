@@ -19,8 +19,8 @@ class User extends Authenticatable
     protected $fillable = [
         'username', 'fullname', 'email', 'password', 'gender',
         'birthyear', 'birthmonth', 'birthday', 'country', 'about_me',
-        'created', 'lastlogin', 'ipaddress', 'hide_age', 'roles',
-        'settings', 'avatar', 'disabled', 'level', 'points',
+        'created', 'lastlogin', 'ipaddress', 'hide_age', 'roles', 'disabled',
+        'settings', 'avatar', 'level', 'points',
         'location', 'signature', 'blurbs', 'remember_token'
     ];
 
@@ -32,6 +32,7 @@ class User extends Authenticatable
     {
         return [
             'password' => 'hashed',
+            'disabled' => 'integer',
         ];
     }
 

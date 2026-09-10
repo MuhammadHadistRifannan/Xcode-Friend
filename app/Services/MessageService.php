@@ -2,9 +2,14 @@
 
 namespace App\Services;
 
+use App\Events\MessageSent;
+use App\Events\MessageRead;
+use App\Events\NotificationCreated;
 use App\Repositories\Contracts\MessageRepositoryInterface;
 use App\Repositories\Contracts\NotificationRepositoryInterface;
 use App\Repositories\Contracts\AccountRepositoryInterface;
+use Illuminate\Support\Facades\Broadcast;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class MessageService
@@ -12,7 +17,8 @@ class MessageService
     public function __construct(
         private MessageRepositoryInterface $messageRepo,
         private NotificationRepositoryInterface $notifRepo,
-        private AccountRepositoryInterface $accountRepo
+        private AccountRepositoryInterface $accountRepo,
+        private SpamService $spamService
     ) {}
 
     public function getConversation(int $userId, int $otherId)
@@ -27,7 +33,22 @@ class MessageService
 
     public function send(int $senderId, int $recipientId, ?string $subject, string $message, ?int $replyTo = null): object
     {
-        return DB::transaction(function () use ($senderId, $recipientId, $subject, $message, $replyTo) {
+        $isSpam = $this->spamService->recordThisPosting($senderId, $message);
+        if ($isSpam) {
+            return (object) [
+                'id' => 0,
+                'from_id' => $senderId,
+                'to_id' => $recipientId,
+                'subject' => $subject ?? '',
+                'message' => '',
+                'created' => time(),
+                'hasread' => 0,
+                'reply_to' => $replyTo,
+                'spam_detected' => true,
+            ];
+        }
+
+        $result = DB::transaction(function () use ($senderId, $recipientId, $subject, $message, $replyTo) {
             $now = time();
 
             $messageId = DB::table('jcow_messages')->insertGetId([
@@ -62,6 +83,9 @@ class MessageService
                 ]
             );
 
+            Cache::forget('unread:msg:' . $recipientId);
+            Cache::forget('unread:notif:' . $recipientId);
+
             return (object) [
                 'id' => $messageId,
                 'from_id' => $senderId,
@@ -73,11 +97,36 @@ class MessageService
                 'reply_to' => $replyTo,
             ];
         });
+
+        $sender = $this->accountRepo->findById($senderId);
+        $recipientUnread = $this->messageRepo->countUnread($recipientId);
+        $recipientNotifCount = $this->notifRepo->countUnread($recipientId);
+
+        try {
+            broadcast(new MessageSent($result, $sender, $recipientId, $recipientUnread))->toOthers();
+            broadcast(new NotificationCreated((object)[
+                'id' => 0,
+                'subject' => 'new_message',
+                'message' => "Pesan baru dari {$sender->fullname}",
+                'created' => time(),
+            ], $recipientId, $recipientNotifCount))->toOthers();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Broadcast MessageSent gagal: ' . $e->getMessage());
+        }
+
+        return $result;
     }
 
     public function markConversationAsRead(int $userId, int $otherId): void
     {
         $this->messageRepo->markConversationAsRead($userId, $otherId);
+        Cache::forget('unread:msg:' . $userId);
+
+        try {
+            broadcast(new MessageRead($userId, $otherId))->toOthers();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Broadcast MessageRead gagal: ' . $e->getMessage());
+        }
     }
 
     public function countUnread(int $userId): int

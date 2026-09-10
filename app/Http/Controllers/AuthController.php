@@ -25,30 +25,14 @@ class AuthController extends Controller
         // Tentukan apakah input 'login' itu berupa email atau username
         $fieldType = filter_var($request->login, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
 
-        // Coba lakukan login ke sistem
-        if (Auth::attempt([$fieldType => $request->login, 'password' => $request->password], $remember)) {
-            $user = Auth::user();
-
-            // Cek status blokir / suspend (disabled == 2) atau pending (disabled == 1)
-            if ($user && $user->disabled == 2) {
-                Auth::logout();
-                $request->session()->invalidate();
-                $request->session()->regenerateToken();
-                return back()->withErrors([
-                    'login' => 'Akun Anda telah dinonaktifkan (disuspend) oleh administrator.',
-                ])->onlyInput('login');
-            }
-
-            if ($user && $user->disabled == 1) {
-                Auth::logout();
-                $request->session()->invalidate();
-                $request->session()->regenerateToken();
-                return back()->withErrors([
-                    'login' => 'Akun Anda sedang menunggu persetujuan verifikasi dari administrator.',
-                ])->onlyInput('login');
-            }
-
+        if (Auth::attempt([
+            $fieldType => $request->login,
+            'password' => $request->password,
+            'disabled' => 0,
+        ], $remember)) {
             $request->session()->regenerate();
+
+            $user = Auth::user();
             
             // Update waktu login terakhir
             if ($user) {
