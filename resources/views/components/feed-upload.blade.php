@@ -6,6 +6,23 @@
 <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
     <h3 class="text-xs font-bold text-neutral-800 uppercase border-l-4 border-red-700 pl-2 mb-4">BAGI CEPAT</h3>
 
+    @if(session('success_post'))
+        <div class="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 text-xs font-semibold rounded-xl flex items-center gap-2">
+            <svg class="w-4 h-4 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            {{ session('success_post') }}
+        </div>
+    @endif
+
+    @if($errors->any())
+        <div class="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs font-semibold rounded-xl">
+            <ul class="list-disc list-inside space-y-1">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     <!-- Tabs -->
     <div class="flex space-x-6 mb-4 border-b border-neutral-100 pb-2">
         <button type="button" onclick="switchTab('status')" id="tab-btn-status" class="flex items-center text-xs font-bold text-red-700 pb-2 border-b-2 border-red-700 transition">
@@ -44,7 +61,7 @@
                                 <svg class="w-8 h-8 text-neutral-400 group-hover:text-red-500 mb-2 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
                                 <span class="text-sm font-semibold text-neutral-700 group-hover:text-red-600 transition">Klik untuk memilih foto</span>
                                 <span class="text-[11px] text-neutral-500 mt-1">PNG, JPG, GIF hingga 10MB</span>
-                                <input type="file" name="photos[]" id="photo-input-home" accept="image/*" onchange="previewPhotoHome(event)" class="hidden" multiple>
+                                <input type="file" name="photos[]" id="photo-input-home" accept="image/*" onchange="previewPhotoHome(event)" class="hidden" multiple disabled>
                             </label>
                         </div>
                         <div id="photo-preview-container-home" class="hidden mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
@@ -64,7 +81,7 @@
                         <label class="text-xs font-bold text-neutral-700 block mb-2">Pilih Album</label>
                         <div class="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-3">
                             <div class="relative w-full sm:w-56">
-                                <select name="album_id" id="photo-album-select" class="appearance-none w-full bg-neutral-50 border border-neutral-200 text-neutral-700 text-sm rounded-xl px-4 py-2.5 pr-8 focus:bg-white focus:ring-2 focus:ring-red-500/20 focus:border-red-600 transition shadow-sm cursor-pointer">
+                                <select name="album_id" id="photo-album-select" disabled class="appearance-none w-full bg-neutral-50 border border-neutral-200 text-neutral-700 text-sm rounded-xl px-4 py-2.5 pr-8 focus:bg-white focus:ring-2 focus:ring-red-500/20 focus:border-red-600 transition shadow-sm cursor-pointer">
                                     <option value="0">-- Pilih Album --</option>
                                     @foreach($photoAlbums as $al)
                                         <option value="{{ $al->id }}">{{ $al->name }}</option>
@@ -85,7 +102,7 @@
                     <!-- Deskripsi Foto -->
                     <div>
                         <label class="text-xs font-bold text-neutral-700 block mb-2">Deskripsi Foto</label>
-                        <textarea name="message" rows="4" placeholder="Ceritakan momen di balik foto ini..." class="w-full bg-neutral-50 border border-neutral-200 rounded-2xl px-4 py-3 text-sm text-neutral-700 placeholder-neutral-400 shadow-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition resize-none"></textarea>
+                        <textarea name="message" rows="4" placeholder="Ceritakan momen di balik foto ini..." disabled class="w-full bg-neutral-50 border border-neutral-200 rounded-2xl px-4 py-3 text-sm text-neutral-700 placeholder-neutral-400 shadow-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition resize-none"></textarea>
                     </div>
                 </div>
             </div>
@@ -143,7 +160,7 @@
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <svg class="w-4 h-4 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
                             </div>
-                            <input type="text" name="video_url" placeholder="https://www.youtube.com/watch?v=..." class="w-full bg-neutral-50 border border-neutral-200 text-neutral-700 text-sm rounded-xl pl-10 pr-4 py-2.5 shadow-sm focus:bg-white focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition">
+                            <input type="text" name="video_url" placeholder="https://www.youtube.com/watch?v=..." disabled class="w-full bg-neutral-50 border border-neutral-200 text-neutral-700 text-sm rounded-xl pl-10 pr-4 py-2.5 shadow-sm focus:bg-white focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition">
                         </div>
                     </div>
                     
@@ -151,13 +168,13 @@
                         <!-- Judul Video -->
                         <div>
                             <label class="text-xs font-bold text-neutral-700 block mb-2">Judul Video</label>
-                            <input type="text" name="video_title" placeholder="Ketik judul menarik..." class="w-full bg-neutral-50 border border-neutral-200 text-neutral-700 text-sm rounded-xl px-4 py-2.5 shadow-sm focus:bg-white focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition">
+                            <input type="text" name="video_title" placeholder="Ketik judul menarik..." disabled class="w-full bg-neutral-50 border border-neutral-200 text-neutral-700 text-sm rounded-xl px-4 py-2.5 shadow-sm focus:bg-white focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition">
                         </div>
                         
                         <!-- Tanda (Tags) -->
                         <div>
                             <label class="text-xs font-bold text-neutral-700 block mb-2">Tags (Tanda)</label>
-                            <input type="text" name="video_tags" placeholder="Musik, VLOG, Liburan..." class="w-full bg-neutral-50 border border-neutral-200 text-neutral-700 text-sm rounded-xl px-4 py-2.5 shadow-sm focus:bg-white focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition">
+                            <input type="text" name="video_tags" placeholder="Musik, VLOG, Liburan..." disabled class="w-full bg-neutral-50 border border-neutral-200 text-neutral-700 text-sm rounded-xl px-4 py-2.5 shadow-sm focus:bg-white focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition">
                         </div>
                     </div>
                     
@@ -166,7 +183,7 @@
                         <label class="text-xs font-bold text-neutral-700 block mb-2">Pilih Album Video</label>
                         <div class="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-3">
                             <div class="relative w-full sm:w-56">
-                                <select name="video_album_id" id="video-album-select" class="appearance-none w-full bg-neutral-50 border border-neutral-200 text-neutral-700 text-sm rounded-xl px-4 py-2.5 pr-8 focus:bg-white focus:ring-2 focus:ring-red-500/20 focus:border-red-600 transition shadow-sm cursor-pointer">
+                                <select name="video_album_id" id="video-album-select" disabled class="appearance-none w-full bg-neutral-50 border border-neutral-200 text-neutral-700 text-sm rounded-xl px-4 py-2.5 pr-8 focus:bg-white focus:ring-2 focus:ring-red-500/20 focus:border-red-600 transition shadow-sm cursor-pointer">
                                     <option value="0">-- Pilih Album --</option>
                                     @foreach($videoAlbums as $al)
                                         <option value="{{ $al->id }}">{{ $al->name }}</option>
@@ -187,7 +204,7 @@
                     <!-- Deskripsi Video -->
                     <div>
                         <label class="text-xs font-bold text-neutral-700 block mb-2">Deskripsi Singkat</label>
-                        <textarea name="video_desc" rows="4" placeholder="Ceritakan sedikit tentang video ini..." class="w-full bg-neutral-50 border border-neutral-200 rounded-2xl px-4 py-3 text-sm text-neutral-700 placeholder-neutral-400 shadow-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition resize-none"></textarea>
+                        <textarea name="video_desc" rows="4" placeholder="Ceritakan sedikit tentang video ini..." disabled class="w-full bg-neutral-50 border border-neutral-200 rounded-2xl px-4 py-3 text-sm text-neutral-700 placeholder-neutral-400 shadow-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition resize-none"></textarea>
                     </div>
                 </div>
             </div>

@@ -87,9 +87,8 @@ function switchTab(tabName) {
         activeBtn.classList.remove('text-neutral-500', 'font-medium');
         activeBtn.classList.add('text-red-700', 'font-bold', 'border-red-700', 'border-b-2');
     }
-
-    }
 }
+window.switchTab = switchTab;
 
 // Inisialisasi tab saat halaman pertama dimuat
 document.addEventListener('DOMContentLoaded', function() {
@@ -118,6 +117,8 @@ function previewPhotoHome(event) {
         });
     }
 }
+window.previewPhotoHome = previewPhotoHome;
+
 function clearPhotoHome() {
     const input = document.getElementById('photo-input-home');
     if(input) input.value = '';
@@ -129,6 +130,7 @@ function clearPhotoHome() {
     const clearBtn = document.getElementById('btn-clear-photo');
     if(clearBtn) clearBtn.classList.add('hidden');
 }
+window.clearPhotoHome = clearPhotoHome;
 
 function previewMusic(event) {
     const input = event.target;

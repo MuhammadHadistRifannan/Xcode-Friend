@@ -25,3 +25,10 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Temporary scratch, tests, and SQL dumps
+*.sql
+test_*.php
+seed_*.php
+replace_avatars.*
+/scratch/

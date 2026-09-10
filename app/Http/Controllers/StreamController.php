@@ -9,7 +9,8 @@ class StreamController extends Controller
 {
     public function store(Request $request)
     {
-        $maxLength = \App\Helpers\SettingHelper::get('max_miniblog_length', 5000);
+        $maxLength = (int) \App\Helpers\SettingHelper::get('miniblog_maximum', \App\Helpers\SettingHelper::get('max_miniblog_length', 5000));
+        if ($maxLength <= 0) $maxLength = 5000;
         $request->validate([
             'message' => 'nullable|string|max:' . $maxLength,
             'photos.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
@@ -163,7 +164,8 @@ class StreamController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $maxLength = \App\Helpers\SettingHelper::get('max_miniblog_length', 5000);
+        $maxLength = (int) \App\Helpers\SettingHelper::get('miniblog_maximum', \App\Helpers\SettingHelper::get('max_miniblog_length', 5000));
+        if ($maxLength <= 0) $maxLength = 5000;
         $request->validate([
             'message' => 'nullable|string|max:' . $maxLength,
         ]);

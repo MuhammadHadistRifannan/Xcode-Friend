@@ -200,6 +200,7 @@ class VideoController extends Controller
     public function editAlbum($id)
     {
         $album = AlbumVideo::findOrFail($id);
+        abort_if($album->gid != auth()->id(), 403, 'Anda tidak memiliki izin untuk mengedit album ini.');
 
         // Tentukan video sampul saat ini
         $coverVideo = null;
@@ -237,6 +238,7 @@ class VideoController extends Controller
             ]);
 
             $album = AlbumVideo::findOrFail($id);
+            abort_if($album->gid != auth()->id(), 403, 'Anda tidak memiliki izin untuk memperbarui album ini.');
 
             $updateData = [
                 'name'        => $request->name,
@@ -274,6 +276,8 @@ class VideoController extends Controller
     {
         try {
             $album = AlbumVideo::findOrFail($id);
+            abort_if($album->gid != auth()->id(), 403, 'Anda tidak memiliki izin untuk menghapus album ini.');
+
             $albumName = $album->name;
 
             // Hapus semua video di album ini
@@ -301,8 +305,10 @@ class VideoController extends Controller
             $video = Video::findOrFail($id);
             $albumId = $video->cid;
 
-            // Jika video ini adalah sampul album (var1), clear var1
             $album = AlbumVideo::find($albumId);
+            abort_if(!$album || $album->gid != auth()->id(), 403, 'Anda tidak memiliki izin untuk menghapus video ini.');
+
+            // Jika video ini adalah sampul album (var1), clear var1
             if ($album && (string) $album->var1 === (string) $id) {
                 $album->update(['var1' => '']);
             }

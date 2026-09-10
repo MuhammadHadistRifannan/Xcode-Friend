@@ -27,9 +27,28 @@ class AuthController extends Controller
 
         // Coba lakukan login ke sistem
         if (Auth::attempt([$fieldType => $request->login, 'password' => $request->password], $remember)) {
-            $request->session()->regenerate();
-
             $user = Auth::user();
+
+            // Cek status blokir / suspend (disabled == 2) atau pending (disabled == 1)
+            if ($user && $user->disabled == 2) {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+                return back()->withErrors([
+                    'login' => 'Akun Anda telah dinonaktifkan (disuspend) oleh administrator.',
+                ])->onlyInput('login');
+            }
+
+            if ($user && $user->disabled == 1) {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+                return back()->withErrors([
+                    'login' => 'Akun Anda sedang menunggu persetujuan verifikasi dari administrator.',
+                ])->onlyInput('login');
+            }
+
+            $request->session()->regenerate();
             
             // Update waktu login terakhir
             if ($user) {
@@ -61,8 +80,9 @@ class AuthController extends Controller
     // =====================================
     public function store(Request $request)
     {
-        // Validasi Visual CAPTCHA
-        if (!\App\Http\Controllers\CaptchaController::verify($request->captcha_answer ?? '')) {
+        // Validasi Visual CAPTCHA jika diaktifkan di konfigurasi admin
+        $disableCaptcha = \App\Helpers\SettingHelper::get('disable_recaptcha_reg', '0') == '1';
+        if (!$disableCaptcha && !\App\Http\Controllers\CaptchaController::verify($request->captcha_answer ?? '')) {
             return back()->withErrors(['captcha_answer' => 'Kode verifikasi captcha salah. Silakan coba lagi.'])->withInput();
         }
 
@@ -98,6 +118,10 @@ class AuthController extends Controller
             'fav_film'     => $request->fav_film ?? '',
         ]);
 
+        // Cek mode verifikasi akun (acc_verify: 0 = Auto, 1 = Email, 2 = Admin Approval)
+        $accVerify = \App\Helpers\SettingHelper::get('acc_verify', '1');
+        $disabledStatus = ($accVerify == '2') ? 1 : 0;
+
         // Simpan data User ke database
         User::create([
             'email'      => $validated['email'],
@@ -119,11 +143,25 @@ class AuthController extends Controller
             'ipaddress'   => $request->ip(),
             'points'      => 0, 'avatar' => '', 'roles' => '', 'jcowsess' => '', 'token' => '',
             'signature'   => '', 'blurbs' => '', 'location' => '', 'chpass' => '',
-            'disabled'    => 0, 'intr' => '', 'reg_code' => '', 'forum_posts' => 0,
+            'disabled'    => $disabledStatus, 'intr' => '', 'reg_code' => '', 'forum_posts' => 0,
             'featured'    => 0, 'locale' => '', 'state' => '', 'wall_id' => 0, 'followers' => 0,
             'var1'        => '', 'var2' => '', 'var3' => '', 'var4' => '',
             'var5'        => '', 'var6' => '', 'var7' => '', 'pass' => '', 'hide_me' => 0,
         ]);
+
+        // Jika pendaftar menggunakan link undangan / referral
+        if ($request->filled('ref')) {
+            $referrer = User::where('username', $request->ref)->first();
+            if ($referrer) {
+                \App\Models\Invite::where('uid', $referrer->id)
+                    ->where('email', $validated['email'])
+                    ->update(['status' => 1]);
+            }
+        }
+
+        if ($disabledStatus === 1) {
+            return redirect('/login')->with('success', 'Registrasi berhasil! Akun Anda sedang menunggu persetujuan verifikasi dari administrator sebelum dapat digunakan.');
+        }
 
         return redirect('/login')->with('success', 'Registrasi berhasil! Silakan masuk menggunakan akun baru Anda.');
     }

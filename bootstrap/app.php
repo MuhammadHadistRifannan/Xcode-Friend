@@ -13,6 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->append(\App\Http\Middleware\CheckOfflineMode::class);
+        $middleware->append(\App\Http\Middleware\CheckPrivateNetwork::class);
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'is_admin' => \App\Http\Middleware\IsAdmin::class,

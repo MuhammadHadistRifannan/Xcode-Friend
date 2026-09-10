@@ -19,7 +19,9 @@ class User extends Authenticatable
     protected $fillable = [
         'username', 'fullname', 'email', 'password', 'gender',
         'birthyear', 'birthmonth', 'birthday', 'country', 'about_me',
-        'created', 'lastlogin', 'ipaddress', 'hide_age', 'roles'
+        'created', 'lastlogin', 'ipaddress', 'hide_age', 'roles',
+        'settings', 'avatar', 'disabled', 'level', 'points',
+        'location', 'signature', 'blurbs', 'remember_token'
     ];
 
     protected $hidden = [
@@ -31,6 +33,13 @@ class User extends Authenticatable
         return [
             'password' => 'hashed',
         ];
+    }
+
+    public function getSettingsArrayAttribute(): array
+    {
+        if (empty($this->settings)) return [];
+        $decoded = json_decode($this->settings, true);
+        return is_array($decoded) ? $decoded : [];
     }
 
 

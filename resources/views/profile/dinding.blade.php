@@ -1059,62 +1059,6 @@
     </div>
 </div>
 
-<script>
-function switchTab(tabName) {
-    const tabs = ['status', 'unggah', 'video'];
-    
-    tabs.forEach(t => {
-        const content = document.getElementById('tab-content-' + t);
-        if(content) {
-            content.classList.add('hidden');
-            const inputs = content.querySelectorAll('input, textarea, select');
-            inputs.forEach(input => input.disabled = true);
-        }
-
-        const btn = document.getElementById('tab-btn-' + t);
-        if(btn) {
-            btn.classList.remove('text-red-700', 'font-bold', 'border-red-700', 'border-b-2');
-            btn.classList.add('text-neutral-500', 'font-medium');
-        }
-    });
-
-    const activeContent = document.getElementById('tab-content-' + tabName);
-    if(activeContent) {
-        activeContent.classList.remove('hidden');
-        const activeInputs = activeContent.querySelectorAll('input, textarea, select');
-        activeInputs.forEach(input => input.disabled = false);
-    }
-
-    const activeBtn = document.getElementById('tab-btn-' + tabName);
-    if(activeBtn) {
-        activeBtn.classList.remove('text-neutral-500', 'font-medium');
-        activeBtn.classList.add('text-red-700', 'font-bold', 'border-red-700', 'border-b-2');
-    }
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    switchTab('status');
-});
-
-
-
-
-
-// Function to handle Reply
-function replyTo(streamId, username) {
-    // Show comment form if hidden
-    const commentForm = document.getElementById('comment-form-' + streamId);
-    if(commentForm && commentForm.classList.contains('hidden')) {
-        commentForm.classList.remove('hidden');
-    }
-    const input = document.getElementById('comment-input-' + streamId);
-    input.value = '@' + username + ' ';
-    input.focus();
-}
-
-
-
-</script>
 
 @include('components.lightbox')
 
