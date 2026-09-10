@@ -8,18 +8,12 @@ class SpamService
 {
     private const SPAM_THRESHOLD = 5;
     private const TIME_WINDOW = 60;
-    private const MIN_MESSAGE_LENGTH = 2;
     private const MAX_LINKS = 5;
 
     public function recordThisPosting(int $userId, string $message): bool
     {
         $isSpam = false;
         $reasons = [];
-
-        if (mb_strlen($message) < self::MIN_MESSAGE_LENGTH) {
-            $isSpam = true;
-            $reasons[] = 'message_too_short';
-        }
 
         $linkCount = preg_match_all('/https?:\/\//', $message);
         if ($linkCount > self::MAX_LINKS) {
@@ -37,11 +31,6 @@ class SpamService
             }
         }
 
-        if ($this->isDuplicateMessage($userId, $message)) {
-            $isSpam = true;
-            $reasons[] = 'duplicate_message';
-        }
-
         if ($isSpam) {
             $this->logSpam($userId, $message, $reasons);
             $this->checkAndBanUser($userId);
@@ -54,29 +43,14 @@ class SpamService
     private function getBannedWords(): array
     {
         $result = DB::table('jcow_gvars')
-            ->where('gvar', 'spam_banned_words')
+            ->where('gkey', 'spam_banned_words')
             ->first();
 
-        if ($result && $result->value) {
-            return json_decode($result->value, true) ?? [];
+        if ($result && $result->gvalue) {
+            return json_decode($result->gvalue, true) ?? [];
         }
 
         return [];
-    }
-
-    private function isDuplicateMessage(int $userId, string $message): bool
-    {
-        $recentMessage = DB::table('jcow_messages_sent')
-            ->where('from_id', $userId)
-            ->where('created', '>=', time() - self::TIME_WINDOW)
-            ->orderBy('created', 'desc')
-            ->first();
-
-        if ($recentMessage && trim($recentMessage->message) === trim($message)) {
-            return true;
-        }
-
-        return false;
     }
 
     private function logSpam(int $userId, string $message, array $reasons): void

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\MessageService;
 use App\Services\FriendService;
+use App\Services\UnreadCounter;
 use App\Http\Requests\SendMessageRequest;
 use App\Http\Traits\NoCache;
 use App\Repositories\Contracts\AccountRepositoryInterface;
@@ -19,7 +20,8 @@ class MessageController extends Controller
         private MessageService $messageService,
         private FriendService $friendService,
         private AccountRepositoryInterface $accountRepo,
-        private BlockRepositoryInterface $blockRepo
+        private BlockRepositoryInterface $blockRepo,
+        private UnreadCounter $unreadCounter
     ) {}
 
     public function index(Request $request): mixed
@@ -126,11 +128,14 @@ class MessageController extends Controller
                 );
             }
 
+            $this->messageService->markConversationAsRead($currentUserId, $userId);
+
             $messages = $this->messageService->getConversation($currentUserId, $userId);
 
             return response()->view('messages.conversation', compact('messages', 'otherUser'))
                 ->header('Cache-Control', 'private, max-age=30');
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('conversation() error: ' . $e->getMessage() . ' @ ' . $e->getFile() . ':' . $e->getLine());
             return $this->noCache(
                 redirect()->route('messages.index')->with('error', 'Gagal memuat percakapan.')
             );
@@ -155,7 +160,7 @@ class MessageController extends Controller
             foreach ($messages as $msg) {
                 $isMine = $msg->from_id == $currentUserId;
                 $time = \Carbon\Carbon::createFromTimestamp($msg->created)->format('H:i');
-                $readCheck = ($isMine && $msg->hasread) ? '<span class="text-[10px] text-[#b71c1c]">&#10003;&#10003;</span>' : '';
+                $readCheck = ($isMine && $msg->hasread) ? '<span class="read-check text-[10px] text-[#b71c1c]">&#10003;&#10003;</span>' : '';
                 $replyBlock = '';
                 if ($msg->reply_to && $msg->replied_message) {
                     $replySenderClass = $isMine ? 'text-white/90' : 'text-[#b71c1c]';
@@ -195,6 +200,64 @@ class MessageController extends Controller
         }
     }
 
+    public function markAsRead(int $userId): mixed
+    {
+        try {
+            $currentUserId = Auth::id();
+            $this->messageService->markConversationAsRead($currentUserId, $userId);
+            return response()->json(['status' => 'ok']);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'error'], 500);
+        }
+    }
+
+    public function onlineStatus(int $userId): mixed
+    {
+        try {
+            $user = $this->accountRepo->findById($userId);
+
+            if (!$user) {
+                return response()->json(['online' => false, 'text' => 'Offline']);
+            }
+
+            $lastSeenValue = (int) ($user->last_seen ?? 0);
+            $lastLoginValue = (int) ($user->lastlogin ?? 0);
+            $effectiveLastSeen = $lastSeenValue > 0 ? $lastSeenValue : $lastLoginValue;
+            $isOnline = $effectiveLastSeen > 0 && (time() - $effectiveLastSeen) < 300;
+
+            $text = $isOnline
+                ? 'Online'
+                : ($effectiveLastSeen > 0
+                    ? 'Terakhir online ' . \Carbon\Carbon::createFromTimestamp($effectiveLastSeen)->diffForHumans()
+                    : 'Offline');
+
+            return response()->json([
+                'online' => $isOnline,
+                'text' => $text,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['online' => false, 'text' => 'Offline']);
+        }
+    }
+
+    public function updatePresence(Request $request): mixed
+    {
+        try {
+            $userId = Auth::id();
+            $status = $request->input('status', 'online');
+
+            if ($status === 'offline') {
+                $this->accountRepo->updateLastSeen($userId, time() - 600);
+            } else {
+                $this->accountRepo->updateLastSeen($userId, time());
+            }
+
+            return response()->json(['status' => 'ok']);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'error'], 500);
+        }
+    }
+
     public function destroy(int $id): mixed
     {
         try {
@@ -217,6 +280,34 @@ class MessageController extends Controller
             return $this->noCache(
                 redirect()->back()->with('error', 'Gagal menghapus pesan.')
             );
+        }
+    }
+
+    public function unreadCount(): mixed
+    {
+        try {
+            $userId = Auth::id();
+            $count = $this->unreadCounter->messageCount($userId);
+
+            return response()->json(['count' => $count]);
+        } catch (\Exception $e) {
+            return response()->json(['count' => 0]);
+        }
+    }
+
+    public function unreadCounts(Request $request): mixed
+    {
+        try {
+            $userId = Auth::id();
+            $ids = array_filter(array_map('intval', explode(',', $request->query('user_ids', ''))));
+
+            if (empty($ids)) {
+                return response()->json([]);
+            }
+
+            return response()->json($this->unreadCounter->messageCountByConversation($userId, $ids));
+        } catch (\Exception $e) {
+            return response()->json([]);
         }
     }
 

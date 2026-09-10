@@ -62,6 +62,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/messages', [App\Http\Controllers\MessageController::class, 'store'])->middleware('throttle:10,1')->name('messages.store');
     Route::delete('/messages/{id}', [App\Http\Controllers\MessageController::class, 'destroy'])->name('messages.destroy');
     Route::post('/messages/bulk-delete', [App\Http\Controllers\MessageController::class, 'bulkDelete'])->middleware('throttle:5,1')->name('messages.bulkDelete');
+    Route::get('/messages/unread-count', [App\Http\Controllers\MessageController::class, 'unreadCount'])->middleware('throttle:1000,1')->name('messages.unreadCount');
+    Route::get('/messages/unread-counts', [App\Http\Controllers\MessageController::class, 'unreadCounts'])->middleware('throttle:1000,1')->name('messages.unreadCounts');
+    Route::post('/messages/mark-read/{userId}', [App\Http\Controllers\MessageController::class, 'markAsRead'])->middleware('throttle:120,1')->name('messages.markAsRead');
+    Route::get('/messages/online-status/{userId}', [App\Http\Controllers\MessageController::class, 'onlineStatus'])->name('messages.onlineStatus');
+    Route::post('/presence', [App\Http\Controllers\MessageController::class, 'updatePresence'])->middleware('throttle:120,1')->name('presence.update');
     Route::post('/messages/delete-for-everyone/{id}', [App\Http\Controllers\MessageController::class, 'deleteForEveryone'])->name('messages.deleteForEveryone');
 
     // Friends
@@ -83,7 +88,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/notifications/{id}/read', [App\Http\Controllers\NotificationController::class, 'markRead'])->middleware('throttle:30,1')->name('notifications.markRead');
     Route::post('/notifications/read-all', [App\Http\Controllers\NotificationController::class, 'markAllRead'])->middleware('throttle:10,1')->name('notifications.markAllRead');
     Route::delete('/notifications/{id}', [App\Http\Controllers\NotificationController::class, 'destroy'])->name('notifications.destroy');
-    Route::get('/notifications/unread-count', [App\Http\Controllers\NotificationController::class, 'unreadCount'])->middleware('throttle:60,1')->name('notifications.unreadCount');
+    Route::get('/notifications/unread-count', [App\Http\Controllers\NotificationController::class, 'unreadCount'])->middleware('throttle:1000,1')->name('notifications.unreadCount');
 
     // Telusur (Browse Members)
     Route::get('/telusur', [App\Http\Controllers\TelusurController::class, 'index'])->name('telusur.index');

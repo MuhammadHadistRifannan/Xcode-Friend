@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\NotificationService;
+use App\Services\UnreadCounter;
 use App\Repositories\Contracts\AccountRepositoryInterface;
 use App\Http\Traits\NoCache;
 use Illuminate\Support\Facades\Auth;
@@ -13,7 +14,8 @@ class NotificationController extends Controller
 
     public function __construct(
         private NotificationService $notifService,
-        private AccountRepositoryInterface $accountRepo
+        private AccountRepositoryInterface $accountRepo,
+        private UnreadCounter $unreadCounter
     ) {}
 
     public function index(): mixed
@@ -107,7 +109,7 @@ class NotificationController extends Controller
     {
         try {
             $userId = Auth::id();
-            $count = $this->notifService->countUnread($userId);
+            $count = $this->unreadCounter->notificationCount($userId);
 
             return response()->json(['count' => $count]);
         } catch (\Exception $e) {
