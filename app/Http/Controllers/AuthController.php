@@ -26,7 +26,11 @@ class AuthController extends Controller
         $fieldType = filter_var($request->login, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
 
         // Coba lakukan login ke sistem
-        if (Auth::attempt([$fieldType => $request->login, 'password' => $request->password], $remember)) {
+        if (Auth::attempt([
+            $fieldType => $request->login,
+            'password' => $request->password,
+            'disabled' => 0,
+        ], $remember)) {
             $request->session()->regenerate();
 
             $user = Auth::user();

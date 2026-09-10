@@ -21,7 +21,11 @@ class AdminController extends Controller
             'password' => 'required',
         ]);
 
-        $credentials = $request->only('email', 'password');
+        $credentials = [
+            'email' => $request->email,
+            'password' => $request->password,
+            'disabled' => 0,
+        ];
 
         if (\Illuminate\Support\Facades\Auth::attempt($credentials)) {
             $user = \Illuminate\Support\Facades\Auth::user();

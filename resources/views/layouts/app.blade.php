@@ -60,6 +60,62 @@
             lucide.createIcons();
         }
     </script>
+
+    @auth
+    <script src="https://cdn.jsdelivr.net/npm/pusher-js@7/dist/web/pusher.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1/dist/echo.iife.js"></script>
+    <script>
+        window.Echo = new Echo({
+            broadcaster: 'pusher',
+            key: '{{ config("broadcasting.connections.reverb.key") }}',
+            wsHost: '{{ config("broadcasting.connections.reverb.options.host", "127.0.0.1") }}',
+            wsPort: {{ config("broadcasting.connections.reverb.options.port", 8080) }},
+            wssPort: {{ config("broadcasting.connections.reverb.options.port", 8080) }},
+            forceTLS: false,
+            enabledTransports: ['ws', 'wss'],
+        });
+
+        // ==== Realtime online presence (WebSocket) ====
+        window.onlineUsers = {};
+
+        function applyPresence(users) {
+            users.forEach(function(u) {
+                window.onlineUsers[u.id] = u;
+            });
+        }
+
+        window.Echo.join('online')
+            .here(function(users) {
+                window.onlineUsers = {};
+                applyPresence(users);
+                window.dispatchEvent(new CustomEvent('online-update', { detail: { id: null, online: false } }));
+            })
+            .joining(function(user) {
+                window.onlineUsers[user.id] = user;
+                window.dispatchEvent(new CustomEvent('online-update', { detail: { id: user.id, online: true } }));
+            })
+            .leaving(function(user) {
+                delete window.onlineUsers[user.id];
+                window.dispatchEvent(new CustomEvent('online-update', { detail: { id: user.id, online: false } }));
+            });
+
+        // ==== Update last_seen on connect (server-side presence marker) ====
+        window.Echo.connector.pusher.connection.bind('connected', function() {
+            navigator.sendBeacon('{{ route("presence.update") }}', new URLSearchParams({
+                status: 'online',
+                _token: '{{ csrf_token() }}'
+            }).toString());
+        });
+
+        window.addEventListener('pagehide', function() {
+            navigator.sendBeacon('{{ route("presence.update") }}', new URLSearchParams({
+                status: 'offline',
+                _token: '{{ csrf_token() }}'
+            }).toString());
+        });
+    </script>
+    @endauth
+
     @stack('scripts')
     
     {!! $footerCode !!}

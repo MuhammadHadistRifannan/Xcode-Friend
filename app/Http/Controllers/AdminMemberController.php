@@ -89,8 +89,13 @@ class AdminMemberController extends Controller
     public function banMember($id)
     {
         $user = User::findOrFail($id);
-        // Toggle: active(0) -> suspended(2), suspended(2) -> active(0)
-        $user->disabled = ($user->disabled == 0) ? 2 : 0;
+
+        if ((int) $user->disabled === 1) {
+            return back()->with('error', 'Akun pending harus diubah melalui pilihan status.');
+        }
+
+        // Toggle only between active and suspended; pending is a separate state.
+        $user->disabled = ((int) $user->disabled === 0) ? 2 : 0;
         $user->save();
 
         $status = ($user->disabled == 2) ? 'disuspend' : 'diaktifkan kembali';

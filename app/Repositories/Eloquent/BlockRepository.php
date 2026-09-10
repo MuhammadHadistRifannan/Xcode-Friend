@@ -49,12 +49,24 @@ class BlockRepository implements BlockRepositoryInterface
                 })
                 ->delete();
 
-            DB::table('jcow_followers')
+            $followersRemoved = DB::table('jcow_followers')
                 ->where(function ($q) use ($userId, $targetId) {
                     $q->where('uid', $userId)->where('fid', $targetId)
                         ->orWhere('uid', $targetId)->where('fid', $userId);
                 })
                 ->delete();
+
+            if ($followersRemoved) {
+                DB::table('jcow_accounts')
+                    ->where('id', $userId)
+                    ->where('followers', '>', 0)
+                    ->decrement('followers', $followersRemoved);
+
+                DB::table('jcow_accounts')
+                    ->where('id', $targetId)
+                    ->where('followers', '>', 0)
+                    ->decrement('followers', $followersRemoved);
+            }
 
             DB::table('jcow_friend_reqs')
                 ->where(function ($q) use ($userId, $targetId) {
