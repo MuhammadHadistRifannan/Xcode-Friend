@@ -129,4 +129,12 @@ class FriendController extends Controller
             return redirect()->back()->with('error', $e->getMessage());
         }
     }
+
+    public function blacklist(): mixed
+    {
+        $userId = Auth::id();
+        $blockedUsers = $this->friendService->getBlockedUsers($userId);
+
+        return view('friends.blacklist', compact('blockedUsers'));
+    }
 }

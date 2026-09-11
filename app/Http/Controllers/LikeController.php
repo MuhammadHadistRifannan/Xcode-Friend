@@ -8,8 +8,9 @@ use App\Models\Stream;
 
 class LikeController extends Controller
 {
-    public function toggle(Request $request, $streamId)
+    public function toggle(Request $request, $streamId = null)
     {
+        $streamId = $streamId ?? $request->route('stream') ?? $request->route('id');
         $userId = auth()->id();
         $stream = Stream::findOrFail($streamId);
 

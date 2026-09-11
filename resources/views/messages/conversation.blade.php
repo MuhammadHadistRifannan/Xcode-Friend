@@ -23,26 +23,30 @@
                     {{ substr($otherUser->fullname ?? 'U', 0, 1) }}
                 </div>
                 <div>
-                    <h1 class="text-lg font-bold text-gray-900">{{ $otherUser->fullname ?? 'Unknown' }}</h1>
                     @php
                         $lastSeenValue = $otherUser->last_seen ?? 0;
                         $lastLoginValue = $otherUser->lastlogin ?? 0;
                         $effectiveLastSeen = $lastSeenValue > 0 ? $lastSeenValue : $lastLoginValue;
                         $isOnline = $effectiveLastSeen > 0 && (time() - $effectiveLastSeen) < 300;
                     @endphp
+                    <h1 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                        {{ $otherUser->fullname ?? 'Unknown' }}
+                        <span id="statusDot" class="inline-block w-2.5 h-2.5 rounded-full {{ $isOnline ? 'bg-green-500' : 'bg-gray-400' }}"></span>
+                    </h1>
                     @if($isOnline)
-                        <p class="text-xs text-green-500 font-medium">Online</p>
+                        <p id="onlineStatus" class="text-xs text-green-500 font-medium">Online</p>
                     @elseif($effectiveLastSeen > 0)
-                        <p class="text-xs text-gray-500">Terakhir online {{ \Carbon\Carbon::createFromTimestamp($effectiveLastSeen)->diffForHumans() }}</p>
+                        <p id="onlineStatus" class="text-xs text-gray-500">Terakhir online {{ \Carbon\Carbon::createFromTimestamp($effectiveLastSeen)->diffForHumans() }}</p>
                     @else
-                        <p class="text-xs text-gray-500">Offline</p>
+                        <p id="onlineStatus" class="text-xs text-gray-500">Offline</p>
                     @endif
                 </div>
             </div>
         </div>
 
         <!-- Chat Container -->
-        <div class="bg-[#f6f3f3] rounded-[24px] flex flex-col min-h-[400px] h-[650px] shadow-sm overflow-hidden border border-gray-200">
+        <div class="bg-[#f6f3f3] rounded-[24px] flex flex-col min-h-[400px] h-[650px] shadow-sm overflow-hidden border border-gray-200"
+             style="background-image: url('{{ asset('assets/img/background-chat.png') }}'); background-size: cover; background-position: center; background-repeat: no-repeat;">
 
             <!-- Messages Area -->
             <div class="flex-grow p-4 overflow-y-auto" id="chatContainer">
@@ -72,7 +76,7 @@
                                     {{ \Carbon\Carbon::createFromTimestamp($msg->created)->format('H:i') }}
                                 </p>
                                 @if($isMine && $msg->hasread)
-                                    <span class="text-[10px] text-[#b71c1c]">✓✓</span>
+                                    <span class="read-check text-[10px] text-[#b71c1c]">&#10003;&#10003;</span>
                                 @endif
                             </div>
                         </div>
@@ -144,39 +148,151 @@
 
 @push('scripts')
 <script>
-    const container = document.getElementById('chatContainer');
-    const contextMenu = document.getElementById('contextMenu');
-    const messageInput = document.getElementById('messageInput');
-    const replyPreview = document.getElementById('replyPreview');
-    const replySender = document.getElementById('replySender');
-    const replyText = document.getElementById('replyText');
-    const replyToInput = document.getElementById('replyToInput');
-    let selectedMsg = { id: null, from: null, message: '' };
-    let lastMessageCount = {{ count($messages) }};
-    const pollUrl = '{{ route("messages.poll", $otherUser->id) }}';
+    var container = document.getElementById('chatContainer');
+    var contextMenu = document.getElementById('contextMenu');
+    var messageInput = document.getElementById('messageInput');
+    var replyPreview = document.getElementById('replyPreview');
+    var replySender = document.getElementById('replySender');
+    var replyText = document.getElementById('replyText');
+    var replyToInput = document.getElementById('replyToInput');
+    var selectedMsg = { id: null, from: null, message: '' };
+    var currentUserId = {{ Auth::id() }};
+    var otherUserId = {{ $otherUser->id }};
+
+    // ==== Online Status via AJAX ====
+    var onlineStatusEl = document.getElementById('onlineStatus');
+    var statusDotEl = document.getElementById('statusDot');
+
+    function setOnlineStatus(online, text) {
+        if (!onlineStatusEl) return;
+        onlineStatusEl.textContent = text;
+        if (online) {
+            onlineStatusEl.classList.remove('text-gray-500');
+            onlineStatusEl.classList.add('text-green-500', 'font-medium');
+            if (statusDotEl) {
+                statusDotEl.classList.remove('bg-gray-400');
+                statusDotEl.classList.add('bg-green-500');
+            }
+        } else {
+            onlineStatusEl.classList.remove('text-green-500', 'font-medium');
+            onlineStatusEl.classList.add('text-gray-500');
+            if (statusDotEl) {
+                statusDotEl.classList.remove('bg-green-500');
+                statusDotEl.classList.add('bg-gray-400');
+            }
+        }
+    }
+
+    // ==== Realtime online status via WebSocket presence ====
+    function refreshOnlineStatus() {
+        if (!onlineStatusEl) return;
+        var isOnline = window.onlineUsers && window.onlineUsers[otherUserId] !== undefined;
+        setOnlineStatus(isOnline, isOnline ? 'Online' : 'Terakhir online beberapa saat lalu');
+    }
+
+    refreshOnlineStatus();
+    window.addEventListener('online-update', function(e) {
+        if (e.detail.id === null || e.detail.id == otherUserId) {
+            refreshOnlineStatus();
+        }
+    });
 
     if (container) {
         container.scrollTop = container.scrollHeight;
     }
 
-    function pollMessages() {
-        fetch(pollUrl, {
-            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (!data.html) return;
-            const wasAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 50;
-            container.innerHTML = data.html;
-            lastMessageCount = container.querySelectorAll('.chat-bubble').length;
-            if (wasAtBottom) {
-                container.scrollTop = container.scrollHeight;
-            }
-        })
-        .catch(() => {});
+    function escapeHtml(text) {
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(text));
+        return div.innerHTML;
     }
 
-    setInterval(pollMessages, 500);
+    function formatTime(timestamp) {
+        var d = new Date(timestamp * 1000);
+        var h = d.getHours().toString().padStart(2, '0');
+        var m = d.getMinutes().toString().padStart(2, '0');
+        return h + ':' + m;
+    }
+
+    function appendBubble(message, sender) {
+        if (!container) return;
+        var isMine = message.from_id == currentUserId;
+        var bubbleClass = isMine ? 'bg-[#b71c1c] text-white' : 'bg-white text-gray-900';
+        var justify = isMine ? 'justify-end' : 'justify-start';
+        var timeAlign = isMine ? 'justify-end' : 'justify-start';
+        var time = formatTime(message.created);
+
+        var html = '<div class="flex ' + justify + ' mb-2">'
+            + '<div class="max-w-[70%]">'
+            + '<div class="chat-bubble ' + bubbleClass + ' rounded-[14px] px-4 py-3 shadow-sm cursor-pointer select-none"'
+            + ' data-id="' + message.id + '"'
+            + ' data-from="' + message.from_id + '"'
+            + ' data-message="' + escapeHtml(message.message) + '"'
+            + ' onclick="showContextMenu(event, this)">'
+            + '<p class="text-sm whitespace-pre-wrap">' + escapeHtml(message.message) + '</p>'
+            + '</div>'
+            + '<div class="flex items-center gap-2 mt-1 ' + timeAlign + '">'
+            + '<p class="text-[10px] text-gray-400">' + time + '</p>'
+            + '</div>'
+            + '</div>'
+            + '</div>';
+
+        container.insertAdjacentHTML('beforeend', html);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function updateReadReceipts() {
+        var bubbles = container.querySelectorAll('.chat-bubble');
+        bubbles.forEach(function(bubble) {
+            if (bubble.dataset.from == currentUserId && !bubble.nextElementSibling?.querySelector('.read-check')) {
+                var timeDiv = bubble.parentElement.querySelector('.flex.items-center');
+                if (timeDiv && !timeDiv.querySelector('.read-check')) {
+                    var check = document.createElement('span');
+                    check.className = 'read-check text-[10px] text-[#b71c1c]';
+                    check.innerHTML = '&#10003;&#10003;';
+                    timeDiv.appendChild(check);
+                }
+            }
+        });
+    }
+
+    @auth
+    if (window.Echo) {
+        var msgSoundSrc = '{{ asset("bereal.mp3") }}';
+
+        function playNotifSound() {
+            var s = new Audio(msgSoundSrc);
+            s.volume = 1;
+            s.play().catch(function() {});
+        }
+
+        var markReadTimer = null;
+        function markAsRead() {
+            if (markReadTimer) return;
+            markReadTimer = setTimeout(function() { markReadTimer = null; }, 3000);
+            var req = new XMLHttpRequest();
+            req.open('POST', '{{ route("messages.markAsRead", $otherUser->id) }}', true);
+            req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            req.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            req.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
+            req.send();
+        }
+
+        window.Echo.private('user.{{ Auth::id() }}')
+            .listen('.message.sent', function(e) {
+                if (e.message.from_id == otherUserId || e.message.to_id == otherUserId) {
+                    appendBubble(e.message, e.sender);
+                    markAsRead();
+                }
+                playNotifSound();
+            })
+            .listen('.message.read', function(e) {
+                if (e.senderId == currentUserId && e.readerId == otherUserId) {
+                    updateReadReceipts();
+                }
+            });
+    }
+    @endauth
 
     function showContextMenu(e, el) {
         e.preventDefault();
@@ -186,20 +302,20 @@
         selectedMsg.from = el.dataset.from;
         selectedMsg.message = el.dataset.message;
 
-        const deleteEveryoneBtn = document.getElementById('deleteEveryoneBtn');
-        if (selectedMsg.from != {{ Auth::id() }}) {
+        var deleteEveryoneBtn = document.getElementById('deleteEveryoneBtn');
+        if (selectedMsg.from != currentUserId) {
             deleteEveryoneBtn.classList.add('hidden');
         } else {
             deleteEveryoneBtn.classList.remove('hidden');
         }
 
-        let x = e.clientX;
-        let y = e.clientY;
+        var x = e.clientX;
+        var y = e.clientY;
 
         contextMenu.classList.remove('hidden');
 
-        const menuWidth = contextMenu.offsetWidth;
-        const menuHeight = contextMenu.offsetHeight;
+        var menuWidth = contextMenu.offsetWidth;
+        var menuHeight = contextMenu.offsetHeight;
         if (x + menuWidth > window.innerWidth) x = window.innerWidth - menuWidth - 10;
         if (y + menuHeight > window.innerHeight) y = window.innerHeight - menuHeight - 10;
 
@@ -207,19 +323,16 @@
         contextMenu.style.top = y + 'px';
     }
 
-    document.addEventListener('click', () => contextMenu.classList.add('hidden'));
-    document.addEventListener('contextmenu', () => contextMenu.classList.add('hidden'));
+    document.addEventListener('click', function() { contextMenu.classList.add('hidden'); });
+    document.addEventListener('contextmenu', function() { contextMenu.classList.add('hidden'); });
 
     function replyMessage() {
         contextMenu.classList.add('hidden');
-
-        const senderName = selectedMsg.from == {{ Auth::id() }} ? 'Kamu' : '{{ $otherUser->fullname }}';
-
+        var senderName = selectedMsg.from == currentUserId ? 'Kamu' : '{{ $otherUser->fullname }}';
         replySender.textContent = senderName;
         replyText.textContent = selectedMsg.message;
         replyToInput.value = selectedMsg.id;
         replyPreview.classList.remove('hidden');
-
         messageInput.value = '';
         messageInput.focus();
     }
@@ -231,7 +344,7 @@
 
     function copyMessage() {
         contextMenu.classList.add('hidden');
-        navigator.clipboard.writeText(selectedMsg.message).then(() => {
+        navigator.clipboard.writeText(selectedMsg.message).then(function() {
             alert('Pesan disalin!');
         });
     }
@@ -245,12 +358,12 @@
         contextMenu.classList.add('hidden');
         if (type === 'self') {
             if (!confirm('Hapus pesan ini untuk anda?')) return;
-            const form = document.getElementById('deleteForm');
+            var form = document.getElementById('deleteForm');
             form.action = '{{ route('messages.destroy', ':id') }}'.replace(':id', selectedMsg.id);
             form.submit();
         } else {
             if (!confirm('Hapus pesan ini untuk semua orang?')) return;
-            const form = document.getElementById('deleteEveryoneForm');
+            var form = document.getElementById('deleteEveryoneForm');
             form.action = '{{ route('messages.deleteForEveryone', ':id') }}'.replace(':id', selectedMsg.id);
             form.submit();
         }

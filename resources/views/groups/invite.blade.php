@@ -49,7 +49,7 @@
                 
                 <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end">
                     <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-bold shadow-sm transition-colors text-sm">
-                        Kirim Undangan via Pesan
+                        Kirim Undangan
                     </button>
                 </div>
             @endif

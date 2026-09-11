@@ -27,6 +27,7 @@
                     <div class="flex space-x-8 w-full sm:w-[60%] mb-[-1px]">
                         <a href="{{ route('friends.index') }}" class="pb-3 text-sm font-bold text-[#b71c1c] border-b-2 border-[#b71c1c]">TEMAN</a>
                         <a href="{{ route('friends.requests') }}" class="pb-3 text-sm font-medium text-gray-500 hover:text-gray-800 border-b-2 border-transparent transition">PERMINTAAN PERTEMANAN</a>
+                        <a href="{{ route('friends.blacklist') }}" class="pb-3 text-sm font-medium text-gray-500 hover:text-gray-800 border-b-2 border-transparent transition">BLACKLIST</a>
                     </div>
                 </div>
             </div>
@@ -42,7 +43,7 @@
                                 </div>
                                 <div class="flex-grow min-w-0">
                                     <p class="text-sm font-bold text-gray-900 truncate">{{ $friend->fullname }}</p>
-                                    <p class="text-xs text-gray-500 truncate">@{{ $friend->username }}</p>
+                                    <p class="text-xs text-gray-500 truncate">{{ '@' . $friend->username }}</p>
                                 </div>
                                 <form action="{{ route('friends.unfriend', $friend->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus pertemanan?')">
                                     @csrf
@@ -78,7 +79,7 @@
                                 </div>
                                 <div class="flex-grow min-w-0">
                                     <p class="text-xs font-bold text-gray-900 truncate">{{ $suggestion->fullname }}</p>
-                                    <p class="text-[10px] text-gray-500 truncate">@{{ $suggestion->username }}</p>
+                                    <p class="text-[10px] text-gray-500 truncate">{{ '@' . $suggestion->username }}</p>
                                 </div>
                                 <form action="{{ route('friends.sendRequest') }}" method="POST">
                                     @csrf

@@ -87,6 +87,21 @@
  </form>
  </div>
  @endif
+ 
+ @if($stream->type == 4 && $stream->attachment)
+ <div class="mb-4 rounded-xl overflow-hidden border border-neutral-200 bg-neutral-50 p-4 flex items-center space-x-4">
+    <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 text-red-600">
+        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.369 4.369 0 005 14c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V7.82l8-1.6v5.894A4.37 4.37 0 0015 12c-1.657 0-3 .895-3 2s1.343 2 3 2 3-.895 3-2V3z"></path></svg>
+    </div>
+    <div class="flex-1 min-w-0">
+        <h5 class="text-sm font-bold text-neutral-800 truncate mb-2">{{ $stream->message ?: 'Lagu tanpa judul' }}</h5>
+        <audio controls class="w-full h-8 outline-none" preload="none">
+            <source src="{{ asset('storage/music/' . $stream->attachment) }}" type="audio/mpeg">
+            Browser Anda tidak mendukung elemen audio.
+        </audio>
+    </div>
+ </div>
+ @endif
 
  @if($stream->type == 2 && $stream->attachment)
  @php $att = json_decode($stream->attachment, true); @endphp

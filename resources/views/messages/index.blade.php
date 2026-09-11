@@ -99,9 +99,11 @@
                                         @endif
                                         
                                         @if($unread > 0)
-                                            <span class="flex-shrink-0 ml-2 bg-[#b71c1c] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                            <span id="unread-badge-{{ $friend->id }}" class="flex-shrink-0 ml-2 bg-[#b71c1c] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
                                                 {{ $unread }}
                                             </span>
+                                        @else
+                                            <span id="unread-badge-{{ $friend->id }}" class="flex-shrink-0 ml-2 bg-[#b71c1c] text-white text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span>
                                         @endif
                                     </div>
                                 </div>
@@ -239,6 +241,70 @@
         document.body.appendChild(form);
         form.submit();
     });
+
+    // ==== Badge + Latest Message via WebSocket ====
+    var chatItems = Array.from(document.querySelectorAll('.chat-item'));
+    var currentUserId = {{ Auth::id() }};
+
+    function getBadge(userId) {
+        return document.getElementById('unread-badge-' + userId);
+    }
+
+    function updateBadge(userId, count) {
+        var badge = getBadge(userId);
+        if (!badge) return;
+        if (count > 0) {
+            badge.textContent = count;
+            badge.classList.remove('hidden');
+        } else {
+            badge.classList.add('hidden');
+        }
+    }
+
+    function getChatItem(userId) {
+        return document.querySelector('.chat-item[data-user-id="' + userId + '"]');
+    }
+
+    function formatTime(timestamp) {
+        var d = new Date(timestamp * 1000);
+        var h = d.getHours().toString().padStart(2, '0');
+        var m = d.getMinutes().toString().padStart(2, '0');
+        return h + ':' + m;
+    }
+
+    function updateLatestMessage(userId, msg) {
+        var item = getChatItem(userId);
+        if (!item) return;
+        var msgEl = item.querySelector('.text-xs.text-gray-500.truncate');
+        var timeEl = item.querySelector('.text-xs.text-gray-400.flex-shrink-0');
+        if (msgEl) {
+            var prefix = msg.from_id == currentUserId ? '<span class="text-gray-400">Kamu: </span>' : '';
+            msgEl.innerHTML = prefix + msg.message.substring(0, 50);
+        }
+        if (timeEl) {
+            timeEl.textContent = formatTime(msg.created);
+        }
+    }
+
+    @auth
+    if (window.Echo) {
+        var msgSoundSrc = '{{ asset("bereal.mp3") }}';
+
+        function playNotifSound() {
+            var s = new Audio(msgSoundSrc);
+            s.volume = 1;
+            s.play().catch(function() {});
+        }
+
+        window.Echo.private('user.{{ Auth::id() }}')
+            .listen('.message.sent', function(e) {
+                var otherId = e.message.from_id == currentUserId ? e.message.to_id : e.message.from_id;
+                updateBadge(e.message.from_id, e.totalUnread);
+                updateLatestMessage(otherId, e.message);
+                playNotifSound();
+            });
+    }
+    @endauth
 </script>
 @endpush
 @endsection

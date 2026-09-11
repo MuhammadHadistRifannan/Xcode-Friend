@@ -30,8 +30,7 @@ class PageController extends Controller
 
     public function mine()
     {
-        // Fallback user ID 1 jika tidak ada session/user
-        $userId = Auth::id() ?? (optional(\App\Models\User::first())->id ?? 1);
+        $userId = Auth::id();
 
         // Ambil data langsung dari model Page (lebih aman dari relasi jika User null)
         $createdPages = Page::where('uid', $userId)
@@ -84,8 +83,7 @@ class PageController extends Controller
             'logo.image'    => 'Logo harus berupa gambar.',
         ]);
 
-        // TODO: Ganti dengan Auth::id() setelah middleware Auth aktif
-        $uid = Auth::id() ?? (optional(\App\Models\User::first())->id ?? 1);
+        $uid = Auth::id();
 
         $logoPath = '';
         if ($request->hasFile('logo')) {
@@ -193,8 +191,7 @@ class PageController extends Controller
     {
         $page = Page::findOrFail($id);
 
-        // TODO: Aktifkan pengecekan kepemilikan setelah Auth middleware aktif
-        // abort_if($page->uid !== Auth::id(), 403, 'Anda tidak memiliki izin untuk mengedit page ini.');
+        abort_if($page->uid !== Auth::id(), 403, 'Anda tidak memiliki izin untuk mengedit halaman ini.');
 
         return view('pages.edit', compact('page'));
     }
@@ -206,6 +203,8 @@ class PageController extends Controller
     public function update(Request $request, $id)
     {
         $page = Page::findOrFail($id);
+
+        abort_if($page->uid !== Auth::id(), 403, 'Anda tidak memiliki izin untuk mengedit halaman ini.');
 
         $validated = $request->validate([
             'name'        => ['required', 'string', 'max:100'],
@@ -244,14 +243,18 @@ class PageController extends Controller
     {
         $page = Page::findOrFail($id);
 
-        // TODO: Aktifkan setelah Auth middleware aktif
-        // abort_if($page->uid !== Auth::id(), 403);
+        abort_if($page->uid !== Auth::id(), 403, 'Anda tidak memiliki izin untuk menghapus halaman ini.');
 
-        // TODO: Hapus relasi yang tergantung sebelum menghapus page:
-        //   - Hapus semua stories milik page ini: Story::where('page_id', $id)->delete();
-        //   - Hapus semua photos album page: PagePhoto::where('page_id', $id)->delete();
-        //   - Hapus pivot followers:          $page->followers()->detach();
-        //   - Hapus logo dari storage jika ada: Storage::disk('public')->delete($page->logo);
+        // Bersihkan stream/post milik page ini
+        \Illuminate\Support\Facades\DB::table('jcow_streams')
+            ->where('wall_id', $id)
+            ->where('app', 'page')
+            ->delete();
+
+        // Hapus logo dari storage jika ada
+        if ($page->logo && Storage::disk('public')->exists($page->logo)) {
+            Storage::disk('public')->delete($page->logo);
+        }
 
         // Detach semua followers dari pivot (tidak ada FK constraint di DB)
         $page->followers()->detach();
@@ -271,8 +274,7 @@ class PageController extends Controller
     {
         $page = Page::findOrFail($id);
 
-        // TODO: Ganti 1 dengan Auth::id() setelah middleware Auth aktif
-        $userId = Auth::id() ?? (optional(\App\Models\User::first())->id ?? 1);
+        $userId = Auth::id();
 
         // syncWithoutDetaching agar tidak double-insert jika sudah like
         $page->followers()->syncWithoutDetaching([$userId]);
@@ -298,7 +300,7 @@ class PageController extends Controller
     {
         $page = Page::findOrFail($id);
 
-        $userId = Auth::id() ?? (optional(\App\Models\User::first())->id ?? 1);
+        $userId = Auth::id();
 
         // Secara eksplisit hapus relasi dari pivot
         \DB::table('jcow_page_users')
@@ -323,7 +325,7 @@ class PageController extends Controller
     {
         $page = Page::findOrFail($id);
 
-        $userId = Auth::id() ?? (optional(\App\Models\User::first())->id ?? 1);
+        $userId = Auth::id();
         
         $isOwner = ($page->uid == $userId);
         if (!$isOwner) abort(403, 'Hanya admin halaman yang dapat memposting.');

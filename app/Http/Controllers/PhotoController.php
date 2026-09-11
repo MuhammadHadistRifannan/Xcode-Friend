@@ -130,6 +130,8 @@ class PhotoController extends Controller
     {
         // Ambil album + cover saat ini
         $album = Album::with('latestPhoto')->findOrFail($id);
+        abort_if($album->gid != auth()->id(), 403, 'Anda tidak memiliki izin untuk mengedit album ini.');
+
         // Paginate foto untuk photo picker (8 per halaman)
         $photos = $album->photos()->orderBy('id', 'desc')->paginate(8, ['*'], 'photo_page');
 
@@ -156,6 +158,7 @@ class PhotoController extends Controller
             ]);
 
             $album = Album::findOrFail($id);
+            abort_if($album->gid != auth()->id(), 403, 'Anda tidak memiliki izin untuk memperbarui album ini.');
 
             // 2. Update nama album di tabel jcow_story_categories
             $album->update(['name' => $request->name]);
@@ -207,6 +210,8 @@ class PhotoController extends Controller
     {
         try {
             $album = Album::with('photos')->findOrFail($id);
+            abort_if($album->gid != auth()->id(), 403, 'Anda tidak memiliki izin untuk menghapus album ini.');
+
             $albumName = $album->name;
 
             // Hapus semua file foto dari storage sebelum hapus record DB
@@ -243,7 +248,9 @@ class PhotoController extends Controller
                 'des' => 'nullable|string|max:255',
             ]);
 
-            $photo = Photo::findOrFail($id);
+            $photo = Photo::with('album')->findOrFail($id);
+            abort_if(!$photo->album || $photo->album->gid != auth()->id(), 403, 'Anda tidak memiliki izin untuk mengedit foto ini.');
+
             $photo->update(['des' => $request->des ?? '']);
 
             return redirect()->route('foto.show', $photo->sid)
@@ -261,7 +268,9 @@ class PhotoController extends Controller
     public function destroyPhoto($id)
     {
         try {
-            $photo = Photo::findOrFail($id);
+            $photo = Photo::with('album')->findOrFail($id);
+            abort_if(!$photo->album || $photo->album->gid != auth()->id(), 403, 'Anda tidak memiliki izin untuk menghapus foto ini.');
+
             $albumId = $photo->sid; // Simpan album_id untuk redirect kembali ke halaman detail album
 
             // Hapus file dari storage disk public

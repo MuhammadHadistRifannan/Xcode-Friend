@@ -28,6 +28,7 @@
 
     <form method="POST" action="/register" id="register-form" class="space-y-6" onsubmit="this.querySelector('button[type=submit]').disabled = true; this.querySelector('button[type=submit]').innerHTML = 'Processing...';">
         @csrf
+        <input type="hidden" name="ref" value="{{ request('ref', old('ref')) }}">
 
         <!-- SECTION: Basic Info -->
         <div>
@@ -152,12 +153,17 @@
         </div>
 
         <!-- SECTION: Captcha & Terms -->
+        @php
+            $disableCaptcha = \App\Helpers\SettingHelper::get('disable_recaptcha_reg', '0') == '1';
+        @endphp
         <div class="bg-neutral-50/50 p-4 rounded-xl border border-neutral-100">
+            @if(!$disableCaptcha)
             <label class="block text-[11px] font-bold tracking-wider text-neutral-500 uppercase mb-2">Keamanan <span class="text-[#990000]">*</span></label>
             <div class="flex items-center gap-3 mb-4">
                 <img id="captcha-img" src="{{ route('captcha.generate') }}" alt="CAPTCHA" class="h-10 rounded-lg border border-neutral-200 cursor-pointer" onclick="this.src='{{ route('captcha.generate') }}?t='+Date.now()" title="Klik untuk refresh">
                 <input type="text" name="captcha_answer" placeholder="Ketik kode" required autocomplete="off" class="flex-1 min-w-0 bg-white border border-neutral-300 rounded-lg py-2 px-3 text-sm font-mono tracking-widest uppercase focus:border-[#990000] outline-none">
             </div>
+            @endif
 
             <label class="flex items-start gap-2.5 cursor-pointer select-none">
                 <input type="checkbox" name="agree_terms" required class="w-4 h-4 mt-0.5 text-[#990000] border-neutral-300 rounded focus:ring-[#990000] flex-shrink-0">

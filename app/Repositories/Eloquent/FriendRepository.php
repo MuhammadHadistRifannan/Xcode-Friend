@@ -180,15 +180,26 @@ class FriendRepository implements FriendRepositoryInterface
                 'uid' => $targetId,
                 'fid' => $userId,
             ]);
+
+            DB::table('jcow_accounts')
+                ->where('id', $targetId)
+                ->increment('followers');
         }
     }
 
     public function unfollow(int $userId, int $targetId): void
     {
-        DB::table('jcow_followers')
+        $deleted = DB::table('jcow_followers')
             ->where('uid', $targetId)
             ->where('fid', $userId)
             ->delete();
+
+        if ($deleted) {
+            DB::table('jcow_accounts')
+                ->where('id', $targetId)
+                ->where('followers', '>', 0)
+                ->decrement('followers');
+        }
     }
 
     public function isFollowing(int $userId, int $targetId): bool
@@ -220,5 +231,20 @@ class FriendRepository implements FriendRepositoryInterface
         return (int) DB::table('jcow_followers')
             ->where('uid', $userId)
             ->count();
+    }
+
+    public function getBlockedUsers(int $userId): Collection
+    {
+        return DB::table('jcow_blacks')
+            ->join('jcow_accounts', 'jcow_accounts.id', '=', 'jcow_blacks.bid')
+            ->where('jcow_blacks.uid', $userId)
+            ->select(
+                'jcow_accounts.id',
+                'jcow_accounts.fullname',
+                'jcow_accounts.username',
+                'jcow_accounts.avatar'
+            )
+            ->orderBy('jcow_blacks.id', 'desc')
+            ->get();
     }
 }

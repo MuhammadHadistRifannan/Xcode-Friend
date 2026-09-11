@@ -243,88 +243,6 @@ class GroupController extends Controller
         return back()->with('success', 'Postingan berhasil dihapus.');
     }
 
-    public function likeStream($id)
-    {
-        $stream = Stream::findOrFail($id);
-        
-        $existingLike = Like::where('stream_id', $id)->where('uid', Auth::id())->first();
-
-        if ($existingLike) {
-            $existingLike->delete();
-        } else {
-            Like::create([
-                'stream_id' => $id,
-                'uid' => Auth::id()
-            ]);
-        }
-
-        return back();
-    }
-
-    public function commentStream(Request $request, $id)
-    {
-        $request->validate([
-            'message' => 'required|string|max:1000'
-        ]);
-
-        $stream = Stream::findOrFail($id);
-
-        Comment::create([
-            'stream_id' => $id,
-            'uid' => Auth::id(),
-            'message' => $request->message,
-            'created' => time(),
-            'target_id' => ''
-        ]);
-
-        return back()->with('success', 'Komentar berhasil ditambahkan!');
-    }
-    public function updateComment(Request $request, $id)
-    {
-        $request->validate([
-            'message' => 'required|string|max:1000'
-        ]);
-
-        $comment = Comment::findOrFail($id);
-
-        // Hanya pembuat komentar yang bisa mengedit komentar
-        if (Auth::id() !== $comment->uid) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $comment->update([
-            'message' => $request->message
-        ]);
-
-        return back()->with('success', 'Komentar berhasil diedit.');
-    }
-
-    public function destroyComment($id)
-    {
-        $comment = Comment::findOrFail($id);
-        $stream = Stream::findOrFail($comment->stream_id);
-        
-        $canDelete = false;
-        $user = auth()->user();
-        $isAdmin = $user && ($user->level == 1 || in_array(strtolower($user->roles ?? ''), ['admin', 'administrator']));
-
-        if (Auth::id() === $comment->uid || Auth::id() === $stream->uid || $isAdmin) {
-            $canDelete = true;
-        } elseif ($stream->app === 'group' && $stream->wall_id > 0) {
-            $group = Group::find($stream->wall_id);
-            if ($group && $group->uid === Auth::id()) {
-                $canDelete = true;
-            }
-        }
-
-        if (!$canDelete) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $comment->delete();
-
-        return back()->with('success', 'Komentar berhasil dihapus.');
-    }
 
     public function edit(Group $group)
     {
@@ -469,8 +387,8 @@ class GroupController extends Controller
     {
         if ($group->uid !== Auth::id()) abort(403);
 
-        $existingMemberIds = $group->members()->pluck('users.id')->toArray();
-        $pendingMemberIds = $group->pendingMembers()->pluck('users.id')->toArray();
+        $existingMemberIds = $group->members()->pluck('jcow_accounts.id')->toArray();
+        $pendingMemberIds = $group->pendingMembers()->pluck('jcow_accounts.id')->toArray();
         $excludeIds = array_merge([Auth::id()], $existingMemberIds, $pendingMemberIds);
         
         $users = \App\Models\User::whereNotIn('id', $excludeIds)->get();
@@ -487,17 +405,15 @@ class GroupController extends Controller
             'uids.*' => 'exists:jcow_accounts,id'
         ]);
 
-        $message = "Halo! Saya mengundang Anda untuk bergabung ke grup: " . $group->name . ". Silakan klik link ini untuk melihat: " . url('groups/' . $group->id);
+        $notificationRepo = app(\App\Repositories\Contracts\NotificationRepositoryInterface::class);
+        $currentUser = Auth::user();
         
         foreach ($request->uids as $uid) {
-            DB::table('jcow_messages')->insert([
-                'uid' => $uid,
-                'fid' => Auth::id(),
-                'title' => 'Undangan Grup: ' . $group->name,
-                'message' => $message,
-                'hasread' => 0,
-                'created' => time(),
-                'replyto' => 0
+            $notificationRepo->create($uid, 'group_invite', [
+                'user_name' => $currentUser->username ?? $currentUser->name ?? '',
+                'display_name' => $currentUser->name ?? '',
+                'group_id' => $group->id,
+                'group_name' => $group->name
             ]);
         }
         

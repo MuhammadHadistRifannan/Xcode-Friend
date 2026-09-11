@@ -1,8 +1,99 @@
 @extends('layouts.app')
 @section('title', $profileUser->fullname . ' - Profile')
 
+@php
+    // Ambil tema profil pengguna yang dikunjungi
+    $profileRaw  = $profileUser->profile;
+    $theme       = $profileRaw ? json_decode($profileRaw->custom_css ?? '{}', true) : [];
+    $theme       = is_array($theme) ? $theme : [];
+
+    $wallEnabled = !empty($theme['wallpaper_enabled']);
+    $bgColor     = $theme['bg_color']    ?? null;
+    $fontColor   = $theme['font_color']  ?? null;
+    $linkColor   = $theme['link_color']  ?? null;
+    $blockEnabled= !empty($theme['block_enabled']);
+    $blockBg     = $theme['block_bg']    ?? null;
+    $blockText   = $theme['block_text']  ?? null;
+    $transparent = !empty($theme['transparent']);
+    $bgImage     = $theme['bg_image']    ?? null;
+    $bgPos       = $theme['bg_position'] ?? 'center';
+    $repeatX     = !empty($theme['repeat_x']);
+    $repeatY     = !empty($theme['repeat_y']);
+
+    $musicplayer = !empty($theme['musicplayer']);
+    $profile_music = $theme['profile_music'] ?? null;
+
+    // Bangun CSS string
+    $bodyBgCss = '';
+    if ($wallEnabled) {
+        if ($bgColor) $bodyBgCss .= "background-color: {$bgColor}; ";
+        if ($bgImage) {
+            $bodyBgCss .= "background-image: url('" . asset('storage/backgrounds/' . $bgImage) . "'); ";
+            $bodyBgCss .= "background-position: {$bgPos}; ";
+            $bgRepeat = 'no-repeat';
+            if ($repeatX && $repeatY) $bgRepeat = 'repeat';
+            elseif ($repeatX)         $bgRepeat = 'repeat-x';
+            elseif ($repeatY)         $bgRepeat = 'repeat-y';
+            $bodyBgCss .= "background-repeat: {$bgRepeat}; background-size: cover; ";
+        }
+        if ($transparent) $bodyBgCss .= 'background-color: transparent; ';
+    }
+@endphp
+
+@push('styles')
+@if($wallEnabled || $blockEnabled)
+<style>
+    /* === Custom Theme: <?= e($profileUser->username) ?> === */
+    .profile-theme-wrapper {
+        <?php if ($wallEnabled && $bgColor && !$transparent): ?>
+        background-color: <?= e($bgColor) ?>;
+        <?php endif; ?>
+        <?php if ($fontColor): ?>
+        color: <?= e($fontColor) ?>;
+        <?php endif; ?>
+        <?php if ($wallEnabled && $bgImage): ?>
+        background-image: url('<?= asset('storage/backgrounds/' . e($bgImage)) ?>');
+        background-position: <?= e($bgPos) ?>;
+        background-size: cover;
+        background-repeat: <?= ($repeatX && $repeatY) ? 'repeat' : ($repeatX ? 'repeat-x' : ($repeatY ? 'repeat-y' : 'no-repeat')) ?>;
+        background-attachment: fixed;
+        <?php endif; ?>
+        <?php if ($transparent): ?>
+        background-color: transparent;
+        <?php endif; ?>
+        min-height: 100vh;
+    }
+    <?php if ($linkColor): ?>
+    .profile-theme-wrapper a:not(.no-theme) {
+        color: <?= e($linkColor) ?>;
+    }
+    .profile-theme-wrapper a:not(.no-theme):hover {
+        filter: brightness(0.85);
+    }
+    <?php endif; ?>
+    <?php if ($blockEnabled && $blockBg): ?>
+    .profile-theme-wrapper .bg-white.rounded-xl {
+        background-color: <?= e($blockBg) ?> !important;
+    }
+    <?php endif; ?>
+    <?php if ($blockEnabled && $blockText): ?>
+    .profile-theme-wrapper .bg-white.rounded-xl,
+    .profile-theme-wrapper .bg-white.rounded-xl h2,
+    .profile-theme-wrapper .bg-white.rounded-xl h3,
+    .profile-theme-wrapper .bg-white.rounded-xl p,
+    .profile-theme-wrapper .bg-white.rounded-xl span:not(.no-theme),
+    .profile-theme-wrapper .bg-white.rounded-xl .text-neutral-800,
+    .profile-theme-wrapper .bg-white.rounded-xl .text-neutral-700,
+    .profile-theme-wrapper .bg-white.rounded-xl .text-neutral-900 {
+        color: <?= e($blockText) ?> !important;
+    }
+    <?php endif; ?>
+</style>
+@endif
+@endpush
+
 @section('content')
-<div class="max-w-[95%] lg:max-w-5xl mx-auto w-full pb-10">
+<div class="max-w-[95%] lg:max-w-5xl mx-auto w-full pb-10 profile-theme-wrapper">
     <!-- Area Cover / Background Profil -->
     <div class="relative w-full h-48 md:h-64 bg-neutral-200 rounded-xl overflow-hidden shadow-sm mb-6 group">
         @if($profileUser->profile && $profileUser->profile->background)
@@ -15,18 +106,21 @@
 
         <!-- Tombol Upload (Hanya Muncul Jika Profil Milik User yang Login) -->
         @if(auth()->check() && auth()->user()->id === $profileUser->id)
-            <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition duration-300">
+            <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition duration-300 flex gap-2">
+                {{-- Tombol Ganti Sampul --}}
                 <form action="{{ route('profile.background.update') }}" method="POST" enctype="multipart/form-data" id="form-cover-upload">
                     @csrf
-                    <!-- Input file disembunyikan -->
                     <input type="file" name="background" id="background-input" class="hidden" accept="image/*" onchange="document.getElementById('form-cover-upload').submit();">
-                    
-                    <!-- Tombol visual yang dapat di-klik -->
-                    <button type="button" onclick="document.getElementById('background-input').click();" class="bg-black bg-opacity-50 hover:bg-opacity-70 text-white text-xs font-bold px-4 py-2 rounded-md backdrop-blur-sm transition shadow-md flex items-center">
+                    <button type="button" onclick="document.getElementById('background-input').click();" class="bg-black bg-opacity-50 hover:bg-opacity-70 text-white text-xs font-bold px-4 py-2 rounded-md backdrop-blur-sm transition shadow-md flex items-center no-theme">
                         <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                         Ganti Sampul
                     </button>
                 </form>
+                {{-- Tombol Desain Profil --}}
+                <a href="{{ route('desain-profil.index') }}" class="no-theme bg-black bg-opacity-50 hover:bg-opacity-70 text-white text-xs font-bold px-4 py-2 rounded-md backdrop-blur-sm transition shadow-md flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
+                    Desain Profil
+                </a>
             </div>
         @endif
     </div>
@@ -463,6 +557,21 @@
                             @endif
                         @endif
 
+                        @if($stream->app === 'music' && $stream->attachment)
+                            <div class="mb-4 bg-neutral-50 rounded-xl border border-neutral-200 p-4 flex items-center gap-4 shadow-sm">
+                                <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center text-red-600 flex-shrink-0">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <h5 class="text-sm font-bold text-neutral-800 truncate mb-2">{{ $stream->message ?: 'Lagu tanpa judul' }}</h5>
+                                    <audio controls class="w-full h-8 outline-none" preload="none">
+                                        <source src="{{ asset('storage/music/' . $stream->attachment) }}" type="audio/mpeg">
+                                        Browser Anda tidak mendukung elemen audio.
+                                    </audio>
+                                </div>
+                            </div>
+                        @endif
+
                         <div class="flex justify-between items-center border-t border-neutral-100 pt-3">
                             <div class="flex space-x-4">
                                 <form action="{{ route('like.toggle', $stream->id) }}" method="POST" class="form-like">
@@ -666,6 +775,20 @@
                         </div>
                         
                         <p class="text-sm text-neutral-800 mb-4 whitespace-pre-wrap leading-relaxed">{{ $stream->message }}</p>
+                        @if($stream->app === 'music' && $stream->attachment)
+                            <div class="mb-4 bg-neutral-50 rounded-xl border border-neutral-200 p-4 flex items-center gap-4 shadow-sm">
+                                <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center text-red-600 flex-shrink-0">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <h5 class="text-sm font-bold text-neutral-800 truncate mb-2">{{ $stream->message ?: 'Lagu tanpa judul' }}</h5>
+                                    <audio controls class="w-full h-8 outline-none" preload="none">
+                                        <source src="{{ asset('storage/music/' . $stream->attachment) }}" type="audio/mpeg">
+                                        Browser Anda tidak mendukung elemen audio.
+                                    </audio>
+                                </div>
+                            </div>
+                        @endif
 
                         @if($stream->type == 2 && $stream->attachment)
                             @php $att = json_decode($stream->attachment, true); @endphp
@@ -936,62 +1059,6 @@
     </div>
 </div>
 
-<script>
-function switchTab(tabName) {
-    const tabs = ['status', 'unggah', 'video'];
-    
-    tabs.forEach(t => {
-        const content = document.getElementById('tab-content-' + t);
-        if(content) {
-            content.classList.add('hidden');
-            const inputs = content.querySelectorAll('input, textarea, select');
-            inputs.forEach(input => input.disabled = true);
-        }
-
-        const btn = document.getElementById('tab-btn-' + t);
-        if(btn) {
-            btn.classList.remove('text-red-700', 'font-bold', 'border-red-700', 'border-b-2');
-            btn.classList.add('text-neutral-500', 'font-medium');
-        }
-    });
-
-    const activeContent = document.getElementById('tab-content-' + tabName);
-    if(activeContent) {
-        activeContent.classList.remove('hidden');
-        const activeInputs = activeContent.querySelectorAll('input, textarea, select');
-        activeInputs.forEach(input => input.disabled = false);
-    }
-
-    const activeBtn = document.getElementById('tab-btn-' + tabName);
-    if(activeBtn) {
-        activeBtn.classList.remove('text-neutral-500', 'font-medium');
-        activeBtn.classList.add('text-red-700', 'font-bold', 'border-red-700', 'border-b-2');
-    }
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    switchTab('status');
-});
-
-
-
-
-
-// Function to handle Reply
-function replyTo(streamId, username) {
-    // Show comment form if hidden
-    const commentForm = document.getElementById('comment-form-' + streamId);
-    if(commentForm && commentForm.classList.contains('hidden')) {
-        commentForm.classList.remove('hidden');
-    }
-    const input = document.getElementById('comment-input-' + streamId);
-    input.value = '@' + username + ' ';
-    input.focus();
-}
-
-
-
-</script>
 
 @include('components.lightbox')
 
@@ -1030,6 +1097,37 @@ function replyTo(streamId, username) {
         document.getElementById('reportModal').classList.add('hidden');
     }
 </script>
+
+{{-- ── MUSIC PLAYER WIDGET ── --}}
+@if($musicplayer && $profile_music)
+    <div id="profile-music-player" class="fixed bottom-4 right-4 bg-white shadow-xl rounded-xl border border-gray-200 p-3 w-72 z-50 transition-transform duration-300 transform" x-data="{ expanded: false }">
+        <div class="flex items-center justify-between mb-2 cursor-pointer" @click="expanded = !expanded">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-600 animate-pulse">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+                </div>
+                <div class="truncate w-40">
+                    <h4 class="text-xs font-bold text-gray-800">Musik Profil</h4>
+                    <p class="text-[10px] text-gray-500 truncate" id="now-playing-title">{{ $profile_music }}</p>
+                </div>
+            </div>
+            <button class="text-gray-400 hover:text-gray-600">
+                <svg x-show="!expanded" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
+                <svg x-show="expanded" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="display:none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+        </div>
+        
+        <div x-show="expanded" style="display:none;" class="mt-3 pt-3 border-t border-gray-100">
+            <audio id="html5-audio-player" controls autoplay loop class="w-full h-8 outline-none">
+                <source src="{{ asset('storage/music/' . $profile_music) }}" type="audio/mpeg">
+                Browser Anda tidak mendukung elemen audio.
+            </audio>
+            <div class="mt-2 text-[10px] text-gray-400 text-center">
+                Memutar musik pilihan {{ $profileUser->fullname ?? $profileUser->username }}
+            </div>
+        </div>
+    </div>
+@endif
 
 @include('components.feed-scripts')
 @endsection

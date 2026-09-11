@@ -82,9 +82,24 @@ class ProfileController extends Controller
             $isBlocked = $friendRepo->isBlocked($authId, $profileUser->id);
         }
 
+        $profileRaw = $profileUser->profile;
+        $theme = $profileRaw ? json_decode($profileRaw->custom_css ?? '{}', true) : [];
+        $musicplayer = $theme['musicplayer'] ?? false;
+        $likedMusics = collect();
+
+        if ($musicplayer) {
+            $likedMusics = Stream::where('app', 'music')
+                ->whereHas('likedBy', function($q) use ($profileUser) {
+                    $q->where('uid', $profileUser->id);
+                })
+                ->orderBy('created', 'desc')
+                ->limit(10)
+                ->get();
+        }
+
         return view('profile.dinding', compact(
             'profileUser', 'streams', 'photos', 'videos', 'tab',
-            'isFollowing', 'isFriend', 'hasPendingRequest', 'hasSentRequest', 'isBlocked'
+            'isFollowing', 'isFriend', 'hasPendingRequest', 'hasSentRequest', 'isBlocked', 'likedMusics'
         ));
     }
 

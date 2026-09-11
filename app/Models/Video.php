@@ -31,7 +31,7 @@ class Video extends Model
     protected static function booted(): void
     {
         static::addGlobalScope('video_app', function ($query) {
-            $query->where('app', 'video');
+            $query->whereIn('app', ['video', 'videos']);
         });
     }
 

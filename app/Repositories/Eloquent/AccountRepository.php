@@ -65,7 +65,7 @@ class AccountRepository implements AccountRepositoryInterface
 
     public function getTelusurUsers(array $excludedIds, array $filters, string $sort): LengthAwarePaginator
     {
-        $query = DB::table('jcow_accounts')
+        $query = \App\Models\User::query()
             ->where('disabled', 0)
             ->where('hide_me', 0)
             ->whereNotIn('id', $excludedIds);
