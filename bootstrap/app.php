@@ -16,13 +16,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->append(\App\Http\Middleware\CheckOfflineMode::class);
-        $middleware->append(\App\Http\Middleware\CheckPrivateNetwork::class);
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'is_admin' => \App\Http\Middleware\IsAdmin::class,
         ]);
+        $middleware->redirectUsersTo('/beranda');
         $middleware->web(append: [
+            \App\Http\Middleware\CheckOfflineMode::class,
+            \App\Http\Middleware\CheckPrivateNetwork::class,
             \App\Http\Middleware\EnsureAccountIsActive::class,
             \App\Http\Middleware\UpdateLastSeen::class,
         ]);
