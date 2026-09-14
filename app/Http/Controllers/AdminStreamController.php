@@ -20,8 +20,10 @@ class AdminStreamController extends Controller
             );
 
         if ($search = $request->input('search')) {
-            $query->where('jcow_streams.message', 'like', "%{$search}%")
+            $query->where(function ($q) use ($search) {
+                $q->where('jcow_streams.message', 'like', "%{$search}%")
                   ->orWhere('jcow_accounts.username', 'like', "%{$search}%");
+            });
         }
 
         if ($type = $request->input('type')) {

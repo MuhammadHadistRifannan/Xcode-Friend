@@ -136,8 +136,17 @@
                         @csrf @method('PUT')
                         <div class="flex items-center gap-3">
                             <select name="roles" class="flex-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 p-2.5">
-                                <option value="Member" {{ !in_array(strtolower($member->roles ?? ''), ['admin','administrator']) && $member->level != 1 ? 'selected' : '' }}>Member Biasa</option>
-                                <option value="Administrator" {{ in_array(strtolower($member->roles ?? ''), ['admin','administrator']) || $member->level == 1 ? 'selected' : '' }}>Administrator</option>
+                                @foreach($roles as $r)
+                                    @php
+                                        $isSelected = strtolower($member->roles ?? '') === strtolower($r->name);
+                                        // Legacy logic support
+                                        if (empty($member->roles) && $member->level != 1 && strtolower($r->name) == 'member') $isSelected = true;
+                                        if ($member->level == 1 && strtolower($r->name) == 'administrator') $isSelected = true;
+                                    @endphp
+                                    <option value="{{ $r->name }}" {{ $isSelected ? 'selected' : '' }}>
+                                        {{ $r->name }}
+                                    </option>
+                                @endforeach
                             </select>
                             <button type="submit" class="bg-blue-600 text-white text-xs font-bold px-4 py-2.5 rounded-lg hover:bg-blue-700 transition-colors">
                                 Simpan Role

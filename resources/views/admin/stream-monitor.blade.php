@@ -76,7 +76,7 @@
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
                     <div class="flex justify-between items-start mb-3">
                         <div class="flex items-start gap-3">
-                            <img src="{{ $stream->avatar ? asset('storage/'.$stream->avatar) : asset('img/default-avatar.png') }}" alt="{{ $stream->username }}" class="w-10 h-10 rounded-full border border-gray-200 object-cover bg-gray-100">
+                            <img src="{{ $stream->avatar ? asset('storage/avatars/'.$stream->avatar) : asset('assets/img/default.png') }}" alt="{{ $stream->username }}" class="w-10 h-10 rounded-full border border-gray-200 object-cover bg-gray-100">
                             <div>
                                 <div class="font-bold text-gray-900 text-sm">
                                     <a href="{{ route('profile.show', $stream->username) }}" target="_blank" class="hover:underline">{{ $stream->fullname ?: $stream->username }}</a>
@@ -116,7 +116,18 @@
                                 @php $ytId = str_replace('youtube:', '', $stream->attachment); @endphp
                                 <iframe class="w-full max-w-2xl aspect-video rounded-xl" src="https://www.youtube.com/embed/{{ $ytId }}" frameborder="0"></iframe>
                             @elseif($stream->type == 2 || $stream->type == 3)
-                                <img src="{{ asset('storage/'.$stream->attachment) }}" class="rounded-xl max-h-80 object-contain bg-gray-50 border border-gray-100">
+                                @php
+                                    $photos = [];
+                                    $attJson = json_decode($stream->attachment, true);
+                                    if ($attJson && isset($attJson['photos']) && is_array($attJson['photos'])) {
+                                        $photos = $attJson['photos'];
+                                    } elseif (is_string($stream->attachment) && !str_starts_with($stream->attachment, '{')) {
+                                        $photos = [$stream->attachment];
+                                    }
+                                @endphp
+                                @foreach($photos as $photo)
+                                    <img src="{{ asset('storage/posts/'.$photo) }}" class="rounded-xl max-h-80 object-contain bg-gray-50 border border-gray-100 mb-2">
+                                @endforeach
                             @endif
                         </div>
                     @endif
@@ -167,13 +178,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const username = e.username || 'user';
                 const fullname = e.fullname || username;
-                const avatar = e.avatar_url || '/img/default-avatar.png';
+                const avatar = e.avatar_url || '/assets/img/default.png';
                 const message = (e.message || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
                 const type = e.type || 1;
 
                 let typeBadge = '<span class="text-blue-600 font-semibold"><i data-lucide="file-text" class="w-3 h-3 inline"></i> Teks</span>';
                 if (type == 2) typeBadge = '<span class="text-pink-600 font-semibold"><i data-lucide="image" class="w-3 h-3 inline"></i> Foto</span>';
                 else if (type == 3) typeBadge = '<span class="text-orange-600 font-semibold"><i data-lucide="video" class="w-3 h-3 inline"></i> Video</span>';
+
+                let attachmentHtml = '';
+                if (e.attachment) {
+                    attachmentHtml += '<div class="mt-3">';
+                    if (type == 3 && e.attachment.startsWith('youtube:')) {
+                        const ytId = e.attachment.replace('youtube:', '');
+                        attachmentHtml += `<iframe class="w-full max-w-2xl aspect-video rounded-xl" src="https://www.youtube.com/embed/${ytId}" frameborder="0"></iframe>`;
+                    } else if (type == 2 || type == 3) {
+                        let photos = [];
+                        try {
+                            const attJson = JSON.parse(e.attachment);
+                            if (attJson && attJson.photos && Array.isArray(attJson.photos)) {
+                                photos = attJson.photos;
+                            }
+                        } catch (err) {
+                            if (typeof e.attachment === 'string' && !e.attachment.startsWith('{')) {
+                                photos = [e.attachment];
+                            }
+                        }
+                        photos.forEach(photo => {
+                            attachmentHtml += `<img src="/storage/posts/${photo}" class="rounded-xl max-h-80 object-contain bg-gray-50 border border-gray-100 mb-2">`;
+                        });
+                    }
+                    attachmentHtml += '</div>';
+                }
 
                 const cardHtml = `
                     <div id="admin-stream-${streamId}" class="bg-white rounded-xl shadow-sm border-2 border-emerald-400 p-5 transition-all duration-500">
@@ -200,6 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             </form>
                         </div>
                         <p class="text-gray-800 text-sm mb-3 whitespace-pre-wrap">${message}</p>
+                        ${attachmentHtml}
                     </div>
                 `;
 

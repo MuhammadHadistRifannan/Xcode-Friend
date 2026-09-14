@@ -173,6 +173,7 @@ Route::prefix('admin')->group(function () {
         Route::delete('/menu/{id}', [\App\Http\Controllers\AdminMenuController::class, 'destroy'])->name('admin.menu.destroy');
         Route::get('/user-roles', [\App\Http\Controllers\AdminController::class, 'userRoles'])->name('admin.user-roles');
         Route::post('/user-roles', [\App\Http\Controllers\AdminController::class, 'storeRole'])->name('admin.roles.store');
+        Route::put('/user-roles/{id}', [\App\Http\Controllers\AdminController::class, 'updateRoleName'])->name('admin.roles.update');
         Route::delete('/user-roles/{id}', [\App\Http\Controllers\AdminController::class, 'destroyRole'])->name('admin.roles.destroy');
         Route::get('/translate', [\App\Http\Controllers\AdminController::class, 'translate'])->name('admin.translate');
         Route::get('/reports', [\App\Http\Controllers\AdminController::class, 'reports'])->name('admin.reports');
@@ -181,6 +182,10 @@ Route::prefix('admin')->group(function () {
         // Stream Monitor
         Route::get('/stream-monitor', [\App\Http\Controllers\AdminStreamController::class, 'index'])->name('admin.stream-monitor');
         Route::delete('/stream-monitor/{id}', [\App\Http\Controllers\AdminStreamController::class, 'destroy'])->name('admin.stream-monitor.destroy');
+        // Spam Log Monitor
+        Route::get('/spam-logs', [\App\Http\Controllers\AdminSpamController::class, 'index'])->name('admin.spam-logs');
+        Route::delete('/spam-logs/{id}', [\App\Http\Controllers\AdminSpamController::class, 'destroy'])->name('admin.spam-logs.destroy');
+        Route::post('/spam-logs/clear', [\App\Http\Controllers\AdminSpamController::class, 'clear'])->name('admin.spam-logs.clear');
     });
 });
 

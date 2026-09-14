@@ -73,7 +73,20 @@ class AdminController extends Controller
         $dbStatus = true;
         try { DB::connection()->getPdo(); } catch (\Exception $e) { $dbStatus = false; }
 
-        return view('admin.dashboard', compact('stats', 'recentMembers', 'recentReports', 'dbStatus'));
+        // Weekly activity trend (last 7 days)
+        $weeklyTrend = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $dayStart = strtotime("-{$i} days", strtotime(date('Y-m-d')));
+            $dayEnd   = $dayStart + 86399;
+            $label    = date('D', $dayStart); // e.g. Mon, Tue
+            $weeklyTrend[] = [
+                'label'    => $label,
+                'streams'  => DB::table('jcow_streams')->whereBetween('created', [$dayStart, $dayEnd])->count(),
+                'members'  => User::whereBetween('created', [$dayStart, $dayEnd])->count(),
+            ];
+        }
+
+        return view('admin.dashboard', compact('stats', 'recentMembers', 'recentReports', 'dbStatus', 'weeklyTrend'));
     }
 
     public function siteConfiguration()
@@ -104,12 +117,35 @@ class AdminController extends Controller
 
     public function destroyRole($id)
     {
-        // Protect default roles (id 1-3 assumed core)
-        if ($id <= 3) {
-            return back()->with('error', 'Role inti tidak bisa dihapus.');
+        // Protect core roles by name, not by hardcoded ID
+        $role = DB::table('jcow_roles')->where('id', $id)->first();
+        if (!$role) {
+            return back()->with('error', 'Role tidak ditemukan.');
+        }
+        $coreRoles = ['admin', 'administrator', 'member'];
+        if (in_array(strtolower($role->name), $coreRoles)) {
+            return back()->with('error', "Role inti '{$role->name}' tidak bisa dihapus.");
         }
         DB::table('jcow_roles')->where('id', $id)->delete();
         return back()->with('success', 'Role berhasil dihapus.');
+    }
+
+    public function updateRoleName(Request $request, $id)
+    {
+        $request->validate(['name' => 'required|string|max:100']);
+        
+        $role = DB::table('jcow_roles')->where('id', $id)->first();
+        if (!$role) {
+            return back()->with('error', 'Role tidak ditemukan.');
+        }
+
+        $coreRoles = ['admin', 'administrator', 'member'];
+        if (in_array(strtolower($role->name), $coreRoles)) {
+            return back()->with('error', "Role inti '{$role->name}' tidak bisa diubah namanya.");
+        }
+
+        DB::table('jcow_roles')->where('id', $id)->update(['name' => $request->name]);
+        return back()->with('success', "Role berhasil diubah menjadi '{$request->name}'.");
     }
 
     public function translate()

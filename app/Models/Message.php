@@ -15,7 +15,7 @@ class Message extends Model
 
     // 3. Sesuaikan kolom dengan jcow_messages
     protected $fillable = [
-        'subject', 'message', 'from_id', 'to_id', 'created', 'hasread'
+        'subject', 'message', 'attachment', 'from_id', 'to_id', 'created', 'hasread', 'reply_to'
     ];
 
     // 4. Accessor: Menjembatani nama kolom untuk UI Blade
@@ -28,6 +28,15 @@ class Message extends Model
     public function getCreatedAtAttribute()
     {
         return Carbon::createFromTimestamp($this->created);
+    }
+
+    // Accessor URL lampiran gambar
+    public function getAttachmentUrlAttribute(): ?string
+    {
+        if (!empty($this->attachment)) {
+            return asset('storage/' . $this->attachment);
+        }
+        return null;
     }
 
     // --- RELASI PENERIMA & PENGIRIM ---

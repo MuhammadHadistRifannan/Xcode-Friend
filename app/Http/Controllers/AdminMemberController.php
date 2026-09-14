@@ -13,9 +13,11 @@ class AdminMemberController extends Controller
         $query = User::query();
 
         if ($search = $request->input('search')) {
-            $query->where('username', 'like', "%{$search}%")
+            $query->where(function ($q) use ($search) {
+                $q->where('username', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%")
                   ->orWhere('fullname', 'like', "%{$search}%");
+            });
         }
 
         if ($filter = $request->input('status')) {
@@ -36,7 +38,10 @@ class AdminMemberController extends Controller
             'suspended' => User::where('disabled', 2)->count(),
         ];
 
-        return view('admin.members.index', compact('members', 'stats'));
+        // Load semua role dari DB untuk dropdown assign role
+        $roles = DB::table('jcow_roles')->orderBy('name')->get();
+
+        return view('admin.members.index', compact('members', 'stats', 'roles'));
     }
 
     public function show($id)
@@ -53,7 +58,9 @@ class AdminMemberController extends Controller
             ->limit(5)
             ->get();
 
-        return view('admin.members.show', compact('member', 'streamCount', 'commentCount', 'reportCount', 'recentStreams'));
+        $roles = DB::table('jcow_roles')->orderBy('name')->get();
+
+        return view('admin.members.show', compact('member', 'streamCount', 'commentCount', 'reportCount', 'recentStreams', 'roles'));
     }
 
     public function updateStatus(Request $request, $id)

@@ -31,9 +31,10 @@ class MessageService
         return $this->messageRepo->getById($id, $userId);
     }
 
-    public function send(int $senderId, int $recipientId, ?string $subject, string $message, ?int $replyTo = null): object
+    public function send(int $senderId, int $recipientId, ?string $subject, ?string $message, ?int $replyTo = null, ?string $attachment = null): object
     {
-        $isSpam = $this->spamService->recordThisPosting($senderId, $message);
+        $safeMessage = $message ?? '';
+        $isSpam = !empty($safeMessage) && $this->spamService->recordThisPosting($senderId, $safeMessage);
         if ($isSpam) {
             return (object) [
                 'id' => 0,
@@ -41,6 +42,8 @@ class MessageService
                 'to_id' => $recipientId,
                 'subject' => $subject ?? '',
                 'message' => '',
+                'attachment' => null,
+                'attachment_url' => null,
                 'created' => time(),
                 'hasread' => 0,
                 'reply_to' => $replyTo,
@@ -48,14 +51,15 @@ class MessageService
             ];
         }
 
-        $result = DB::transaction(function () use ($senderId, $recipientId, $subject, $message, $replyTo) {
+        $result = DB::transaction(function () use ($senderId, $recipientId, $subject, $safeMessage, $replyTo, $attachment) {
             $now = time();
 
             $messageId = DB::table('jcow_messages')->insertGetId([
                 'from_id' => $senderId,
                 'to_id' => $recipientId,
                 'subject' => $subject ?? '',
-                'message' => $message,
+                'message' => $safeMessage,
+                'attachment' => $attachment,
                 'created' => $now,
                 'hasread' => 0,
                 'reply_to' => $replyTo,
@@ -66,7 +70,8 @@ class MessageService
                 'from_id' => $senderId,
                 'to_id' => $recipientId,
                 'subject' => $subject ?? '',
-                'message' => $message,
+                'message' => $safeMessage,
+                'attachment' => $attachment,
                 'created' => $now,
                 'hasread' => 0,
                 'reply_to' => $replyTo,
@@ -91,7 +96,9 @@ class MessageService
                 'from_id' => $senderId,
                 'to_id' => $recipientId,
                 'subject' => $subject ?? '',
-                'message' => $message,
+                'message' => $safeMessage,
+                'attachment' => $attachment,
+                'attachment_url' => $attachment ? asset('storage/' . $attachment) : null,
                 'created' => $now,
                 'hasread' => 0,
                 'reply_to' => $replyTo,
@@ -102,12 +109,14 @@ class MessageService
         $recipientUnread = $this->messageRepo->countUnread($recipientId);
         $recipientNotifCount = $this->notifRepo->countUnread($recipientId);
 
+        $notifText = !empty($safeMessage) ? "Pesan baru dari {$sender->fullname}" : "{$sender->fullname} mengirim foto";
+
         try {
             broadcast(new MessageSent($result, $sender, $recipientId, $recipientUnread))->toOthers();
             broadcast(new NotificationCreated((object)[
                 'id' => 0,
                 'subject' => 'new_message',
-                'message' => "Pesan baru dari {$sender->fullname}",
+                'message' => $notifText,
                 'created' => time(),
             ], $recipientId, $recipientNotifCount))->toOthers();
         } catch (\Throwable $e) {

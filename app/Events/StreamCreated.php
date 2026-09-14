@@ -42,6 +42,7 @@ class StreamCreated implements ShouldBroadcastNow
             'username'  => $stream->user->username ?? 'user',
             'fullname'  => $stream->user->fullname ?? 'User',
             'avatar_url'=> $stream->user->avatar_url ?? '',
+            'attachment'=> $this->stream->attachment,
             'html'      => $html,
             'created'   => $this->stream->created,
         ];

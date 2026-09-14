@@ -66,7 +66,7 @@ class MessageController extends Controller
                             'initial' => strtoupper(substr($c['user']->fullname ?? $c['user']->username ?? 'U', 0, 1)),
                         ],
                         'last_message' => $c['lastMessage'] ? [
-                            'message' => $c['lastMessage']->message,
+                            'message' => !empty($c['lastMessage']->message) ? $c['lastMessage']->message : (!empty($c['lastMessage']->attachment) ? '📷 Foto' : ''),
                             'time' => \Carbon\Carbon::createFromTimestamp($c['lastMessage']->created)->diffForHumans(),
                             'is_mine' => $c['lastMessage']->from_id == auth()->id(),
                         ] : null,
@@ -107,12 +107,18 @@ class MessageController extends Controller
                 );
             }
 
+            $attachmentPath = null;
+            if ($request->hasFile('attachment')) {
+                $attachmentPath = $request->file('attachment')->store('chat_attachments', 'public');
+            }
+
             $result = $this->messageService->send(
                 $userId,
                 $recipientId,
                 $request->subject,
                 $request->message,
-                $request->reply_to
+                $request->reply_to,
+                $attachmentPath
             );
 
             if (isset($result->spam_detected) && $result->spam_detected) {
@@ -129,7 +135,9 @@ class MessageController extends Controller
                     'status' => 'success',
                     'message' => [
                         'id' => $result->id ?? 0,
-                        'message' => $request->message,
+                        'message' => $request->message ?? '',
+                        'attachment' => $result->attachment ?? null,
+                        'attachment_url' => $result->attachment_url ?? null,
                         'created' => time(),
                         'created_formatted' => date('H:i'),
                         'from_id' => $userId,

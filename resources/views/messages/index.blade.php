@@ -92,7 +92,11 @@
                                                 @if($lastMsg->from_id == Auth::id())
                                                     <span class="text-gray-400">Kamu: </span>
                                                 @endif
-                                                {{ $lastMsg->message }}
+                                                @if(!empty($lastMsg->message))
+                                                    {{ $lastMsg->message }}
+                                                @elseif(!empty($lastMsg->attachment))
+                                                    <span class="text-gray-600 font-medium">📷 Foto</span>
+                                                @endif
                                             </p>
                                         @else
                                             <p class="text-xs text-gray-400 italic">Belum ada pesan</p>

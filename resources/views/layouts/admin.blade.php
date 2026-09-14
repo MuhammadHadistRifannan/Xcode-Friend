@@ -102,6 +102,16 @@
                         <i data-lucide="layout-list" class="w-4 h-4 {{ request()->routeIs('admin.custom-fields') ? 'text-red-500' : 'text-gray-400' }}"></i>
                         Custom Fields
                     </a>
+
+                    <a href="{{ route('admin.user-roles') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('admin.user-roles') ? 'bg-red-50 text-red-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <i data-lucide="shield" class="w-4 h-4 {{ request()->routeIs('admin.user-roles') ? 'text-red-500' : 'text-gray-400' }}"></i>
+                        User Roles
+                    </a>
+
+                    <a href="{{ route('admin.spam-logs') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('admin.spam-logs') ? 'bg-red-50 text-red-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <i data-lucide="shield-alert" class="w-4 h-4 {{ request()->routeIs('admin.spam-logs') ? 'text-red-500' : 'text-gray-400' }}"></i>
+                        Spam Monitor
+                    </a>
                 </nav>
             </div>
 
@@ -125,8 +135,18 @@
 
         <!-- Konten Utama Admin -->
         <main class="flex-grow relative h-full overflow-y-auto bg-[#f5f5f5]">
+            @php
+                $offlineMode = \App\Helpers\SettingHelper::get('offline', '0');
+            @endphp
+            @if($offlineMode == '1' || $offlineMode === true)
+            <div class="bg-amber-400 text-amber-900 text-sm font-bold px-5 py-2.5 flex items-center gap-2 border-b border-amber-500">
+                <i data-lucide="construction" class="w-4 h-4 shrink-0"></i>
+                <span>⚠️ MODE MAINTENANCE AKTIF — Website sedang dalam kondisi offline untuk pengguna publik.</span>
+                <a href="{{ route('admin.site-config') }}" class="ml-auto text-xs underline hover:text-amber-800 transition shrink-0">Ubah Pengaturan →</a>
+            </div>
+            @endif
             @yield('content')
-            
+
 
         </main>
     </div>

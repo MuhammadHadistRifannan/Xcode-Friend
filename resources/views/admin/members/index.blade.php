@@ -180,8 +180,17 @@
                                             <form action="{{ route('admin.members.role', $member->id) }}" method="POST">
                                                 @csrf @method('PUT')
                                                 <select name="roles" class="w-full bg-gray-50 border border-gray-300 text-sm rounded-lg p-2.5 mb-4">
-                                                    <option value="Member" {{ !in_array(strtolower($member->roles ?? ''), ['admin','administrator']) && $member->level != 1 ? 'selected' : '' }}>Member Biasa</option>
-                                                    <option value="Administrator" {{ in_array(strtolower($member->roles ?? ''), ['admin','administrator']) || $member->level == 1 ? 'selected' : '' }}>Administrator</option>
+                                                    @foreach($roles as $r)
+                                                        @php
+                                                            $isSelected = strtolower($member->roles ?? '') === strtolower($r->name);
+                                                            // Legacy logic support
+                                                            if (empty($member->roles) && $member->level != 1 && strtolower($r->name) == 'member') $isSelected = true;
+                                                            if ($member->level == 1 && strtolower($r->name) == 'administrator') $isSelected = true;
+                                                        @endphp
+                                                        <option value="{{ $r->name }}" {{ $isSelected ? 'selected' : '' }}>
+                                                            {{ $r->name }}
+                                                        </option>
+                                                    @endforeach
                                                 </select>
                                                 <div class="flex justify-end gap-2">
                                                     <button type="button" @click="editRoleModal = false"

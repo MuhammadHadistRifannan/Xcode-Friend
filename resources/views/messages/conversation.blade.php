@@ -129,6 +129,8 @@
                                 data-id="{{ $msg->id }}"
                                 data-from="{{ $msg->from_id }}"
                                 data-message="{{ $msg->message }}"
+                                data-attachment="{{ $msg->attachment ?? '' }}"
+                                data-attachment-url="{{ !empty($msg->attachment) ? asset('storage/' . $msg->attachment) : '' }}"
                                 onclick="showContextMenu(event, this)">
 
                                 @if($msg->reply_to && $msg->replied_message)
@@ -138,7 +140,19 @@
                                     </div>
                                 @endif
 
-                                <p class="text-sm whitespace-pre-wrap">{{ $msg->message }}</p>
+                                @if(!empty($msg->attachment))
+                                    <div class="mb-2 overflow-hidden rounded-lg">
+                                        <img src="{{ asset('storage/' . $msg->attachment) }}" 
+                                             alt="Foto lampiran" 
+                                             class="max-w-full max-h-64 object-cover rounded-lg hover:opacity-95 transition cursor-zoom-in"
+                                             loading="lazy"
+                                             onclick="openLightbox(event, '{{ asset('storage/' . $msg->attachment) }}')">
+                                    </div>
+                                @endif
+
+                                @if(!empty($msg->message))
+                                    <p class="text-sm whitespace-pre-wrap">{{ $msg->message }}</p>
+                                @endif
                             </div>
                             <div class="flex items-center gap-2 mt-1 {{ $isMine ? 'justify-end' : 'justify-start' }}">
                                 <p class="text-[10px] text-gray-400">
@@ -170,6 +184,20 @@
                     </button>
                 </div>
 
+                <!-- Attachment Preview Bar -->
+                <div id="attachmentPreview" class="hidden mb-3 bg-[#f6f3f3] rounded-xl p-2.5 flex items-center gap-3 border-l-4 border-[#b71c1c]">
+                    <div class="relative w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 bg-gray-200 border border-gray-300">
+                        <img id="attachmentPreviewImg" src="" alt="Pratinjau Foto" class="w-full h-full object-cover">
+                    </div>
+                    <div class="flex-grow min-w-0">
+                        <p class="text-xs font-bold text-gray-800 truncate" id="attachmentFileName">Foto dipilih</p>
+                        <p class="text-[10px] text-gray-500" id="attachmentFileSize">0 KB</p>
+                    </div>
+                    <button type="button" onclick="cancelAttachment()" class="p-1 text-gray-400 hover:text-red-600 rounded-full hover:bg-gray-200 transition flex-shrink-0" title="Batal lampirkan">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+
                 <!-- Typing Indicator -->
                 <div id="typingIndicator" class="hidden mb-3 px-3.5 py-1.5 bg-white/95 backdrop-blur-sm rounded-full shadow-sm border border-gray-200/80 w-fit flex items-center gap-2.5 transition-all duration-300">
                     <div class="flex items-center gap-1">
@@ -180,20 +208,47 @@
                     <span class="text-xs text-gray-500 font-medium">{{ $otherUser->fullname }} sedang mengetik...</span>
                 </div>
 
-                <form action="{{ route('messages.store') }}" method="POST" id="chatForm" class="flex items-center gap-3">
+                <form action="{{ route('messages.store') }}" method="POST" id="chatForm" enctype="multipart/form-data" class="flex items-center gap-2">
                     @csrf
                     <input type="hidden" name="recipient_id" value="{{ $otherUser->id }}">
                     <input type="hidden" name="reply_to" id="replyToInput" value="">
-                    <input type="text" name="message" id="messageInput" placeholder="Ketik pesan..." required
+                    <input type="file" id="attachmentInput" name="attachment" accept="image/jpeg,image/png,image/jpg,image/webp,image/gif" class="hidden">
+                    
+                    <!-- Attach Image Button -->
+                    <button type="button" id="attachBtn" onclick="document.getElementById('attachmentInput').click()" 
+                        title="Kirim Foto" 
+                        class="p-3 text-gray-500 hover:text-[#b71c1c] hover:bg-red-50 active:scale-95 rounded-full transition flex-shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                    </button>
+
+                    <input type="text" name="message" id="messageInput" placeholder="Ketik pesan..." 
                         class="flex-grow px-4 py-3 bg-gray-100 rounded-[14px] text-sm focus:outline-none focus:ring-2 focus:ring-[#b71c1c]">
-                    <button type="submit" id="chatSendBtn" class="bg-[#b71c1c] hover:bg-red-800 active:scale-95 text-white px-6 py-3 rounded-[14px] text-sm font-bold transition-all duration-150">
-                        Kirim
+                    
+                    <button type="submit" id="chatSendBtn" class="bg-[#b71c1c] hover:bg-red-800 active:scale-95 text-white px-6 py-3 rounded-[14px] text-sm font-bold transition-all duration-150 flex-shrink-0 flex items-center gap-1.5">
+                        <span>Kirim</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                        </svg>
                     </button>
                 </form>
             </div>
         </div>
 
     </div>
+</div>
+
+<!-- Lightbox Modal Fullscreen -->
+<div id="lightboxModal" class="hidden fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 transition-opacity duration-300 opacity-0" onclick="closeLightbox(event)">
+    <button type="button" onclick="closeLightbox(event, true)" class="absolute top-4 right-4 text-white/80 hover:text-white p-2 rounded-full bg-black/40 hover:bg-black/70 transition">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+    </button>
+    <a id="lightboxDownloadBtn" href="" download target="_blank" class="absolute top-4 left-4 text-white/80 hover:text-white p-2 rounded-full bg-black/40 hover:bg-black/70 transition flex items-center gap-2 text-xs font-semibold px-3 py-2" onclick="event.stopPropagation()">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        <span>Unduh</span>
+    </a>
+    <img id="lightboxImg" src="" alt="Full Preview" class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl transition-transform duration-300 scale-95" onclick="event.stopPropagation()">
 </div>
 
 <!-- Context Menu -->
@@ -302,14 +357,30 @@
         var timeAlign = isMine ? 'justify-end' : 'justify-start';
         var time = formatTime(message.created);
 
+        var imgUrl = message.attachment_url || (message.attachment ? '{{ asset('storage') }}/' + message.attachment : null);
+        var imgHtml = '';
+        if (imgUrl) {
+            imgHtml = '<div class="mb-2 overflow-hidden rounded-lg">'
+                + '<img src="' + imgUrl + '" alt="Foto lampiran" class="max-w-full max-h-64 object-cover rounded-lg hover:opacity-95 transition cursor-zoom-in" loading="lazy" onclick="openLightbox(event, \'' + imgUrl + '\')">'
+                + '</div>';
+        }
+
+        var textHtml = '';
+        if (message.message && message.message.trim() !== '') {
+            textHtml = '<p class="text-sm whitespace-pre-wrap">' + escapeHtml(message.message) + '</p>';
+        }
+
         var html = '<div class="flex ' + justify + ' mb-2">'
             + '<div class="max-w-[70%]">'
             + '<div class="chat-bubble chat-bubble-pop ' + originClass + ' ' + bubbleClass + ' rounded-[14px] px-4 py-3 shadow-sm cursor-pointer select-none"'
             + ' data-id="' + message.id + '"'
             + ' data-from="' + message.from_id + '"'
-            + ' data-message="' + escapeHtml(message.message) + '"'
+            + ' data-message="' + escapeHtml(message.message || '') + '"'
+            + ' data-attachment="' + (message.attachment || '') + '"'
+            + ' data-attachment-url="' + (imgUrl || '') + '"'
             + ' onclick="showContextMenu(event, this)">'
-            + '<p class="text-sm whitespace-pre-wrap">' + escapeHtml(message.message) + '</p>'
+            + imgHtml
+            + textHtml
             + '</div>'
             + '<div class="flex items-center gap-2 mt-1 ' + timeAlign + '">'
             + '<p class="text-[10px] text-gray-400">' + time + '</p>'
@@ -335,6 +406,90 @@
             }
         });
     }
+
+    // ==== Attachment File Picker & Preview ====
+    var attachmentInput = document.getElementById('attachmentInput');
+    var attachmentPreview = document.getElementById('attachmentPreview');
+    var attachmentPreviewImg = document.getElementById('attachmentPreviewImg');
+    var attachmentFileName = document.getElementById('attachmentFileName');
+    var attachmentFileSize = document.getElementById('attachmentFileSize');
+
+    if (attachmentInput) {
+        attachmentInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                var file = this.files[0];
+                if (!file.type.startsWith('image/')) {
+                    alert('Hanya file gambar yang diperbolehkan.');
+                    cancelAttachment();
+                    return;
+                }
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('Ukuran gambar maksimal adalah 5 MB.');
+                    cancelAttachment();
+                    return;
+                }
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    attachmentPreviewImg.src = e.target.result;
+                    attachmentFileName.textContent = file.name;
+                    var kb = (file.size / 1024).toFixed(1);
+                    attachmentFileSize.textContent = (kb > 1024) ? (kb / 1024).toFixed(2) + ' MB' : kb + ' KB';
+                    attachmentPreview.classList.remove('hidden');
+                    messageInput.focus();
+                };
+                reader.readAsDataURL(file);
+            } else {
+                cancelAttachment();
+            }
+        });
+    }
+
+    function cancelAttachment() {
+        if (attachmentInput) attachmentInput.value = '';
+        if (attachmentPreview) attachmentPreview.classList.add('hidden');
+        if (attachmentPreviewImg) attachmentPreviewImg.src = '';
+    }
+
+    // ==== Fullscreen Lightbox Modal ====
+    function openLightbox(e, src) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        var modal = document.getElementById('lightboxModal');
+        var img = document.getElementById('lightboxImg');
+        var dl = document.getElementById('lightboxDownloadBtn');
+        if (!modal || !img) return;
+        img.src = src;
+        if (dl) dl.href = src;
+        modal.classList.remove('hidden');
+        requestAnimationFrame(function() {
+            modal.classList.remove('opacity-0');
+            img.classList.remove('scale-95');
+            img.classList.add('scale-100');
+        });
+    }
+
+    function closeLightbox(e, force) {
+        if (e && !force && e.target.id !== 'lightboxModal') return;
+        if (e) e.stopPropagation();
+        var modal = document.getElementById('lightboxModal');
+        var img = document.getElementById('lightboxImg');
+        if (!modal || !img) return;
+        modal.classList.add('opacity-0');
+        img.classList.remove('scale-100');
+        img.classList.add('scale-95');
+        setTimeout(function() {
+            modal.classList.add('hidden');
+            img.src = '';
+        }, 250);
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeLightbox(null, true);
+        }
+    });
 
     @auth
     if (window.Echo) {
@@ -415,9 +570,17 @@
         chatForm.addEventListener('submit', function(e) {
             e.preventDefault();
             var text = messageInput.value.trim();
-            if (!text) return;
+            var hasFile = attachmentInput && attachmentInput.files && attachmentInput.files.length > 0;
+            if (!text && !hasFile) return;
 
             var formData = new FormData(chatForm);
+
+            var tempAttachmentUrl = null;
+            if (hasFile) {
+                try {
+                    tempAttachmentUrl = URL.createObjectURL(attachmentInput.files[0]);
+                } catch (err) {}
+            }
 
             // Tampilkan bubble seketika (optimistic render)
             var tempMsg = {
@@ -425,11 +588,13 @@
                 from_id: currentUserId,
                 to_id: otherUserId,
                 message: text,
+                attachment_url: tempAttachmentUrl,
                 created: Math.floor(Date.now() / 1000)
             };
             appendBubble(tempMsg, { id: currentUserId, fullname: 'Saya' });
 
             messageInput.value = '';
+            cancelAttachment();
             if (typeof cancelReply === 'function') cancelReply();
 
             fetch(chatForm.action, {
