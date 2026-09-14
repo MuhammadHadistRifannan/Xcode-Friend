@@ -102,9 +102,49 @@
  <!-- Feed Berita -->
  <h3 class="text-xs font-bold text-neutral-800 uppercase border-l-4 border-red-700 pl-2 mt-8 mb-4">FEED BERITA</h3>
 
- <div id="feed-container">
-    @include('home.partials._feed-items')
- </div>
+        <!-- Realtime New Post Notification Banner (hidden by default) -->
+        <div id="new-posts-banner" class="hidden mb-4 p-3 bg-red-600 hover:bg-red-700 text-white rounded-xl shadow cursor-pointer transition text-center text-xs font-bold flex items-center justify-center gap-2">
+            <svg class="w-4 h-4 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+            <span>Ada postingan baru! Klik untuk melihat ke atas</span>
+        </div>
+
+        <!-- Container Feed Berita -->
+        <div id="feed-stream-container" class="space-y-4">
+            @forelse ($streams as $stream)
+                <x-single-stream :stream="$stream" />
+                @if($loop->index == 0 && $streams->currentPage() == 1)
+                    @php $centerColumnHtml = \App\Helpers\SettingHelper::get('theme_block_center_column', ''); @endphp
+                    @if($centerColumnHtml)
+                        <div class="mb-4">{!! $centerColumnHtml !!}</div>
+                    @endif
+                @endif
+            @empty
+                <div id="feed-empty-state" class="text-center text-sm text-neutral-500 py-10 bg-white rounded-xl shadow-sm border border-neutral-200">Tidak ada feed berita terbaru.</div>
+            @endforelse
+        </div>
+
+        <!-- Infinite Scroll Sentinel & Skeleton Shimmer Loading -->
+        <div id="feed-infinite-sentinel" class="py-4 text-center" data-next-page="{{ $streams->nextPageUrl() }}" data-has-more="{{ $streams->hasMorePages() ? '1' : '0' }}">
+            <div id="feed-loading-spinner" class="hidden my-2 space-y-4 text-left">
+                <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
+                    <div class="flex items-center space-x-3 mb-4">
+                        <div class="skeleton-shimmer w-10 h-10 rounded-full flex-shrink-0"></div>
+                        <div class="space-y-2 flex-1">
+                            <div class="skeleton-shimmer h-3.5 w-1/4 rounded"></div>
+                            <div class="skeleton-shimmer h-2.5 w-1/6 rounded"></div>
+                        </div>
+                    </div>
+                    <div class="space-y-2 mb-4">
+                        <div class="skeleton-shimmer h-3 w-3/4 rounded"></div>
+                        <div class="skeleton-shimmer h-3 w-1/2 rounded"></div>
+                    </div>
+                    <div class="skeleton-shimmer h-40 w-full rounded-xl"></div>
+                </div>
+            </div>
+            <div id="feed-no-more" class="{{ $streams->hasMorePages() ? 'hidden' : '' }} text-xs text-neutral-400 py-3">
+                Semua postingan telah ditampilkan.
+            </div>
+        </div>
 
 
 

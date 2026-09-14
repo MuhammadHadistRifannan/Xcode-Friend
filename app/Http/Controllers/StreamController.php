@@ -139,7 +139,7 @@ class StreamController extends Controller
             ]);
         }
 
-        Stream::create([
+        $stream = Stream::create([
             'message' => $message,
             'uid' => auth()->id(),
             'created' => time(),
@@ -152,6 +152,25 @@ class StreamController extends Controller
             'likes' => 0,
             'privacy' => $request->input('privacy', 'public')
         ]);
+
+        $stream->loadMissing(['user', 'comments.user', 'targetPage', 'targetWallUser']);
+        $html = view('components.single-stream', ['stream' => $stream])->render();
+
+        // Broadcast realtime ke seluruh user yang membuka beranda
+        try {
+            \App\Events\StreamCreated::dispatch($stream, $html);
+        } catch (\Throwable $e) {
+            \Log::warning('Gagal broadcast StreamCreated: ' . $e->getMessage());
+        }
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Status berhasil dibagikan ke jaringan!',
+                'stream_id' => $stream->id,
+                'html' => $html
+            ]);
+        }
 
         return back()->with('success_post', 'Status berhasil dibagikan ke jaringan!');
     }

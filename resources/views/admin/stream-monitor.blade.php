@@ -62,8 +62,16 @@
             </a>
         </div>
 
+        <div class="flex items-center justify-between mb-4 bg-white px-4 py-2.5 rounded-xl border border-gray-200 text-xs text-gray-600 shadow-sm">
+            <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+                <span class="font-bold text-gray-800">Live Monitor Aktif</span>
+                <span class="text-gray-400">&bull; Postingan baru dari pengguna akan muncul secara realtime tanpa refresh.</span>
+            </div>
+        </div>
+
         {{-- Stream Feed --}}
-        <div class="space-y-4">
+        <div class="space-y-4" id="admin-stream-feed">
             @forelse($streams as $stream)
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
                     <div class="flex justify-between items-start mb-3">
@@ -132,4 +140,76 @@
 
     </div>
 </div>
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/pusher-js@7/dist/web/pusher.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/laravel-echo@1/dist/echo.iife.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    if (!window.Echo) {
+        window.Echo = new Echo({
+            broadcaster: 'pusher',
+            key: '{{ config("broadcasting.connections.reverb.key") }}',
+            wsHost: '{{ config("broadcasting.connections.reverb.options.host", "127.0.0.1") }}',
+            wsPort: {{ config("broadcasting.connections.reverb.options.port", 8080) }},
+            wssPort: {{ config("broadcasting.connections.reverb.options.port", 8080) }},
+            forceTLS: false,
+            enabledTransports: ['ws', 'wss'],
+        });
+    }
+
+    const feed = document.getElementById('admin-stream-feed');
+    if (window.Echo && feed) {
+        window.Echo.channel('public-feed')
+            .listen('.stream.created', (e) => {
+                const streamId = e.stream_id;
+                if (document.getElementById('admin-stream-' + streamId)) return;
+
+                const username = e.username || 'user';
+                const fullname = e.fullname || username;
+                const avatar = e.avatar_url || '/img/default-avatar.png';
+                const message = (e.message || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                const type = e.type || 1;
+
+                let typeBadge = '<span class="text-blue-600 font-semibold"><i data-lucide="file-text" class="w-3 h-3 inline"></i> Teks</span>';
+                if (type == 2) typeBadge = '<span class="text-pink-600 font-semibold"><i data-lucide="image" class="w-3 h-3 inline"></i> Foto</span>';
+                else if (type == 3) typeBadge = '<span class="text-orange-600 font-semibold"><i data-lucide="video" class="w-3 h-3 inline"></i> Video</span>';
+
+                const cardHtml = `
+                    <div id="admin-stream-${streamId}" class="bg-white rounded-xl shadow-sm border-2 border-emerald-400 p-5 transition-all duration-500">
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex items-start gap-3">
+                                <img src="${avatar}" alt="${username}" class="w-10 h-10 rounded-full border border-gray-200 object-cover bg-gray-100">
+                                <div>
+                                    <div class="font-bold text-gray-900 text-sm">
+                                        <a href="/@${username}" target="_blank" class="hover:underline">${fullname}</a>
+                                        <span class="ml-2 px-2 py-0.5 text-[10px] bg-emerald-100 text-emerald-700 font-bold rounded-full">BARU SAJA</span>
+                                    </div>
+                                    <div class="text-xs text-gray-500">
+                                        Baru saja &bull; ID: ${streamId} &bull; ${typeBadge}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <form action="/admin/stream-monitor/${streamId}" method="POST" onsubmit="return confirm('Hapus postingan ini secara permanen?');">
+                                <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="_method" value="DELETE">
+                                <button type="submit" class="text-gray-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors" title="Hapus Postingan">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </form>
+                        </div>
+                        <p class="text-gray-800 text-sm mb-3 whitespace-pre-wrap">${message}</p>
+                    </div>
+                `;
+
+                feed.insertAdjacentHTML('afterbegin', cardHtml);
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                }
+            });
+    }
+});
+</script>
+@endpush
 @endsection

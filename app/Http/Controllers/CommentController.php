@@ -27,6 +27,15 @@ class CommentController extends Controller
             'stream_id' => $streamId
         ]);
 
+        $commentsCount = $stream->comments()->count();
+
+        // Broadcast realtime ke seluruh pengguna via Reverb
+        try {
+            \App\Events\CommentCreated::dispatch($comment, (int) $streamId, $commentsCount);
+        } catch (\Throwable $e) {
+            \Log::warning('Gagal broadcast CommentCreated: ' . $e->getMessage());
+        }
+
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'status' => 'success',
@@ -41,7 +50,7 @@ class CommentController extends Controller
                             : asset('assets/img/default.png')
                     ]
                 ],
-                'comments_count' => $stream->comments()->count()
+                'comments_count' => $commentsCount
             ]);
         }
 

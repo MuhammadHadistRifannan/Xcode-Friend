@@ -65,6 +65,17 @@ class FriendService
                 'display_name' => $sender->fullname ?? 'User',
             ]
         );
+
+        try {
+            broadcast(new \App\Events\FriendRequestSent($toId, [
+                'uid' => $fromId,
+                'username' => $sender->username ?? 'user',
+                'fullname' => $sender->fullname ?? 'User',
+                'msg' => $message,
+            ]));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Broadcast FriendRequestSent gagal: ' . $e->getMessage());
+        }
     }
 
     public function acceptRequest(int $requesterId, int $userId): void

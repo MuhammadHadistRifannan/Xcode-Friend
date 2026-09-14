@@ -55,6 +55,32 @@ class MessageController extends Controller
                 return $timeB - $timeA;
             });
 
+            if ($request->ajax()) {
+                $preview = array_slice(array_map(function ($c) {
+                    return [
+                        'user' => [
+                            'id' => $c['user']->id,
+                            'name' => $c['user']->fullname ?? $c['user']->username,
+                            'username' => $c['user']->username,
+                            'avatar_url' => $c['user']->avatar_url ?? null,
+                            'initial' => strtoupper(substr($c['user']->fullname ?? $c['user']->username ?? 'U', 0, 1)),
+                        ],
+                        'last_message' => $c['lastMessage'] ? [
+                            'message' => $c['lastMessage']->message,
+                            'time' => \Carbon\Carbon::createFromTimestamp($c['lastMessage']->created)->diffForHumans(),
+                            'is_mine' => $c['lastMessage']->from_id == auth()->id(),
+                        ] : null,
+                        'unread' => (int) $c['unreadCount'],
+                        'url' => route('messages.conversation', $c['user']->id),
+                    ];
+                }, $conversations), 0, 8);
+
+                return response()->json([
+                    'conversations' => $preview,
+                    'total_unread' => (int) $this->unreadCounter->messageCount($userId),
+                ]);
+            }
+
             return response()->view('messages.index', compact('conversations'))
                 ->header('Cache-Control', 'private, max-age=10');
         } catch (\Exception $e) {
@@ -73,6 +99,9 @@ class MessageController extends Controller
             $blocked = $this->friendService->areBlocked($userId, $recipientId);
 
             if ($blocked) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['status' => 'error', 'message' => 'Pengguna ini telah memblokir Anda.'], 403);
+                }
                 return $this->noCache(
                     redirect()->route('messages.index')->with('error', 'Pengguna ini telah memblokir Anda.')
                 );
@@ -87,15 +116,35 @@ class MessageController extends Controller
             );
 
             if (isset($result->spam_detected) && $result->spam_detected) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['status' => 'error', 'message' => 'Pesan Anda terdeteksi sebagai spam dan tidak terkirim.'], 422);
+                }
                 return $this->noCache(
                     redirect()->route('messages.conversation', $recipientId)->with('error', 'Pesan Anda terdeteksi sebagai spam dan tidak terkirim.')
                 );
+            }
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => [
+                        'id' => $result->id ?? 0,
+                        'message' => $request->message,
+                        'created' => time(),
+                        'created_formatted' => date('H:i'),
+                        'from_id' => $userId,
+                        'to_id' => (int) $recipientId,
+                    ]
+                ]);
             }
 
             return $this->noCache(
                 redirect()->route('messages.conversation', $recipientId)
             );
         } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['status' => 'error', 'message' => 'Gagal mengirim pesan: ' . $e->getMessage()], 500);
+            }
             return $this->noCache(
                 redirect()->back()->with('error', 'Gagal mengirim pesan. Coba lagi.')
             );

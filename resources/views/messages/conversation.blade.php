@@ -2,6 +2,75 @@
 
 @section('title', 'Konversi')
 
+@push('styles')
+<style>
+    @keyframes chatBubblePop {
+        0% {
+            opacity: 0;
+            transform: scale(0.9) translateY(8px);
+        }
+        70% {
+            transform: scale(1.02) translateY(-2px);
+        }
+        100% {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    }
+    .chat-bubble-pop {
+        animation: chatBubblePop 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    @keyframes typingWave {
+        0%, 60%, 100% {
+            transform: translateY(0);
+            opacity: 0.35;
+        }
+        30% {
+            transform: translateY(-5px);
+            opacity: 1;
+        }
+    }
+    .typing-wave-dot {
+        animation: typingWave 1.2s infinite ease-in-out;
+    }
+
+    @keyframes readCheckPop {
+        0% {
+            transform: scale(0);
+            opacity: 0;
+        }
+        70% {
+            transform: scale(1.4);
+            opacity: 1;
+        }
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+    .read-check-pop {
+        display: inline-block;
+        animation: readCheckPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    @keyframes menuPop {
+        0% {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+        100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+    .menu-pop-in {
+        animation: menuPop 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        transform-origin: top left;
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="pb-6 bg-[#fafafa]">
     <div class="w-full px-4 lg:px-20 mx-auto">
@@ -101,13 +170,23 @@
                     </button>
                 </div>
 
-                <form action="{{ route('messages.store') }}" method="POST" class="flex items-center gap-3">
+                <!-- Typing Indicator -->
+                <div id="typingIndicator" class="hidden mb-3 px-3.5 py-1.5 bg-white/95 backdrop-blur-sm rounded-full shadow-sm border border-gray-200/80 w-fit flex items-center gap-2.5 transition-all duration-300">
+                    <div class="flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 bg-[#b71c1c] rounded-full typing-wave-dot" style="animation-delay: 0ms;"></span>
+                        <span class="w-1.5 h-1.5 bg-[#b71c1c] rounded-full typing-wave-dot" style="animation-delay: 180ms;"></span>
+                        <span class="w-1.5 h-1.5 bg-[#b71c1c] rounded-full typing-wave-dot" style="animation-delay: 360ms;"></span>
+                    </div>
+                    <span class="text-xs text-gray-500 font-medium">{{ $otherUser->fullname }} sedang mengetik...</span>
+                </div>
+
+                <form action="{{ route('messages.store') }}" method="POST" id="chatForm" class="flex items-center gap-3">
                     @csrf
                     <input type="hidden" name="recipient_id" value="{{ $otherUser->id }}">
                     <input type="hidden" name="reply_to" id="replyToInput" value="">
                     <input type="text" name="message" id="messageInput" placeholder="Ketik pesan..." required
                         class="flex-grow px-4 py-3 bg-gray-100 rounded-[14px] text-sm focus:outline-none focus:ring-2 focus:ring-[#b71c1c]">
-                    <button type="submit" class="bg-[#b71c1c] hover:bg-red-800 text-white px-6 py-3 rounded-[14px] text-sm font-bold transition">
+                    <button type="submit" id="chatSendBtn" class="bg-[#b71c1c] hover:bg-red-800 active:scale-95 text-white px-6 py-3 rounded-[14px] text-sm font-bold transition-all duration-150">
                         Kirim
                     </button>
                 </form>
@@ -218,13 +297,14 @@
         if (!container) return;
         var isMine = message.from_id == currentUserId;
         var bubbleClass = isMine ? 'bg-[#b71c1c] text-white' : 'bg-white text-gray-900';
+        var originClass = isMine ? 'origin-bottom-right' : 'origin-bottom-left';
         var justify = isMine ? 'justify-end' : 'justify-start';
         var timeAlign = isMine ? 'justify-end' : 'justify-start';
         var time = formatTime(message.created);
 
         var html = '<div class="flex ' + justify + ' mb-2">'
             + '<div class="max-w-[70%]">'
-            + '<div class="chat-bubble ' + bubbleClass + ' rounded-[14px] px-4 py-3 shadow-sm cursor-pointer select-none"'
+            + '<div class="chat-bubble chat-bubble-pop ' + originClass + ' ' + bubbleClass + ' rounded-[14px] px-4 py-3 shadow-sm cursor-pointer select-none"'
             + ' data-id="' + message.id + '"'
             + ' data-from="' + message.from_id + '"'
             + ' data-message="' + escapeHtml(message.message) + '"'
@@ -248,7 +328,7 @@
                 var timeDiv = bubble.parentElement.querySelector('.flex.items-center');
                 if (timeDiv && !timeDiv.querySelector('.read-check')) {
                     var check = document.createElement('span');
-                    check.className = 'read-check text-[10px] text-[#b71c1c]';
+                    check.className = 'read-check read-check-pop text-[10px] text-[#b71c1c]';
                     check.innerHTML = '&#10003;&#10003;';
                     timeDiv.appendChild(check);
                 }
@@ -275,14 +355,28 @@
             req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
             req.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
             req.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}');
+            req.onreadystatechange = function() {
+                if (req.readyState === 4 && req.status === 200) {
+                    window.dispatchEvent(new CustomEvent('sync-unread-badges'));
+                }
+            };
             req.send();
         }
 
+        // Sinkronisasi badge unread di navbar saat percakapan dibuka
+        setTimeout(function() {
+            window.dispatchEvent(new CustomEvent('sync-unread-badges'));
+        }, 300);
+
+        var typingTimeout = null;
+        var typingIndicatorEl = document.getElementById('typingIndicator');
+
         window.Echo.private('user.{{ Auth::id() }}')
             .listen('.message.sent', function(e) {
-                if (e.message.from_id == otherUserId || e.message.to_id == otherUserId) {
+                if (e.message.from_id == otherUserId) {
                     appendBubble(e.message, e.sender);
                     markAsRead();
+                    if (typingIndicatorEl) typingIndicatorEl.classList.add('hidden');
                 }
                 playNotifSound();
             })
@@ -290,7 +384,72 @@
                 if (e.senderId == currentUserId && e.readerId == otherUserId) {
                     updateReadReceipts();
                 }
+            })
+            .listenForWhisper('typing', function(e) {
+                if (e.userId == otherUserId && typingIndicatorEl) {
+                    typingIndicatorEl.classList.remove('hidden');
+                    if (container) container.scrollTop = container.scrollHeight;
+                    if (typingTimeout) clearTimeout(typingTimeout);
+                    typingTimeout = setTimeout(function() {
+                        typingIndicatorEl.classList.add('hidden');
+                    }, 2500);
+                }
             });
+
+        // Kirim whisper saat mengetik
+        var lastWhisperTime = 0;
+        if (messageInput) {
+            messageInput.addEventListener('input', function() {
+                var now = Date.now();
+                if (now - lastWhisperTime > 1500) {
+                    lastWhisperTime = now;
+                    window.Echo.private('user.' + otherUserId).whisper('typing', { userId: currentUserId });
+                }
+            });
+        }
+    }
+
+    // AJAX Form Submit untuk Chat Instan Tanpa Refresh
+    var chatForm = document.getElementById('chatForm');
+    if (chatForm) {
+        chatForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            var text = messageInput.value.trim();
+            if (!text) return;
+
+            var formData = new FormData(chatForm);
+
+            // Tampilkan bubble seketika (optimistic render)
+            var tempMsg = {
+                id: 'temp-' + Date.now(),
+                from_id: currentUserId,
+                to_id: otherUserId,
+                message: text,
+                created: Math.floor(Date.now() / 1000)
+            };
+            appendBubble(tempMsg, { id: currentUserId, fullname: 'Saya' });
+
+            messageInput.value = '';
+            if (typeof cancelReply === 'function') cancelReply();
+
+            fetch(chatForm.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                if (data.status !== 'success') {
+                    alert(data.message || 'Gagal mengirim pesan.');
+                }
+            })
+            .catch(function(err) {
+                console.error(err);
+            });
+        });
     }
     @endauth
 
@@ -313,6 +472,9 @@
         var y = e.clientY;
 
         contextMenu.classList.remove('hidden');
+        contextMenu.classList.remove('menu-pop-in');
+        void contextMenu.offsetWidth;
+        contextMenu.classList.add('menu-pop-in');
 
         var menuWidth = contextMenu.offsetWidth;
         var menuHeight = contextMenu.offsetHeight;
@@ -323,8 +485,14 @@
         contextMenu.style.top = y + 'px';
     }
 
-    document.addEventListener('click', function() { contextMenu.classList.add('hidden'); });
-    document.addEventListener('contextmenu', function() { contextMenu.classList.add('hidden'); });
+    document.addEventListener('click', function() {
+        contextMenu.classList.add('hidden');
+        contextMenu.classList.remove('menu-pop-in');
+    });
+    document.addEventListener('contextmenu', function() {
+        contextMenu.classList.add('hidden');
+        contextMenu.classList.remove('menu-pop-in');
+    });
 
     function replyMessage() {
         contextMenu.classList.add('hidden');
