@@ -299,8 +299,11 @@
         window.Echo.private('user.{{ Auth::id() }}')
             .listen('.message.sent', function(e) {
                 var otherId = e.message.from_id == currentUserId ? e.message.to_id : e.message.from_id;
-                updateBadge(e.message.from_id, e.totalUnread);
+                var badge = getBadge(e.message.from_id);
+                var currentCount = badge ? (parseInt(badge.textContent, 10) || 0) : 0;
+                updateBadge(e.message.from_id, currentCount + 1);
                 updateLatestMessage(otherId, e.message);
+                window.dispatchEvent(new CustomEvent('sync-unread-badges'));
                 playNotifSound();
             });
     }

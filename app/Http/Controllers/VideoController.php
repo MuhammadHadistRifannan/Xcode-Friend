@@ -14,8 +14,19 @@ class VideoController extends Controller
      */
     public function index()
     {
-        $albums = AlbumVideo::where('gid', auth()->id())->with('videos')->get();
+        $albums = AlbumVideo::where('gid', auth()->id())->with('videos')->paginate(12);
         $isPublic = false;
+
+        if (request()->ajax()) {
+            $html = '';
+            foreach ($albums as $album) {
+                $html .= view('video.partials._album-card', compact('album', 'isPublic'))->render();
+            }
+            return response()->json([
+                'html' => $html,
+                'hasMore' => $albums->hasMorePages(),
+            ]);
+        }
 
         return view('video.index', compact('albums', 'isPublic'));
     }
@@ -25,9 +36,19 @@ class VideoController extends Controller
      */
     public function publicIndex()
     {
-        // For public index, we might still want to show all albums or specific user albums
-        $albums = AlbumVideo::with('videos')->get();
+        $albums = AlbumVideo::with('videos')->paginate(12);
         $isPublic = true;
+
+        if (request()->ajax()) {
+            $html = '';
+            foreach ($albums as $album) {
+                $html .= view('video.partials._album-card', compact('album', 'isPublic'))->render();
+            }
+            return response()->json([
+                'html' => $html,
+                'hasMore' => $albums->hasMorePages(),
+            ]);
+        }
 
         return view('video.index', compact('albums', 'isPublic'));
     }

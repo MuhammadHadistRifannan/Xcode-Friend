@@ -12,9 +12,9 @@ class NotificationService
         private NotificationRepositoryInterface $notifRepo
     ) {}
 
-    public function getNotifications(int $userId, int $perPage = 20)
+    public function getNotifications(int $userId, int $perPage = 20, int $page = 1)
     {
-        return $this->notifRepo->getNotifications($userId, $perPage);
+        return $this->notifRepo->getNotifications($userId, $perPage, $page);
     }
 
     public function getById(int $id, int $userId): ?object
@@ -50,18 +50,5 @@ class NotificationService
     public function create(int $userId, string $type, array $data = []): void
     {
         $this->notifRepo->create($userId, $type, $data);
-        Cache::forget('unread:notif:' . $userId);
-
-        $unreadCount = $this->notifRepo->countUnread($userId);
-        try {
-            broadcast(new NotificationCreated((object) [
-                'id' => 0,
-                'subject' => $type,
-                'message' => $data['display_name'] ?? $data['user_name'] ?? $type,
-                'created' => time(),
-            ], $userId, $unreadCount))->toOthers();
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('Broadcast NotificationCreated gagal: ' . $e->getMessage());
-        }
     }
 }

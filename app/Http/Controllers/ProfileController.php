@@ -97,6 +97,20 @@ class ProfileController extends Controller
                 ->get();
         }
 
+        if ($request->ajax()) {
+            if (($tab === 'dinding' || $tab === 'menyukai') && $streams) {
+                $html = '';
+                foreach ($streams as $stream) {
+                    $html .= view('components.single-stream', compact('stream'))->render();
+                }
+                return response()->json([
+                    'html' => $html,
+                    'hasMorePages' => $streams->hasMorePages(),
+                    'nextPageUrl' => $streams->nextPageUrl(),
+                ]);
+            }
+        }
+
         return view('profile.dinding', compact(
             'profileUser', 'streams', 'photos', 'videos', 'tab',
             'isFollowing', 'isFriend', 'hasPendingRequest', 'hasSentRequest', 'isBlocked', 'likedMusics'

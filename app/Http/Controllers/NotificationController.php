@@ -22,12 +22,29 @@ class NotificationController extends Controller
     {
         try {
             $userId = Auth::id();
-            $notifications = $this->notifService->getNotifications($userId);
+            $page = max(1, (int) request('page', 1));
+            $perPage = 20;
+            $notifications = $this->notifService->getNotifications($userId, $perPage, $page);
+
+            if (request()->ajax()) {
+                $html = '';
+                foreach ($notifications as $notification) {
+                    $html .= view('notifications.partials._item', compact('notification'))->render();
+                }
+                return response()->json([
+                    'html' => $html,
+                    'hasMore' => $notifications->count() >= $perPage,
+                    'count' => $notifications->count(),
+                ]);
+            }
 
             return $this->noCache(
                 response()->view('notifications.index', compact('notifications'))
             );
         } catch (\Exception $e) {
+            if (request()->ajax()) {
+                return response()->json(['error' => 'Gagal memuat notifikasi'], 500);
+            }
             return $this->noCache(
                 redirect()->route('notifications.index')->with('error', 'Gagal memuat notifikasi.')
             );
@@ -78,6 +95,10 @@ class NotificationController extends Controller
         try {
             $userId = Auth::id();
             $this->notifService->markAllAsRead($userId);
+
+            if (request()->ajax()) {
+                return response()->json(['status' => 'ok', 'count' => 0]);
+            }
 
             return $this->noCache(
                 redirect()->route('notifications.index')->with('success', 'Semua notifikasi ditandai sudah dibaca.')

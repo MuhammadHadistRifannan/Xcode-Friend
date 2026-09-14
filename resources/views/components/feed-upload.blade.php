@@ -36,7 +36,7 @@
     </div>
 
     <!-- Form Bagi Cepat -->
-    <form action="{{ $action }}" method="POST" enctype="multipart/form-data">
+    <form action="{{ $action }}" method="POST" enctype="multipart/form-data" id="form-feed-upload">
         @csrf
         <input type="hidden" name="app" value="{{ $app }}">
         <input type="hidden" name="aid" value="{{ $aid }}">
