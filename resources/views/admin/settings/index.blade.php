@@ -58,6 +58,12 @@
                         <label class="block text-xs font-bold text-gray-700 mb-1.5">Footer Message</label>
                         <input type="text" name="footermsg" value="{{ old('footermsg', $settings['footermsg']) }}" class="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-md focus:ring-red-500 focus:border-red-500 block p-2.5">
                     </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1.5">Syarat & Ketentuan (Rules & Conditions)</label>
+                        <textarea name="rules_conditions" rows="4" class="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-md focus:ring-red-500 focus:border-red-500 block p-2.5">{{ old('rules_conditions', $settings['rules_conditions']) }}</textarea>
+                        <p class="text-[10px] text-gray-400 mt-1.5">Teks ini akan ditampilkan di halaman pendaftaran pengguna baru.</p>
+                    </div>
                 </div>
             </div>
 

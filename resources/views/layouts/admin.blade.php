@@ -42,9 +42,14 @@
     <div class="flex-grow flex w-full h-full overflow-hidden">
         
         <!-- Sidebar Management Tools -->
-        <aside class="w-64 bg-white border-r border-gray-200 h-full overflow-y-auto hidden md:flex flex-col flex-shrink-0">
-            <div class="p-6 flex-grow">
-                <div class="text-[10px] font-bold text-gray-400 tracking-widest uppercase mb-4">Management Tools</div>
+        <aside class="w-64 bg-white border-r border-gray-200 h-full overflow-hidden hidden md:flex flex-col flex-shrink-0">
+            <!-- Header Fixed -->
+            <div class="p-6 pb-4 border-b border-gray-100/50">
+                <div class="text-[10px] font-bold text-gray-400 tracking-widest uppercase">Management Tools</div>
+            </div>
+            
+            <!-- Scrollable Nav -->
+            <div class="px-6 py-4 flex-grow overflow-y-auto">
                 <nav class="flex flex-col gap-1">
                     
                     <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('admin.dashboard', 'admin.index') ? 'bg-red-50 text-red-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
@@ -68,9 +73,14 @@
                     </a>
 
                     
-                    <a href="{{ route('admin.themes') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('admin.themes', 'admin.themes.blocks') ? 'bg-red-50 text-red-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-                        <i data-lucide="palette" class="w-4 h-4 {{ request()->routeIs('admin.themes', 'admin.themes.blocks') ? 'text-red-500' : 'text-gray-400' }}"></i>
-                        Themes & Blocks
+                    <a href="{{ route('admin.themes') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('admin.themes') ? 'bg-red-50 text-red-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <i data-lucide="palette" class="w-4 h-4 {{ request()->routeIs('admin.themes') ? 'text-red-500' : 'text-gray-400' }}"></i>
+                        Themes
+                    </a>
+
+                    <a href="{{ route('admin.themes.blocks') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('admin.themes.blocks') ? 'bg-red-50 text-red-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <i data-lucide="layout-template" class="w-4 h-4 {{ request()->routeIs('admin.themes.blocks') ? 'text-red-500' : 'text-gray-400' }}"></i>
+                        Manage Blocks
                     </a>
 
                     <a href="{{ route('admin.members') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('admin.members', 'admin.members.show') ? 'bg-red-50 text-red-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">

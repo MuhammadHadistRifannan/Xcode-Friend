@@ -155,7 +155,17 @@
         <!-- SECTION: Captcha & Terms -->
         @php
             $disableCaptcha = \App\Helpers\SettingHelper::get('disable_recaptcha_reg', '0') == '1';
+            $rulesConditions = \App\Helpers\SettingHelper::get('rules_conditions', "- Dilarang keras melakukan pelecehan SARA \n- Dilarang keras mengirim SPAM\n- Dilarang keras mengisi foto dengan gambar yang mengandung pornografi atau pornoaksi\n- Setiap tindakan yang dilakukan member di jejaring sosial X-code adalah tanggung jawab pribadi");
         @endphp
+        
+        <!-- Syarat & Ketentuan Box -->
+        <div>
+            <h3 class="text-xs font-bold tracking-widest text-neutral-400 uppercase border-b border-neutral-100 pb-2 mb-4 mt-2">Syarat & Ketentuan</h3>
+            <div class="bg-white border border-neutral-200 rounded-lg p-4 h-32 overflow-y-auto custom-scrollbar text-xs text-neutral-600 leading-relaxed whitespace-pre-wrap mb-4">
+{{ $rulesConditions }}
+            </div>
+        </div>
+
         <div class="bg-neutral-50/50 p-4 rounded-xl border border-neutral-100">
             @if(!$disableCaptcha)
             <label class="block text-[11px] font-bold tracking-wider text-neutral-500 uppercase mb-2">Keamanan <span class="text-[#990000]">*</span></label>
@@ -168,7 +178,7 @@
             <label class="flex items-start gap-2.5 cursor-pointer select-none">
                 <input type="checkbox" name="agree_terms" required class="w-4 h-4 mt-0.5 text-[#990000] border-neutral-300 rounded focus:ring-[#990000] flex-shrink-0">
                 <span class="text-[11px] text-neutral-600 leading-relaxed">
-                    Saya menyetujui <a href="#" class="text-[#990000] font-bold">Syarat & Ketentuan</a> komunitas, termasuk larangan SARA, SPAM, dan pornografi.
+                    Saya telah membaca dan menyetujui seluruh <span class="text-[#990000] font-bold">Syarat & Ketentuan</span> komunitas di atas.
                 </span>
             </label>
         </div>

@@ -54,7 +54,8 @@ class User extends Authenticatable
         'birthyear', 'birthmonth', 'birthday', 'country', 'about_me',
         'created', 'lastlogin', 'ipaddress', 'hide_age', 'roles', 'disabled',
         'settings', 'avatar', 'level', 'points',
-        'location', 'signature', 'blurbs', 'remember_token'
+        'location', 'signature', 'blurbs', 'remember_token',
+        'var1', 'var2', 'var3', 'var4', 'var5', 'var6', 'var7'
     ];
 
     protected $hidden = [

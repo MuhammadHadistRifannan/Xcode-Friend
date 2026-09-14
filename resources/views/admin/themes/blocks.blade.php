@@ -6,7 +6,7 @@
         
         <!-- Header -->
         <div class="mb-6">
-            <div class="text-[11px] font-medium text-gray-400 mb-1">Home &gt; Admin Panel &gt; Themes &gt; Manage Blocks</div>
+            <div class="text-[11px] font-medium text-gray-400 mb-1">Home &gt; Admin Panel &gt; Manage Blocks</div>
             <h1 class="text-[28px] font-normal text-gray-800 tracking-tight mb-2">MANAGE BLOCKS</h1>
             <p class="text-[#666666] text-[13px] max-w-2xl leading-relaxed">
                 Configure the layout of your community pages.<br>

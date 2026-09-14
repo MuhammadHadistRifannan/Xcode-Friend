@@ -296,6 +296,23 @@
                     @if(!$profileUser->hide_age && $profileUser->birthyear)
                     <div class="flex justify-between text-xs"><span class="text-neutral-500">Umur</span> <span class="font-bold text-neutral-900">{{ date('Y') - $profileUser->birthyear }} Tahun</span></div>
                     @endif
+                    
+                    @if(isset($customFields) && count($customFields) > 0)
+                        @foreach($customFields as $index => $field)
+                            @if($field->type !== 'Disabled')
+                                @php 
+                                    $colName = 'var' . ($index + 1); 
+                                    $value = $profileUser->{$colName};
+                                @endphp
+                                @if(!empty($value))
+                                    <div class="flex justify-between text-xs">
+                                        <span class="text-neutral-500">{{ $field->name }}</span> 
+                                        <span class="font-bold text-neutral-900">{{ $value }}</span>
+                                    </div>
+                                @endif
+                            @endif
+                        @endforeach
+                    @endif
                 </div>
             </div>
             

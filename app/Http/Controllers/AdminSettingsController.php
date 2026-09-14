@@ -36,6 +36,7 @@ class AdminSettingsController extends Controller
             'site_keywords' => $settingsData['site_keywords'] ?? 'x-code, network, cybersecurity, control panel, infrastructure, devops',
             'site_email' => $settingsData['site_email'] ?? 'sysadmin@x-code.network',
             'footermsg' => $textData['footermsg'] ?? '© 2024 X-CODE TECHNOLOGY NETWORK. ALL RIGHTS RESERVED.',
+            'rules_conditions' => $textData['rules_conditions'] ?? "- Dilarang keras melakukan pelecehan SARA \n- Dilarang keras mengirim SPAM\n- Dilarang keras mengisi foto dengan gambar yang mengandung pornografi atau pornoaksi\n- Setiap tindakan yang dilakukan member di jejaring sosial X-code adalah tanggung jawab pribadi",
             
             'private_network' => $settingsData['private_network'] ?? '0', // 1: Registered Members Only, 0: Public
             'acc_verify' => $settingsData['acc_verify'] ?? '1', // 0: Auto, 1: Email, 2: Admin
@@ -76,7 +77,7 @@ class AdminSettingsController extends Controller
         }
 
         // Separate texts to save in jcow_texts
-        $textKeys = ['footermsg', 'locations', 'words_filter'];
+        $textKeys = ['footermsg', 'locations', 'words_filter', 'rules_conditions'];
         $texts = [];
         foreach ($textKeys as $key) {
             if (isset($inputs[$key])) {

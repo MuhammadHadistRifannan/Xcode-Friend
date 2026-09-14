@@ -97,6 +97,12 @@ class ProfileController extends Controller
                 ->get();
         }
 
+        // Ambil Custom Fields yang aktif
+        $customFields = [];
+        if (\Illuminate\Support\Facades\Schema::hasTable('jcow_profile_fields')) {
+            $customFields = \Illuminate\Support\Facades\DB::table('jcow_profile_fields')->get();
+        }
+
         if ($request->ajax()) {
             if (($tab === 'dinding' || $tab === 'menyukai') && $streams) {
                 $html = '';
@@ -113,7 +119,7 @@ class ProfileController extends Controller
 
         return view('profile.dinding', compact(
             'profileUser', 'streams', 'photos', 'videos', 'tab',
-            'isFollowing', 'isFriend', 'hasPendingRequest', 'hasSentRequest', 'isBlocked', 'likedMusics'
+            'isFollowing', 'isFriend', 'hasPendingRequest', 'hasSentRequest', 'isBlocked', 'likedMusics', 'customFields'
         ));
     }
 
@@ -177,7 +183,13 @@ class ProfileController extends Controller
     public function edit()
     {
         $user = auth()->user();
-        return view('profile.edit', compact('user'));
+        
+        $customFields = [];
+        if (\Illuminate\Support\Facades\Schema::hasTable('jcow_profile_fields')) {
+            $customFields = \Illuminate\Support\Facades\DB::table('jcow_profile_fields')->get();
+        }
+
+        return view('profile.edit', compact('user', 'customFields'));
     }
 
     public function update(Request $request)
@@ -207,6 +219,19 @@ class ProfileController extends Controller
             if ($request->filled('birthmonth')) $user->birthmonth = $request->birthmonth;
             if ($request->filled('birthday')) $user->birthday = $request->birthday;
             
+            // Simpan custom fields (var1 - var7)
+            if (\Illuminate\Support\Facades\Schema::hasTable('jcow_profile_fields')) {
+                $customFields = \Illuminate\Support\Facades\DB::table('jcow_profile_fields')->get();
+                foreach ($customFields as $index => $field) {
+                    if ($field->type !== 'Disabled') {
+                        $col = 'var' . ($index + 1);
+                        if ($request->has($col)) {
+                            $user->{$col} = $request->input($col);
+                        }
+                    }
+                }
+            }
+
             $user->save();
             return redirect()->route('profile.edit', ['tab' => 'informasi'])->with('success', 'Informasi dasar berhasil diperbarui!');
         } 

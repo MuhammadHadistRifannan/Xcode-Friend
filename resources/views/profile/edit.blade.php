@@ -132,6 +132,45 @@
                             <textarea name="about_me" rows="4" placeholder="Tuliskan sedikit tentang diri Anda..." class="w-2/3 bg-white border border-neutral-300 rounded px-4 py-2 text-sm focus:outline-none focus:border-red-700 transition resize-none">{{ old('about_me', $user->about_me) }}</textarea>
                         </div>
 
+                        @if(isset($customFields) && count($customFields) > 0)
+                            <div class="border-t border-neutral-100 pt-6 mt-6 space-y-6">
+                                <h4 class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-4">Informasi Tambahan</h4>
+                                @foreach($customFields as $index => $field)
+                                    @if($field->type !== 'Disabled')
+                                        @php 
+                                            $colName = 'var' . ($index + 1); 
+                                            $value = old($colName, $user->{$colName});
+                                        @endphp
+                                        <div class="flex items-center gap-6">
+                                            <label class="w-1/3 text-xs font-semibold text-neutral-600">
+                                                {{ $field->name }}
+                                                @if($field->required) <span class="text-red-500">*</span> @endif
+                                            </label>
+                                            
+                                            <div class="w-2/3">
+                                                @if($field->type === 'Text Box')
+                                                    <input type="text" name="{{ $colName }}" value="{{ $value }}" {{ $field->required ? 'required' : '' }} class="w-full bg-white border border-neutral-300 rounded px-4 py-2 text-sm focus:outline-none focus:border-red-700 transition">
+                                                @elseif($field->type === 'Select Box')
+                                                    @php $options = explode("\n", str_replace("\r", "", $field->options)); @endphp
+                                                    <select name="{{ $colName }}" {{ $field->required ? 'required' : '' }} class="w-full bg-white border border-neutral-300 rounded px-4 py-2 text-sm focus:outline-none focus:border-red-700 transition appearance-none">
+                                                        <option value="">-- Pilih --</option>
+                                                        @foreach($options as $opt)
+                                                            @if(trim($opt) !== '')
+                                                                <option value="{{ trim($opt) }}" {{ $value == trim($opt) ? 'selected' : '' }}>{{ trim($opt) }}</option>
+                                                            @endif
+                                                        @endforeach
+                                                    </select>
+                                                @endif
+                                                @if($field->description)
+                                                    <p class="text-[10px] text-neutral-400 mt-1">{{ $field->description }}</p>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @endif
+                                @endforeach
+                            </div>
+                        @endif
+
                         <div class="border-t border-neutral-100 pt-6 flex justify-end items-center mt-8">
                             <a href="{{ route('profile.show', $user->username) }}" class="text-xs font-bold text-neutral-500 mr-6 hover:text-neutral-800 transition">Batal</a>
                             <button type="submit" class="bg-[#990000] text-white text-xs font-bold tracking-wide px-8 py-2.5 rounded hover:bg-red-800 transition shadow">Simpan Perubahan</button>
