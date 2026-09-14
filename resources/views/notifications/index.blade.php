@@ -16,7 +16,7 @@
             <div class="flex justify-between items-center">
                 <h1 class="text-2xl font-bold text-gray-900">NOTIFICATIONS</h1>
                 @if($notifications->where('hasread', 0)->count() > 0)
-                    <form action="{{ route('notifications.markAllRead') }}" method="POST">
+                    <form action="{{ route('notifications.markAllRead') }}" method="POST" onsubmit="const btn = this.querySelector('button'); btn.disabled = true; btn.innerText = 'MEMPROSES...';">
                         @csrf
                         <button type="submit" class="text-sm font-bold text-[#b71c1c] hover:text-red-800 transition">
                             TANDAI SEMUA SUDAH DIBACA
@@ -32,16 +32,14 @@
             <div class="w-full lg:w-[85%] bg-[#f6f3f3] rounded-[24px] flex flex-col min-h-[400px] h-[650px] pt-8 shadow-sm overflow-hidden border border-gray-200">
 
             <!-- Info Banner -->
-            @if($notifications->where('hasread', 0)->count() > 0)
-            <div class="mx-8 mb-4 bg-white border-l-4 border-[#3b82f6] rounded-r-lg p-4 flex items-start gap-3">
+            <div id="unread-banner" class="mx-8 mb-4 bg-white border-l-4 border-[#3b82f6] rounded-r-lg p-4 flex items-start gap-3 {{ $notifications->where('hasread', 0)->count() > 0 ? '' : 'hidden' }}">
                 <div class="w-6 h-6 rounded-full bg-[#3b82f6] flex items-center justify-center flex-shrink-0 mt-0.5">
                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                 </div>
-                <p class="text-sm text-gray-600">Anda memiliki {{ $notifications->where('hasread', 0)->count() }} notifikasi yang belum dibaca.</p>
+                <p class="text-sm text-gray-600" id="unread-banner-text">Anda memiliki {{ $notifications->where('hasread', 0)->count() }} notifikasi yang belum dibaca.</p>
             </div>
-            @endif
 
             <!-- Section Header -->
             <div class="px-8 mb-2">
@@ -49,18 +47,27 @@
             </div>
 
             <!-- Notifications List -->
-            <div class="px-8 pb-8 flex-grow overflow-y-auto">
-                @if($notifications->count() > 0)
-                    <div class="bg-white rounded-[14px] shadow-sm overflow-hidden">
-                        @foreach($notifications as $notification)
-                            @include('notifications.partials._item')
-                        @endforeach
-                    </div>
-                @else
-                    <div class="bg-white rounded-[14px] shadow-sm p-20 text-center">
-                        <p class="text-gray-400 text-sm">Tidak ada notifikasi.</p>
-                    </div>
-                @endif
+            <div class="px-8 pb-8 flex-grow overflow-y-auto" id="notif-scroll-container">
+                <div class="bg-white rounded-[14px] shadow-sm overflow-hidden {{ $notifications->count() > 0 ? '' : 'hidden' }}" id="notifications-list">
+                    @foreach($notifications as $notification)
+                        @include('notifications.partials._item')
+                    @endforeach
+                </div>
+                
+                <div class="bg-white rounded-[14px] shadow-sm p-20 text-center {{ $notifications->count() == 0 ? '' : 'hidden' }}" id="empty-notifs-state">
+                    <p class="text-gray-400 text-sm">Tidak ada notifikasi.</p>
+                </div>
+
+                <!-- Sentinel Infinite Scroll -->
+                <div id="notif-infinite-sentinel" class="py-4 text-center text-xs text-gray-400 font-semibold" style="display: {{ $notifications->count() >= 20 ? 'block' : 'none' }};">
+                    <span id="notif-loading-spinner" class="inline-flex items-center gap-2">
+                        <svg class="animate-spin h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                        </svg>
+                        Memuat notifikasi lainnya...
+                    </span>
+                </div>
             </div>
         </div>
 
@@ -119,4 +126,120 @@
 
     </div>
 </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    let currentPage = 1;
+    let hasMore = {{ $notifications->count() >= 20 ? 'true' : 'false' }};
+    let isLoading = false;
+
+    const notifContainer = document.getElementById('notifications-list');
+    const emptyState = document.getElementById('empty-notifs-state');
+    const sentinel = document.getElementById('notif-infinite-sentinel');
+    const unreadBanner = document.getElementById('unread-banner');
+    const unreadBannerText = document.getElementById('unread-banner-text');
+
+    // 1. Infinite Scroll
+    if (sentinel && 'IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting && hasMore && !isLoading) {
+                loadMoreNotifications();
+            }
+        }, { rootMargin: '150px' });
+        observer.observe(sentinel);
+    }
+
+    async function loadMoreNotifications() {
+        if (isLoading || !hasMore) return;
+        isLoading = true;
+        currentPage++;
+
+        try {
+            const res = await fetch(`{{ route('notifications.index') }}?page=${currentPage}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            });
+            if (!res.ok) throw new Error('Network error');
+            const data = await res.json();
+            
+            if (data.html && data.html.trim().length > 0) {
+                notifContainer.insertAdjacentHTML('beforeend', data.html);
+            }
+
+            hasMore = data.hasMore;
+            if (!hasMore && sentinel) {
+                sentinel.style.display = 'none';
+            }
+        } catch (err) {
+            console.error('Gagal memuat notifikasi:', err);
+            hasMore = false;
+            if (sentinel) sentinel.style.display = 'none';
+        } finally {
+            isLoading = false;
+        }
+    }
+
+    // 2. Realtime Echo listener for .notification.created
+    if (window.Echo) {
+        window.Echo.private('user.{{ Auth::id() }}')
+            .listen('.notification.created', (e) => {
+                if (emptyState) emptyState.classList.add('hidden');
+                if (notifContainer) notifContainer.classList.remove('hidden');
+
+                const notif = e.notification || {};
+                const id = notif.id || Date.now();
+                const subject = notif.subject || 'default';
+                const message = notif.message || '';
+                
+                const subjectTitles = {
+                    'friend_request': 'Permintaan Pertemanan',
+                    'friend_accepted': 'Pertemanan Diterima',
+                    'new_message': 'Pesan Baru',
+                    'comment': 'Komentar Baru',
+                    'like': 'Suka',
+                    'group_invite': 'Undangan Grup'
+                };
+                const title = subjectTitles[subject] || 'Notifikasi';
+
+                const cardHtml = `
+                    <form action="/notifications/${id}/read" method="POST" class="block notif-item-form transition-all duration-500" data-id="${id}">
+                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                        <div class="flex items-center gap-4 px-6 py-3 border-b border-gray-100 bg-red-50/70 hover:bg-gray-50 transition cursor-pointer" onclick="this.closest('form').submit()">
+                            <div class="w-2 h-2 rounded-full bg-[#b71c1c] flex-shrink-0 animate-pulse"></div>
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 bg-[#f4dada]">
+                                <svg class="w-5 h-5 text-[#b71c1c]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-grow min-w-0">
+                                <span class="text-sm font-bold text-gray-900">${title}</span>
+                                <span class="text-xs text-gray-600 ml-2">${message}</span>
+                            </div>
+                            <div class="flex items-center gap-2 flex-shrink-0">
+                                <span class="text-xs text-[#b71c1c] font-semibold">Baru saja</span>
+                                <button type="submit" class="p-1 text-gray-400 hover:text-red-600 transition" title="Tandai sudah dibaca">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                `;
+
+                notifContainer.insertAdjacentHTML('afterbegin', cardHtml);
+
+                if (unreadBanner && unreadBannerText) {
+                    const count = e.unreadNotificationCount || 1;
+                    unreadBannerText.innerText = `Anda memiliki ${count} notifikasi yang belum dibaca.`;
+                    unreadBanner.classList.remove('hidden');
+                }
+            });
+    }
+});
+</script>
+@endpush
 @endsection

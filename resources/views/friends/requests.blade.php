@@ -98,4 +98,69 @@
 
     </div>
 </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const incomingList = document.getElementById('incoming-requests-list');
+    const incomingEmpty = document.getElementById('incoming-empty-state');
+    const incomingBadge = document.getElementById('incoming-badge');
+    const incomingCount = document.getElementById('incoming-count');
+
+    if (window.Echo) {
+        window.Echo.private('user.{{ Auth::id() }}')
+            .listen('.friend.request.sent', (e) => {
+                const req = e.request;
+                if (!req) return;
+
+                if (incomingEmpty) incomingEmpty.classList.add('hidden');
+                if (incomingList) incomingList.classList.remove('hidden');
+
+                const initial = (req.fullname || req.username || '?').substring(0, 1).toUpperCase();
+                const msgHtml = req.msg ? `<p class="text-xs text-gray-600 mt-1 italic">"${req.msg}"</p>` : '';
+
+                const cardHtml = `
+                    <div class="bg-white rounded-[14px] p-4 shadow-sm border border-red-200 transition-all duration-500 animate-pulse">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-full bg-[#f4dada] flex items-center justify-center text-[#b71c1c] font-bold text-lg">
+                                ${initial}
+                            </div>
+                            <div class="flex-grow">
+                                <p class="text-sm font-bold text-gray-900">${req.username}</p>
+                                <p class="text-xs text-red-600 font-semibold">PERMINTAAN PERTEMANAN BARU</p>
+                                ${msgHtml}
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <form action="/friends/reject/${req.uid}" method="POST">
+                                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="px-4 py-2 border border-gray-300 rounded-[10px] text-xs font-bold text-gray-700 hover:bg-gray-50 transition">
+                                        TOLAK
+                                    </button>
+                                </form>
+                                <form action="/friends/accept/${req.uid}" method="POST">
+                                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="px-4 py-2 bg-[#b71c1c] hover:bg-red-800 text-white rounded-[10px] text-xs font-bold transition">
+                                        TERIMA
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                if (incomingList) {
+                    incomingList.insertAdjacentHTML('afterbegin', cardHtml);
+                }
+
+                // Update count
+                if (incomingBadge && incomingCount) {
+                    let count = parseInt(incomingCount.innerText.trim()) || 0;
+                    incomingCount.innerText = count + 1;
+                    incomingBadge.classList.remove('hidden');
+                }
+            });
+    }
+});
+</script>
+@endpush
 @endsection

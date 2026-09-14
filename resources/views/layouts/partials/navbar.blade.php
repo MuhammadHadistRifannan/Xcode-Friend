@@ -115,23 +115,58 @@
                     <a href="{{ route('friends.index') }}" class="hover:text-white transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg></a>
                     <a href="{{ route('profile.edit') }}" class="hover:text-white transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></a>
                     @php $notifCount = app(\App\Repositories\Contracts\NotificationRepositoryInterface::class)->countUnread(auth()->id()); @endphp
-                    <a href="{{ route('notifications.index') }}" class="hover:text-white transition relative" id="notif-badge-link">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                        @if($notifCount > 0)
-                            <span id="notif-badge" class="absolute -top-1 -right-1 bg-[#b71c1c] text-white text-[9px] font-bold rounded-full h-4 w-4 flex items-center justify-center">{{ $notifCount > 9 ? '9+' : $notifCount }}</span>
-                        @else
-                            <span id="notif-badge" class="absolute -top-1 -right-1 bg-[#b71c1c] text-white text-[9px] font-bold rounded-full h-4 w-4 flex items-center justify-center hidden">0</span>
-                        @endif
-                    </a>
+                    <!-- Notifikasi Dropdown Wrapper -->
+                    <div class="relative" id="notif-dropdown-wrapper">
+                        <button type="button" id="notif-badge-btn" class="hover:text-white transition relative focus:outline-none flex items-center p-1 rounded-full hover:bg-neutral-800" title="Notifikasi">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                            <span id="notif-badge-ping" class="absolute -top-1 -right-1 bg-red-600 rounded-full h-4 w-4 animate-ping pointer-events-none hidden"></span>
+                            <span id="notif-badge" class="absolute -top-1 -right-1 bg-[#b71c1c] text-white text-[9px] font-bold rounded-full h-4 w-4 flex items-center justify-center {{ $notifCount > 0 ? '' : 'hidden' }} transition-transform duration-200 shadow-sm">{{ $notifCount > 9 ? '9+' : $notifCount }}</span>
+                        </button>
+
+                        <!-- Panel Dropdown Notifikasi -->
+                        <div id="notif-dropdown-panel" class="hidden absolute right-0 mt-3 w-80 sm:w-96 bg-[#1A1A1A] border border-neutral-800 rounded-2xl shadow-2xl z-50 overflow-hidden transform transition-all duration-200 origin-top-right">
+                            <div class="px-4 py-3 border-b border-neutral-800 flex items-center justify-between bg-[#141414]">
+                                <div class="flex items-center gap-2">
+                                    <h4 class="text-xs font-bold text-white uppercase tracking-wider">Notifikasi</h4>
+                                    <span id="notif-panel-badge" class="bg-[#b71c1c] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full {{ $notifCount > 0 ? '' : 'hidden' }}">{{ $notifCount }}</span>
+                                </div>
+                                <button type="button" id="notif-mark-all-btn" class="text-[10px] text-neutral-400 hover:text-white transition font-medium hover:underline">Tandai Semua Dibaca</button>
+                            </div>
+                            <div id="notif-dropdown-content" class="max-h-80 overflow-y-auto divide-y divide-neutral-800/60 scrollbar-thin scrollbar-thumb-neutral-700">
+                                <div class="p-4 text-center text-xs text-neutral-500">Memuat notifikasi...</div>
+                            </div>
+                            <div class="border-t border-neutral-800 p-2.5 bg-[#141414] text-center">
+                                <a href="{{ route('notifications.index') }}" class="text-xs font-bold text-[#b71c1c] hover:text-red-400 transition block py-0.5">Lihat Semua Notifikasi →</a>
+                            </div>
+                        </div>
+                    </div>
+
                     @php $msgCount = app(\App\Repositories\Contracts\MessageRepositoryInterface::class)->countUnread(auth()->id()); @endphp
-                    <a href="{{ route('messages.index') }}" class="hover:text-white transition relative" id="msg-badge-link">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
-                        @if($msgCount > 0)
-                            <span id="msg-badge" class="absolute -top-1 -right-1 bg-[#b71c1c] text-white text-[9px] font-bold rounded-full h-4 w-4 flex items-center justify-center">{{ $msgCount > 9 ? '9+' : $msgCount }}</span>
-                        @else
-                            <span id="msg-badge" class="absolute -top-1 -right-1 bg-[#b71c1c] text-white text-[9px] font-bold rounded-full h-4 w-4 flex items-center justify-center hidden">0</span>
-                        @endif
-                    </a>
+                    <!-- Pesan Dropdown Wrapper -->
+                    <div class="relative" id="msg-dropdown-wrapper">
+                        <button type="button" id="msg-badge-btn" class="hover:text-white transition relative focus:outline-none flex items-center p-1 rounded-full hover:bg-neutral-800" title="Pesan Obrolan">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                            <span id="msg-badge-ping" class="absolute -top-1 -right-1 bg-red-600 rounded-full h-4 w-4 animate-ping pointer-events-none hidden"></span>
+                            <span id="msg-badge" class="absolute -top-1 -right-1 bg-[#b71c1c] text-white text-[9px] font-bold rounded-full h-4 w-4 flex items-center justify-center {{ $msgCount > 0 ? '' : 'hidden' }} transition-transform duration-200 shadow-sm">{{ $msgCount > 9 ? '9+' : $msgCount }}</span>
+                        </button>
+
+                        <!-- Panel Dropdown Pesan -->
+                        <div id="msg-dropdown-panel" class="hidden absolute right-0 mt-3 w-80 sm:w-96 bg-[#1A1A1A] border border-neutral-800 rounded-2xl shadow-2xl z-50 overflow-hidden transform transition-all duration-200 origin-top-right">
+                            <div class="px-4 py-3 border-b border-neutral-800 flex items-center justify-between bg-[#141414]">
+                                <div class="flex items-center gap-2">
+                                    <h4 class="text-xs font-bold text-white uppercase tracking-wider">Pesan Masuk</h4>
+                                    <span id="msg-panel-badge" class="bg-[#b71c1c] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full {{ $msgCount > 0 ? '' : 'hidden' }}">{{ $msgCount }}</span>
+                                </div>
+                                <a href="{{ route('messages.index') }}" class="text-[10px] text-neutral-400 hover:text-white transition font-medium hover:underline">Kotak Masuk</a>
+                            </div>
+                            <div id="msg-dropdown-content" class="max-h-80 overflow-y-auto divide-y divide-neutral-800/60 scrollbar-thin scrollbar-thumb-neutral-700">
+                                <div class="p-4 text-center text-xs text-neutral-500">Memuat pesan...</div>
+                            </div>
+                            <div class="border-t border-neutral-800 p-2.5 bg-[#141414] text-center">
+                                <a href="{{ route('messages.index') }}" class="text-xs font-bold text-[#b71c1c] hover:text-red-400 transition block py-0.5">Buka Semua Pesan →</a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             @endauth
 
@@ -296,18 +331,212 @@
 
 <script>
 (function () {
+    var notifBtn = document.getElementById('notif-badge-btn');
+    var notifPanel = document.getElementById('notif-dropdown-panel');
+    var notifContent = document.getElementById('notif-dropdown-content');
     var notifBadge = document.getElementById('notif-badge');
+    var notifPanelBadge = document.getElementById('notif-panel-badge');
+    var notifMarkAllBtn = document.getElementById('notif-mark-all-btn');
+
+    var msgBtn = document.getElementById('msg-badge-btn');
+    var msgPanel = document.getElementById('msg-dropdown-panel');
+    var msgContent = document.getElementById('msg-dropdown-content');
     var msgBadge = document.getElementById('msg-badge');
+    var msgPanelBadge = document.getElementById('msg-panel-badge');
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(text));
+        return div.innerHTML;
+    }
 
     function updateBadge(badge, count) {
         if (!badge) return;
-        if (count > 0) {
-            badge.textContent = count > 9 ? '9+' : count;
+        var num = parseInt(count, 10) || 0;
+        if (num > 0) {
+            badge.textContent = num > 9 ? '9+' : num;
             badge.classList.remove('hidden');
+            // Micro bounce animation
+            badge.classList.add('scale-125');
+            setTimeout(function() { badge.classList.remove('scale-125'); }, 300);
         } else {
             badge.classList.add('hidden');
         }
     }
+
+    // Toggle Dropdowns
+    if (notifBtn && notifPanel) {
+        notifBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (msgPanel) msgPanel.classList.add('hidden');
+            var isHidden = notifPanel.classList.toggle('hidden');
+            if (!isHidden) {
+                loadNotifDropdown();
+            }
+        });
+    }
+
+    if (msgBtn && msgPanel) {
+        msgBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (notifPanel) notifPanel.classList.add('hidden');
+            var isHidden = msgPanel.classList.toggle('hidden');
+            if (!isHidden) {
+                loadMsgDropdown();
+            }
+        });
+    }
+
+    document.addEventListener('click', function(e) {
+        if (notifPanel && !notifPanel.contains(e.target) && e.target !== notifBtn && !notifBtn?.contains(e.target)) {
+            notifPanel.classList.add('hidden');
+        }
+        if (msgPanel && !msgPanel.contains(e.target) && e.target !== msgBtn && !msgBtn?.contains(e.target)) {
+            msgPanel.classList.add('hidden');
+        }
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            if (notifPanel) notifPanel.classList.add('hidden');
+            if (msgPanel) msgPanel.classList.add('hidden');
+        }
+    });
+
+    // Autoload Messages Dropdown
+    function loadMsgDropdown() {
+        if (!msgContent) return;
+        msgContent.innerHTML = '<div class="p-6 text-center text-xs text-neutral-400 flex items-center justify-center gap-2">'
+            + '<svg class="animate-spin h-4 w-4 text-red-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>'
+            + 'Memuat pesan terbaru...</div>';
+
+        fetch('{{ route("messages.index") }}', {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            updateBadge(msgBadge, data.total_unread);
+            updateBadge(msgPanelBadge, data.total_unread);
+
+            if (!data.conversations || data.conversations.length === 0) {
+                msgContent.innerHTML = '<div class="p-8 text-center text-xs text-neutral-500 flex flex-col items-center gap-2">'
+                    + '<svg class="w-8 h-8 text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>'
+                    + 'Belum ada percakapan.</div>';
+                return;
+            }
+
+            var html = '';
+            data.conversations.forEach(function(conv) {
+                var avatarHtml = conv.user.avatar_url
+                    ? '<img src="' + conv.user.avatar_url + '" class="w-9 h-9 rounded-full object-cover border border-neutral-700">'
+                    : '<div class="w-9 h-9 rounded-full bg-red-950/60 text-red-400 font-bold flex items-center justify-center text-xs border border-red-900/50">' + (conv.user.initial || 'U') + '</div>';
+
+                var unreadDot = conv.unread > 0
+                    ? '<span class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-[#b71c1c] rounded-full ring-2 ring-[#1A1A1A]"></span>'
+                    : '';
+
+                var snippet = conv.last_message
+                    ? (conv.last_message.is_mine ? '<span class="text-neutral-500 font-normal">Kamu: </span>' : '') + escapeHtml(conv.last_message.message)
+                    : '<span class="italic text-neutral-500">Belum ada pesan</span>';
+
+                var timeStr = conv.last_message ? conv.last_message.time : '';
+                var isUnread = conv.unread > 0;
+
+                html += '<a href="' + conv.url + '" class="flex items-center gap-3 p-3 hover:bg-neutral-800/80 transition group ' + (isUnread ? 'bg-neutral-800/30' : '') + '">'
+                    + '<div class="relative flex-shrink-0">' + avatarHtml + unreadDot + '</div>'
+                    + '<div class="flex-1 min-w-0">'
+                    + '<div class="flex items-center justify-between mb-0.5">'
+                    + '<h5 class="text-xs font-bold text-neutral-200 truncate group-hover:text-white">' + escapeHtml(conv.user.name) + '</h5>'
+                    + '<span class="text-[10px] text-neutral-500 flex-shrink-0 ml-1">' + timeStr + '</span>'
+                    + '</div>'
+                    + '<p class="text-[11px] ' + (isUnread ? 'text-neutral-200 font-semibold' : 'text-neutral-400') + ' truncate">' + snippet + '</p>'
+                    + '</div>'
+                    + (isUnread ? '<span class="bg-[#b71c1c] text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full flex-shrink-0">' + conv.unread + '</span>' : '')
+                    + '</a>';
+            });
+            msgContent.innerHTML = html;
+        })
+        .catch(function() {
+            msgContent.innerHTML = '<div class="p-6 text-center text-xs text-red-400">Gagal memuat pesan.</div>';
+        });
+    }
+
+    // Autoload Notifications Dropdown
+    function loadNotifDropdown() {
+        if (!notifContent) return;
+        notifContent.innerHTML = '<div class="p-6 text-center text-xs text-neutral-400 flex items-center justify-center gap-2">'
+            + '<svg class="animate-spin h-4 w-4 text-red-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>'
+            + 'Memuat notifikasi...</div>';
+
+        fetch('{{ route("notifications.index") }}?page=1', {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (!data.html || data.html.trim() === '') {
+                notifContent.innerHTML = '<div class="p-8 text-center text-xs text-neutral-500 flex flex-col items-center gap-2">'
+                    + '<svg class="w-8 h-8 text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>'
+                    + 'Tidak ada notifikasi baru.</div>';
+                return;
+            }
+            notifContent.innerHTML = data.html;
+        })
+        .catch(function() {
+            notifContent.innerHTML = '<div class="p-6 text-center text-xs text-red-400">Gagal memuat notifikasi.</div>';
+        });
+    }
+
+    // Mark All Read Button AJAX
+    if (notifMarkAllBtn) {
+        notifMarkAllBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            fetch('{{ route("notifications.markAllRead") }}', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(function() {
+                updateBadge(notifBadge, 0);
+                updateBadge(notifPanelBadge, 0);
+                loadNotifDropdown();
+            })
+            .catch(function() {});
+        });
+    }
+
+    // Autoloader Heartbeat / Sync on Focus
+    function syncUnreadCounts() {
+        fetch('{{ route("messages.unreadCount") }}', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                updateBadge(msgBadge, d.count);
+                updateBadge(msgPanelBadge, d.count);
+            }).catch(function() {});
+
+        fetch('{{ route("notifications.unreadCount") }}', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                updateBadge(notifBadge, d.count);
+                updateBadge(notifPanelBadge, d.count);
+            }).catch(function() {});
+    }
+
+    window.addEventListener('focus', syncUnreadCounts);
+    document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'visible') syncUnreadCounts();
+    });
+    window.addEventListener('sync-unread-badges', syncUnreadCounts);
+    setInterval(syncUnreadCounts, 30000);
 
     @auth
     if (window.Echo) {
@@ -319,15 +548,83 @@
             s.play().catch(function() {});
         }
 
+        function triggerPing(type) {
+            var pingEl = document.getElementById(type + '-badge-ping');
+            if (!pingEl) return;
+            pingEl.classList.remove('hidden');
+            setTimeout(function() {
+                pingEl.classList.add('hidden');
+            }, 1800);
+        }
+
+        function showFloatingToast(title, body, url, avatarImg) {
+            var container = document.getElementById('realtime-toast-container');
+            if (!container) return;
+
+            var toast = document.createElement('div');
+            toast.className = 'pointer-events-auto bg-white border border-neutral-200 rounded-2xl shadow-xl p-3 flex items-start gap-3 transform transition-all duration-300 translate-x-full opacity-0 cursor-pointer hover:shadow-2xl relative overflow-hidden';
+            toast.onclick = function() { if (url) window.location.href = url; };
+
+            var iconHtml = avatarImg ? '<img src="' + avatarImg + '" class="w-9 h-9 rounded-full object-cover flex-shrink-0 border border-neutral-200">' : '<div class="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center text-red-600 flex-shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg></div>';
+
+            toast.innerHTML = iconHtml + '<div class="flex-1 min-w-0 pr-2">'
+                + '<h5 class="text-xs font-bold text-neutral-900 truncate">' + title + '</h5>'
+                + '<p class="text-[11px] text-neutral-600 line-clamp-2 mt-0.5">' + body + '</p>'
+                + '</div>'
+                + '<button onclick="event.stopPropagation(); this.parentElement.remove();" class="text-neutral-400 hover:text-neutral-600 font-bold px-1 text-sm">&times;</button>'
+                + '<div class="toast-progress-bar h-1 bg-gradient-to-r from-red-500 to-[#b71c1c] absolute bottom-0 left-0 w-full transition-all duration-[4900ms] ease-linear"></div>';
+
+            container.appendChild(toast);
+
+            setTimeout(function() {
+                toast.classList.remove('translate-x-full', 'opacity-0');
+                var bar = toast.querySelector('.toast-progress-bar');
+                if (bar) bar.style.width = '0%';
+            }, 60);
+
+            setTimeout(function() {
+                toast.classList.add('translate-x-full', 'opacity-0');
+                setTimeout(function() { toast.remove(); }, 350);
+            }, 5000);
+        }
+
         window.Echo.private('user.{{ Auth::id() }}')
             .listen('.message.sent', function(e) {
                 updateBadge(msgBadge, e.totalUnread);
+                updateBadge(msgPanelBadge, e.totalUnread);
+                triggerPing('msg');
                 playNotifSound();
+                if (msgPanel && !msgPanel.classList.contains('hidden')) {
+                    loadMsgDropdown();
+                }
+                // Jika sedang tidak membuka percakapan dengan pengirim, tampilkan toast
+                if (!window.location.pathname.includes('/messages/conversation/' + e.sender.id)) {
+                    showFloatingToast('Pesan dari ' + (e.sender.fullname || e.sender.username), e.message.message, '{{ url("/messages/conversation") }}/' + e.sender.id, e.sender.avatar_url);
+                }
+            })
+            .listen('.message.read', function(e) {
+                if (e.readerId == {{ Auth::id() }}) {
+                    updateBadge(msgBadge, e.readerUnreadCount);
+                    updateBadge(msgPanelBadge, e.readerUnreadCount);
+                    if (msgPanel && !msgPanel.classList.contains('hidden')) {
+                        loadMsgDropdown();
+                    }
+                }
             })
             .listen('.notification.created', function(e) {
                 updateBadge(notifBadge, e.unreadNotificationCount);
+                updateBadge(notifPanelBadge, e.unreadNotificationCount);
+                triggerPing('notif');
+                playNotifSound();
+                if (notifPanel && !notifPanel.classList.contains('hidden')) {
+                    loadNotifDropdown();
+                }
+                showFloatingToast('Notifikasi Baru', e.notification.message, '{{ route("notifications.index") }}');
             });
     }
     @endauth
 })();
 </script>
+
+<!-- Realtime Floating Toast Container -->
+<div id="realtime-toast-container" class="fixed top-20 right-5 z-[9999] flex flex-col gap-2 max-w-sm pointer-events-none"></div>

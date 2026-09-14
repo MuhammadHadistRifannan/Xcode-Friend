@@ -49,7 +49,7 @@
             @endif
 
             <!-- Feed Postingan / Empty State -->
-            <div class="max-h-[600px] overflow-y-auto pr-2 pb-4 space-y-5 scrollbar-thin scrollbar-thumb-gray-200">
+            <div id="feed-stream-container" class="max-h-[600px] overflow-y-auto pr-2 pb-4 space-y-5 scrollbar-thin scrollbar-thumb-gray-200">
                 @forelse($page->streams as $post)
                     <div id="post-{{ $post->id }}" class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
                     <!-- Post Header: Avatar + Nama + Waktu -->

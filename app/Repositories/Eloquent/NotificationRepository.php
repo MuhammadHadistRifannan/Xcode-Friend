@@ -8,15 +8,17 @@ use Illuminate\Support\Facades\DB;
 
 class NotificationRepository implements NotificationRepositoryInterface
 {
-    public function getNotifications(int $userId, ?int $perPage = null): Collection
+    public function getNotifications(int $userId, ?int $perPage = null, int $page = 1): Collection
     {
-        $perPage = $perPage ?? config('pagination.notifications');
+        $perPage = $perPage ?? config('pagination.notifications', 20);
+        $offset = max(0, ($page - 1) * $perPage);
 
         return DB::table('jcow_messages')
             ->where('to_id', $userId)
             ->where('from_id', 0)
             ->whereNull('deleted_at')
             ->orderBy('created', 'desc')
+            ->offset($offset)
             ->limit($perPage)
             ->get();
     }
@@ -71,11 +73,11 @@ class NotificationRepository implements NotificationRepositoryInterface
             ->update(['deleted_at' => now()]) > 0;
     }
 
-    public function create(int $userId, string $type, array $data = []): void
+    public function create(int $userId, string $type, array $data = []): int
     {
         $message = $this->buildMessage($type, $data);
 
-        DB::table('jcow_messages')->insert([
+        $id = DB::table('jcow_messages')->insertGetId([
             'from_id' => 0,
             'to_id' => $userId,
             'subject' => $type,
@@ -83,6 +85,22 @@ class NotificationRepository implements NotificationRepositoryInterface
             'created' => time(),
             'hasread' => 0,
         ]);
+
+        \Illuminate\Support\Facades\Cache::forget('unread:notif:' . $userId);
+
+        try {
+            $unreadCount = $this->countUnread($userId);
+            broadcast(new \App\Events\NotificationCreated((object) [
+                'id' => $id,
+                'subject' => $type,
+                'message' => $message,
+                'created' => time(),
+            ], $userId, $unreadCount));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Broadcast NotificationCreated gagal: ' . $e->getMessage());
+        }
+
+        return $id;
     }
 
     private function buildMessage(string $type, array $data): string

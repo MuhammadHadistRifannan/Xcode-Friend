@@ -34,7 +34,14 @@ class LikeController extends Controller
         }
 
         // Ambil data terbaru
-        $likesCount = DB::table('jcow_streams')->where('id', $streamId)->value('likes');
+        $likesCount = (int) DB::table('jcow_streams')->where('id', $streamId)->value('likes');
+
+        // Broadcast realtime ke seluruh pengguna via Reverb
+        try {
+            \App\Events\StreamLiked::dispatch((int) $streamId, $likesCount, (int) $userId, $status);
+        } catch (\Throwable $e) {
+            \Log::warning('Gagal broadcast StreamLiked: ' . $e->getMessage());
+        }
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([

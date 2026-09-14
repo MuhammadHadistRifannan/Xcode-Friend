@@ -39,8 +39,19 @@ class PhotoController extends Controller
     public function show($id)
     {
         $album = Album::findOrFail($id);
-        // Paginate 8 foto per halaman, diurutkan dari terbaru
-        $photos = $album->photos()->orderBy('id', 'desc')->paginate(8);
+        // Paginate 12 foto per halaman, diurutkan dari terbaru
+        $photos = $album->photos()->orderBy('id', 'desc')->paginate(12);
+
+        if (request()->ajax()) {
+            $html = '';
+            foreach ($photos as $photo) {
+                $html .= view('photos.partials._photo-item', compact('photo', 'album'))->render();
+            }
+            return response()->json([
+                'html' => $html,
+                'hasMore' => $photos->hasMorePages(),
+            ]);
+        }
 
         return view('photos.show', compact('album', 'photos'));
     }

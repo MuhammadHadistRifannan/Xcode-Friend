@@ -63,8 +63,18 @@ class HomeController extends Controller
                     ->orderBy('created', 'desc')
                     ->paginate(12);
                     
-        if ($request->ajax()) {
-            return view('home.partials._feed-items', compact('streams'))->render();
+        if ($request->ajax() || $request->wantsJson()) {
+            $html = '';
+            foreach ($streams as $stream) {
+                $html .= view('components.single-stream', ['stream' => $stream])->render();
+            }
+
+            return response()->json([
+                'html' => $html,
+                'hasMorePages' => $streams->hasMorePages(),
+                'nextPageUrl' => $streams->nextPageUrl(),
+                'currentPage' => $streams->currentPage()
+            ]);
         }
 
         return view('home.beranda', compact('user', 'followingCount', 'followerCount', 'streams'));

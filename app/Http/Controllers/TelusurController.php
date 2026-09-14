@@ -39,8 +39,22 @@ class TelusurController extends Controller
 
             $filters['sort'] = $sort;
 
+            if ($request->ajax()) {
+                $html = '';
+                foreach ($members as $member) {
+                    $html .= view('telusur.partials._member-card', compact('member'))->render();
+                }
+                return response()->json([
+                    'html' => $html,
+                    'hasMore' => $members->hasMorePages(),
+                ]);
+            }
+
             return view('telusur.index', compact('members', 'locations', 'filters'));
         } catch (\Exception $e) {
+            if ($request->ajax()) {
+                return response()->json(['error' => 'Gagal memuat halaman telusur.'], 500);
+            }
             Log::error('Telusur error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return redirect()->route('beranda')->with('error', 'Gagal memuat halaman telusur.');
         }
