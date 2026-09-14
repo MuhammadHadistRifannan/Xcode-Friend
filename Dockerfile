@@ -62,6 +62,8 @@ COPY . .
 RUN composer install --no-dev --no-interaction --prefer-dist \
     && composer dump-autoload --optimize --classmap-authoritative
 
+RUN composer install
+
 # --- Build frontend assets (Vite) ---
 RUN VITE_REMOTE_FONTS=0 npm run build \
     && rm -rf node_modules

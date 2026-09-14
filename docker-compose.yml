@@ -42,8 +42,6 @@ services:
       target: webserver
     container_name: xcode-friend-nginx
     restart: unless-stopped
-    volumes: 
-      - app-storage:/var/www/html/storage/app
     ports:
       - "80:80"
     depends_on:

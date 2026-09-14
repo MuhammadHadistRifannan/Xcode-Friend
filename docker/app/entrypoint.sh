@@ -59,7 +59,7 @@ start_services() {
     # Optional migrations (wait for DB first)
     if [ "$RUN_MIGRATIONS" = "1" ]; then
         if wait_db; then
-            php artisan migrate --force >/dev/null 2>&1 && log "migrations applied" || log "migrate failed"
+            php artisan migrate --force && log "migrations applied" || log "migrate failed"
         fi
     else
         wait_db || true
