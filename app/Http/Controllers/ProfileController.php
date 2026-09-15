@@ -180,16 +180,23 @@ class ProfileController extends Controller
     }
 
 
-    public function edit()
+    public function edit(\Illuminate\Http\Request $request)
     {
         $user = auth()->user();
+        $tab = $request->query('tab', 'informasi');
         
         $customFields = [];
         if (\Illuminate\Support\Facades\Schema::hasTable('jcow_profile_fields')) {
             $customFields = \Illuminate\Support\Facades\DB::table('jcow_profile_fields')->get();
         }
 
-        return view('profile.edit', compact('user', 'customFields'));
+        $blockedUsers = collect();
+        if ($tab === 'blokir') {
+            $friendRepo = app(\App\Repositories\Contracts\FriendRepositoryInterface::class);
+            $blockedUsers = $friendRepo->getBlockedUsers($user->id);
+        }
+
+        return view('profile.edit', compact('user', 'customFields', 'blockedUsers', 'tab'));
     }
 
     public function update(Request $request)

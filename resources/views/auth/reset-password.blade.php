@@ -10,16 +10,7 @@
         <p class="text-[13px] text-neutral-500 leading-relaxed">Buat password baru untuk akun Anda.</p>
     </div>
 
-    @if ($errors->any())
-        <div class="mb-6 text-sm font-medium text-[#990000] bg-red-50 border border-red-100 p-4 rounded-lg flex items-start">
-            <svg class="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            <ul class="list-disc list-inside">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
+    
 
     <form method="POST" action="{{ route('password.update') }}" class="space-y-5" onsubmit="this.querySelector('button[type=submit]').disabled = true; this.querySelector('button[type=submit]').innerHTML = 'Processing...';">
         @csrf

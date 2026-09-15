@@ -16,18 +16,8 @@
         </div>
 
         {{-- Toaster --}}
-        @if(session('success'))
-            <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)"
-                 class="fixed bottom-4 right-4 z-50 bg-green-50 border border-green-200 text-green-700 px-6 py-4 rounded-lg shadow-lg text-sm font-bold flex items-center gap-3">
-                <i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>
-                {{ session('success') }}
-            </div>
-        @endif
-        @if(session('error'))
-            <div class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm font-bold">
-                {{ session('error') }}
-            </div>
-        @endif
+        
+        
 
         {{-- Stats Cards --}}
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">

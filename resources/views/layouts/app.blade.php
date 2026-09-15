@@ -12,6 +12,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     @php
         $activeTheme = \App\Helpers\SettingHelper::get('theme_color', 'red');
         $headerCode = \App\Helpers\SettingHelper::get('theme_block_header_code', '');
@@ -119,6 +122,133 @@
 
     @stack('scripts')
     
+    <!-- Global Confirm Interceptor -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Konfigurasi default SweetAlert2 agar sesuai tema
+            const swalTheme = Swal.mixin({
+                customClass: {
+                    popup: 'rounded-2xl shadow-2xl border border-neutral-100 font-sans',
+                    title: 'text-lg font-bold text-neutral-900',
+                    htmlContainer: 'text-sm text-neutral-600',
+                    actions: 'flex w-full justify-center gap-4 mt-6',
+                    confirmButton: 'bg-red-700 hover:bg-red-800 text-white font-bold rounded-xl px-6 py-2.5 shadow-md transition mx-2',
+                    cancelButton: 'bg-neutral-100 hover:bg-neutral-200 text-neutral-700 font-medium rounded-xl px-6 py-2.5 transition mx-2'
+                },
+                buttonsStyling: false
+            });
+
+            // Global Flash Messages Toast
+            @if(session('success'))
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: {!! json_encode(session('success')) !!},
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            @endif
+
+            @if(session('error'))
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'error',
+                    title: {!! json_encode(session('error')) !!},
+                    showConfirmButton: false,
+                    timer: 4000,
+                    timerProgressBar: true
+                });
+            @endif
+
+            @if($errors->any())
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'error',
+                    title: 'Terdapat kesalahan pada input',
+                    html: `<ul style="text-align: left; margin: 0; padding-left: 1rem; font-size: 0.875rem;">
+                        @foreach($errors->all() as $err)
+                            <li>{{ $err }}</li>
+                        @endforeach
+                    </ul>`,
+                    showConfirmButton: false,
+                    timer: 5000,
+                    timerProgressBar: true
+                });
+            @endif
+
+            // Intercept onclick dan onsubmit
+            document.addEventListener('click', function(e) {
+                // Cari elemen yang punya atribut onclick berisi confirm(
+                let el = e.target.closest('[onclick*="return confirm("]');
+                if (el) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    
+                    let onclickAttr = el.getAttribute('onclick');
+                    let match = onclickAttr.match(/confirm\(\s*['"](.*?)['"]\s*\)/);
+                    let message = match ? match[1] : 'Apakah Anda yakin?';
+                    
+                    swalTheme.fire({
+                        title: 'Konfirmasi',
+                        text: message,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Ya, Lanjutkan',
+                        cancelButtonText: 'Batal'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Eksekusi aksi aslinya tanpa confirm
+                            el.removeAttribute('onclick');
+                            if(el.tagName === 'A' && el.href) {
+                                window.location.href = el.href;
+                            } else if(el.tagName === 'BUTTON' && el.type === 'submit' && el.form) {
+                                el.form.submit();
+                            } else {
+                                el.click();
+                            }
+                            // Kembalikan atribut untuk pemakaian selanjutnya (meski page biasa reload)
+                            el.setAttribute('onclick', onclickAttr);
+                        }
+                    });
+                }
+            }, true);
+
+            document.addEventListener('submit', function(e) {
+                if (e.target.hasAttribute('onsubmit')) {
+                    let onsubmitAttr = e.target.getAttribute('onsubmit');
+                    if (onsubmitAttr.includes('return confirm(')) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        e.stopImmediatePropagation();
+                        
+                        let match = onsubmitAttr.match(/confirm\(\s*['"](.*?)['"]\s*\)/);
+                        let message = match ? match[1] : 'Apakah Anda yakin?';
+                        
+                        swalTheme.fire({
+                            title: 'Konfirmasi',
+                            text: message,
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonText: 'Ya, Lanjutkan',
+                            cancelButtonText: 'Batal'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                e.target.removeAttribute('onsubmit');
+                                e.target.submit();
+                                e.target.setAttribute('onsubmit', onsubmitAttr);
+                            }
+                        });
+                    }
+                }
+            }, true);
+        });
+    </script>
+
     {!! $footerCode !!}
 </body>
 </html>

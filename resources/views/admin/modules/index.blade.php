@@ -11,28 +11,9 @@
             <p class="text-gray-500 text-sm mt-2">Manage the active modules and features available across the XCODE Technical Network.</p>
         </div>
 
-        @if(session('success'))
-            <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)" 
-                 x-transition.duration.500ms
-                 class="fixed bottom-4 right-4 z-50 bg-green-50 border border-green-200 text-green-700 px-6 py-4 rounded-lg shadow-lg text-sm font-bold flex items-center gap-3">
-                <i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>
-                {{ session('success') }}
-            </div>
-        @endif
+        
 
-        @if($errors->any())
-            <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)"
-                 x-transition.duration.500ms
-                 class="fixed bottom-4 right-4 z-50 bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-lg shadow-lg text-sm font-bold flex flex-col gap-1">
-                <div class="flex items-center gap-3">
-                    <i data-lucide="alert-circle" class="w-5 h-5 text-red-500"></i>
-                    <span>Ada kesalahan:</span>
-                </div>
-                <ul class="list-disc pl-8 font-normal text-xs mt-1">
-                    @foreach($errors->all() as $e) <li>{{ $e }}</li> @endforeach
-                </ul>
-            </div>
-        @endif
+        
 
         <!-- Alert Banner -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">

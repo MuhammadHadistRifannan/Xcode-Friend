@@ -17,16 +17,7 @@
         </div>
 
         {{-- ===== PESAN ERROR ===== --}}
-        @if ($errors->any())
-            <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <h4 class="text-sm font-bold text-red-700 mb-2">Terdapat kesalahan:</h4>
-                <ul class="list-disc list-inside space-y-1">
-                    @foreach ($errors->all() as $error)
-                        <li class="text-sm text-red-600">{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
+        
 
         {{-- ===== FORM EDIT ALBUM ===== --}}
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"

@@ -9,7 +9,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
         <!-- KOLOM KIRI: Menu Navigasi Samping -->
-        <div class="lg:col-span-3 space-y-6">
+        <div class="lg:col-span-3 space-y-6 animate-fade-in-up">
 
             <!-- My Apps Block -->
  <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
@@ -94,7 +94,7 @@
  </div>
 
     <!-- KOLOM TENGAH: BAGI CEPAT & FEED BERITA -->
-    <div class="lg:col-span-6 space-y-6">
+    <div class="lg:col-span-6 space-y-6 animate-fade-in-up delay-100">
 
         <!-- Buat Post (Bagi Cepat) -->
  <x-feed-upload action="{{ route('stream.store') }}" app="feed" aid="0" wallId="0" />
@@ -111,7 +111,8 @@
         <!-- Container Feed Berita -->
         <div id="feed-stream-container" class="space-y-4">
             @forelse ($streams as $stream)
-                <x-single-stream :stream="$stream" />
+                @php $delays = ['', 'delay-75', 'delay-150', 'delay-200', 'delay-300', 'delay-400']; $d = $delays[min($loop->index, 5)]; @endphp
+                <div class="animate-fade-in-up {{ $d }}"><x-single-stream :stream="$stream" /></div>
                 @if($loop->index == 0 && $streams->currentPage() == 1)
                     @php $centerColumnHtml = \App\Helpers\SettingHelper::get('theme_block_center_column', ''); @endphp
                     @if($centerColumnHtml)
@@ -151,7 +152,7 @@
  </div>
 
     <!-- KOLOM KANAN: Review & Links -->
-    <div class="lg:col-span-3 space-y-6">
+    <div class="lg:col-span-3 space-y-6 animate-fade-in-up delay-200">
         <x-sidebar-right />
         @php $rightColumnHtml = \App\Helpers\SettingHelper::get('theme_block_right_column', ''); @endphp
         @if($rightColumnHtml)

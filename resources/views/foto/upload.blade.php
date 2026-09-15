@@ -25,28 +25,9 @@
         <div class="col-span-12 lg:col-span-9 space-y-6">
 
             {{-- ===== PESAN ERROR ===== --}}
-            @if ($errors->any())
-                <div class="p-4 bg-red-50 border border-red-200 rounded-xl">
-                    <h4 class="text-sm font-bold text-red-700 mb-2 flex items-center gap-2">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        Upload gagal! Perbaiki kesalahan berikut:
-                    </h4>
-                    <ul class="list-disc list-inside space-y-1 text-sm text-red-600">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
+            
 
-            @if (session('success'))
-                <div class="p-4 bg-green-50 border border-green-200 rounded-xl">
-                    <p class="text-sm font-bold text-green-700 flex items-center gap-2">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        {{ session('success') }}
-                    </p>
-                </div>
-            @endif
+            
 
             {{-- ===== COMPACT UPLOAD WIDGET ===== --}}
             <div x-data="{

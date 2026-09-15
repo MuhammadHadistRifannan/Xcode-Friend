@@ -278,13 +278,11 @@ class GroupController extends Controller
         $group->update($data);
         return redirect()->route('groups.show', $group->id)->with('success', 'Grup diperbarui.');
     }
-
     public function join(Group $group)
     {
         if ($group->type === 'private_group') {
             // Cek apakah user sudah diundang oleh admin grup
-            $isInvited = DB::table('jcow_messages')
-                ->where('to_id', Auth::id())
+            $isInvited = \App\Models\Message::where('to_id', Auth::id())
                 ->where('from_id', $group->uid)
                 ->where('subject', 'Undangan Grup: ' . $group->name)
                 ->exists();
@@ -292,9 +290,7 @@ class GroupController extends Controller
             if (!$isInvited) {
                 // Cek apakah sudah pending
                 if (!$group->pendingMembers()->where('uid', Auth::id())->exists()) {
-                    DB::table('jcow_group_members_pending')->insert([
-                        'uid' => Auth::id(),
-                        'gid' => $group->id,
+                    $group->pendingMembers()->attach(Auth::id(), [
                         'created' => time(),
                         'ignored' => 0
                     ]);
@@ -318,11 +314,125 @@ class GroupController extends Controller
 
         // 2. Destruktif: Hapus semua legacy content post di grup tersebut
         // Asumsi page_id dan wall_id adalah penanda identitas grup untuk story/stream
-        DB::table('jcow_stories')->where('uid', $userId)->where('page_id', $group->id)->delete();
-        DB::table('jcow_streams')->where('uid', $userId)->where('wall_id', $group->id)->delete();
-        // Tambahkan relasi hapus jcow_story_photos jika strukturnya di-support
+        \App\Models\Story::where('uid', $userId)->where('page_id', $group->id)->delete();
+        $group->streams()->where('uid', $userId)->delete();
 
         return redirect()->route('groups.browse')->with('success', 'Anda telah keluar. Semua jejak konten di grup ini dihapus.');
+    }
+
+    public function removeMember(Request $request, Group $group, $uid)
+    {
+        if ($group->uid !== Auth::id()) {
+            return back()->with('error', 'Hanya admin yang dapat mengeluarkan anggota.');
+        }
+
+        if ($group->uid == $uid) {
+            return back()->with('error', 'Admin tidak bisa dikeluarkan dari grupnya sendiri.');
+        }
+
+        // 1. Hapus keanggotaan
+        $group->members()->detach($uid);
+        
+        // 2. Hapus request pending jika ada
+        $group->pendingMembers()->detach($uid);
+
+        // 3. Destruktif: Hapus post user di dalam grup ini
+        \App\Models\Story::where('uid', $uid)->where('page_id', $group->id)->delete();
+        $group->streams()->where('uid', $uid)->delete();
+
+        // Bisa tambahkan ignored=2 di pending untuk menandai kick/blocked
+        $group->pendingMembers()->syncWithoutDetaching([
+            $uid => [
+                'created' => time(),
+                'ignored' => 2
+            ]
+        ]);
+
+        return back()->with('success', 'Anggota berhasil dikeluarkan.');
+    }
+
+    public function approveRequest(Group $group, $uid)
+    {
+        if ($group->uid !== Auth::id()) {
+            return back()->with('error', 'Hanya admin yang berhak.');
+        }
+
+        $group->pendingMembers()->detach($uid);
+        
+        if (!$group->members()->where('uid', $uid)->exists()) {
+            $group->members()->attach($uid);
+        }
+
+        return back()->with('success', 'Permintaan bergabung disetujui.');
+    }
+
+    public function rejectRequest(Group $group, $uid)
+    {
+        if ($group->uid !== Auth::id()) {
+            return back()->with('error', 'Hanya admin yang berhak.');
+        }
+
+        // Tandai ditolak / ignore
+        $group->pendingMembers()->syncWithoutDetaching([
+            $uid => ['ignored' => 1]
+        ]);
+
+        return back()->with('success', 'Permintaan bergabung ditolak.');
+    }
+
+    // --- MANAJEMEN GRUP: EDIT & HAPUS ---
+    public function edit(Group $group)
+    {
+        if ($group->uid !== Auth::id()) {
+            return redirect()->route('groups.show', $group->id)->with('error', 'Hanya pembuat grup yang bisa mengedit.');
+        }
+        
+        return view('groups.edit', compact('group'));
+    }
+
+    public function update(Request $request, Group $group)
+    {
+        if ($group->uid !== Auth::id()) {
+            return back()->with('error', 'Akses ditolak.');
+        }
+
+        $request->validate([
+            'name' => 'required|string|max:100',
+            'description' => 'nullable|string|max:1000',
+            'type' => 'required|in:group,private_group',
+            'logo' => 'nullable|image|max:2048'
+        ]);
+
+        $data = $request->only('name', 'description', 'type');
+
+        if ($request->hasFile('logo')) {
+            $path = $request->file('logo')->store('groups/logos', 'public');
+            $data['logo'] = $path;
+        }
+
+        $group->update($data);
+
+        return redirect()->route('groups.show', $group->id)->with('success', 'Grup berhasil diperbarui.');
+    }
+
+    public function destroy(Group $group)
+    {
+        if ($group->uid !== Auth::id()) {
+            return back()->with('error', 'Hanya pembuat grup yang berhak menghapus grup.');
+        }
+
+        // Cascade hapus konten
+        \App\Models\Story::where('page_id', $group->id)->delete();
+        $group->streams()->delete();
+
+        // Pivot members dan pending secara otomatis bisa dibersihkan 
+        // jika ada foreign key on delete cascade, atau kita detach manual:
+        $group->members()->detach();
+        $group->pendingMembers()->detach();
+
+        $group->delete();
+
+        return redirect()->route('groups.browse')->with('success', 'Grup beserta seluruh isinya berhasil dihapus permanen.');
     }
 
     public function members(Group $group)
@@ -330,7 +440,6 @@ class GroupController extends Controller
         $group->load('members');
         return view('groups.members', compact('group'));
     }
-
     public function pending(Group $group)
     {
         if ($group->uid !== Auth::id()) abort(403);

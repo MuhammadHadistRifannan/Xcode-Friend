@@ -9,16 +9,8 @@
         <h1 class="text-2xl font-bold text-gray-800">Undang Pengguna ke: {{ $group->name }}</h1>
     </div>
 
-    @if(session('success'))
-        <div class="bg-green-50 text-green-700 p-4 rounded-lg mb-6 text-sm font-medium border border-green-100">
-            {{ session('success') }}
-        </div>
-    @endif
-    @if(session('error'))
-        <div class="bg-red-50 text-red-700 p-4 rounded-lg mb-6 text-sm font-medium border border-red-100">
-            {{ session('error') }}
-        </div>
-    @endif
+    
+    
 
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">

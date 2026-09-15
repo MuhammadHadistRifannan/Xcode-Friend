@@ -1,6 +1,6 @@
-<form action="{{ route('notifications.markRead', $notification->id) }}" method="POST" class="block notif-item-form" data-id="{{ $notification->id }}">
+<form action="{{ route('notifications.markRead', $notification->id) }}" method="POST" class="block notif-item-form animate-fade-in-up" data-id="{{ $notification->id }}">
     @csrf
-    <div class="flex items-center gap-4 px-6 py-3 border-b border-gray-100 last:border-b-0 {{ $notification->hasread ? '' : 'bg-[#fafafa]' }} hover:bg-gray-50 transition cursor-pointer" onclick="this.closest('form').submit()">
+    <div class="flex items-center gap-4 px-6 py-3 border-b border-gray-100 last:border-b-0 {{ $notification->hasread ? '' : 'bg-[#fafafa]' }} hover:bg-red-50/40 hover:pl-8 transition-all duration-200 cursor-pointer" onclick="this.closest('form').submit()">
         <!-- Unread Indicator -->
         <div class="w-2 h-2 rounded-full {{ $notification->hasread ? 'bg-gray-300' : 'bg-[#b71c1c]' }} flex-shrink-0"></div>
         

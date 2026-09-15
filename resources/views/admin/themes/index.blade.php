@@ -14,12 +14,7 @@
             </p>
         </div>
 
-        @if(session('success'))
-            <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)" 
-                 class="mb-6 bg-[#d4edda] text-[#155724] border border-[#c3e6cb] px-4 py-3 rounded text-[13px]">
-                {{ session('success') }}
-            </div>
-        @endif
+        
 
         <div class="flex items-center gap-2 mb-4">
             <div class="w-1 h-3.5 bg-[#cc0000]"></div>
