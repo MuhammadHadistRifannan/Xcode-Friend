@@ -6,7 +6,7 @@
     };
     $age = $member->birthyear > 0 ? (int) date('Y') - $member->birthyear : null;
 @endphp
-<a href="{{ route('profile.show', $member->username) }}" class="bg-white rounded-[14px] p-6 shadow-sm flex flex-col items-center text-center hover:shadow-md transition w-full max-w-[220px] block border border-gray-200">
+<a href="{{ route('profile.show', $member->username) }}" class="group bg-white rounded-[14px] p-6 shadow-sm flex flex-col items-center text-center hover:shadow-md hover:-translate-y-1 transition-all duration-200 w-full max-w-[220px] block border border-gray-200 animate-fade-in-up">
     <!-- Avatar -->
     <div class="w-16 h-16 rounded-full bg-[#f4dada] flex items-center justify-center overflow-hidden mb-3">
         @if($member->avatar)

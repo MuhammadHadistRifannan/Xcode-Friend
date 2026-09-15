@@ -13,15 +13,7 @@
         </div>
     @endif
 
-    @if($errors->any())
-        <div class="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs font-semibold rounded-xl">
-            <ul class="list-disc list-inside space-y-1">
-                @foreach($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
+    
 
     <!-- Tabs -->
     <div class="flex space-x-6 mb-4 border-b border-neutral-100 pb-2">

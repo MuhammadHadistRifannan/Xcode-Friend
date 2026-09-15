@@ -432,12 +432,12 @@
             if (this.files && this.files[0]) {
                 var file = this.files[0];
                 if (!file.type.startsWith('image/')) {
-                    alert('Hanya file gambar yang diperbolehkan.');
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: 'Hanya file gambar yang diperbolehkan.', showConfirmButton: false, timer: 3000 });
                     cancelAttachment();
                     return;
                 }
                 if (file.size > 5 * 1024 * 1024) {
-                    alert('Ukuran gambar maksimal adalah 5 MB.');
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: 'Ukuran gambar maksimal adalah 5 MB.', showConfirmButton: false, timer: 3000 });
                     cancelAttachment();
                     return;
                 }
@@ -624,7 +624,7 @@
             .then(function(res) { return res.json(); })
             .then(function(data) {
                 if (data.status !== 'success') {
-                    alert(data.message || 'Gagal mengirim pesan.');
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: data.message || 'Gagal mengirim pesan.', showConfirmButton: false, timer: 3000 });
                 }
             })
             .catch(function(err) {
@@ -694,13 +694,13 @@
     function copyMessage() {
         contextMenu.classList.add('hidden');
         navigator.clipboard.writeText(selectedMsg.message).then(function() {
-            alert('Pesan disalin!');
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Pesan disalin!', showConfirmButton: false, timer: 3000 });
         });
     }
 
     function forwardMessage() {
         contextMenu.classList.add('hidden');
-        alert('Fitur teruskan pesan segera hadir.');
+        Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: 'Fitur teruskan pesan segera hadir.', showConfirmButton: false, timer: 3000 });
     }
 
     function deleteMsg(type) {

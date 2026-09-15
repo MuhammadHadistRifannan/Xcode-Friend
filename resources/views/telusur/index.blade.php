@@ -110,14 +110,17 @@
                     </div>
 
                     <!-- Sentinel Infinite Scroll -->
-                    <div id="telusur-sentinel" class="py-8 text-center text-xs text-gray-400 font-semibold" style="display: {{ $members->hasMorePages() ? 'block' : 'none' }};">
-                        <span class="inline-flex items-center gap-2">
-                            <svg class="animate-spin h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-                            </svg>
-                            Memuat member lainnya...
-                        </span>
+                    <div id="telusur-sentinel" class="py-6" style="display: {{ $members->hasMorePages() ? 'block' : 'none' }};">
+                        <!-- Skeleton shimmer cards -->
+                        <div class="flex flex-wrap gap-5 justify-center" id="telusur-skeleton">
+                            @for($sk = 0; $sk < 4; $sk++)
+                            <div class="bg-white rounded-[14px] p-6 shadow-sm flex flex-col items-center border border-gray-200 w-[175px]">
+                                <div class="skeleton-shimmer w-16 h-16 rounded-full mb-3"></div>
+                                <div class="skeleton-shimmer h-3 w-20 rounded mb-2"></div>
+                                <div class="skeleton-shimmer h-2.5 w-14 rounded"></div>
+                            </div>
+                            @endfor
+                        </div>
                     </div>
                 @else
                     <div class="bg-white rounded-[14px] shadow-sm p-20 text-center">

@@ -121,20 +121,8 @@ class AdminMemberController extends Controller
             return back()->with('error', 'Tidak bisa menghapus akun Administrator.');
         }
 
-        $uid = $user->id;
-
-        // Cascade delete (mirror from xcode_source logic)
-        DB::table('jcow_streams')->where('uid', $uid)->delete();
-        DB::table('jcow_comments')->where('uid', $uid)->delete();
-        DB::table('jcow_followers')->where('uid', $uid)->orWhere('fid', $uid)->delete();
-        DB::table('jcow_friends')->where('uid', $uid)->orWhere('fid', $uid)->delete();
-        DB::table('jcow_group_members')->where('uid', $uid)->delete();
-        DB::table('jcow_messages')->where('from_id', $uid)->orWhere('to_id', $uid)->delete();
-        DB::table('jcow_liked')->where('uid', $uid)->delete();
-        DB::table('jcow_reports')->where('uid', $uid)->delete();
-        DB::table('jcow_profile_comments')->where('uid', $uid)->delete();
-        DB::table('jcow_friend_reqs')->where('uid', $uid)->orWhere('fid', $uid)->delete();
-
+        // Kunci asing (Foreign Key) dengan mode CASCADE akan secara otomatis 
+        // menghapus data turunan seperti streams, comments, friends, followers, dll.
         $user->delete();
 
         return redirect()->route('admin.members')->with('success', "Pengguna {$user->username} dan semua datanya berhasil dihapus.");

@@ -8,6 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     @php
         $activeTheme = \App\Helpers\SettingHelper::get('theme_color', 'red');
     @endphp
@@ -157,5 +159,130 @@
         }
     </script>
     @stack('scripts')
+    
+    <!-- Global Confirm Interceptor -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Konfigurasi SweetAlert2 bawaan untuk Tema Admin
+            const swalAdmin = Swal.mixin({
+                customClass: {
+                    popup: 'rounded-xl shadow-2xl border border-gray-100 font-sans',
+                    title: 'text-lg font-bold text-gray-900',
+                    htmlContainer: 'text-sm text-gray-600',
+                    actions: 'flex w-full justify-center gap-4 mt-6',
+                    confirmButton: 'bg-red-700 hover:bg-red-800 text-white font-bold rounded-lg px-5 py-2 shadow-sm transition mx-2',
+                    cancelButton: 'bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg px-5 py-2 transition mx-2'
+                },
+                buttonsStyling: false
+            });
+
+            // Global Flash Messages Toast
+            @if(session('success'))
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: {!! json_encode(session('success')) !!},
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            @endif
+
+            @if(session('error'))
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'error',
+                    title: {!! json_encode(session('error')) !!},
+                    showConfirmButton: false,
+                    timer: 4000,
+                    timerProgressBar: true
+                });
+            @endif
+
+            @if($errors->any())
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'error',
+                    title: 'Terdapat kesalahan',
+                    html: `<ul style="text-align: left; margin: 0; padding-left: 1rem; font-size: 0.875rem;">
+                        @foreach($errors->all() as $err)
+                            <li>{{ $err }}</li>
+                        @endforeach
+                    </ul>`,
+                    showConfirmButton: false,
+                    timer: 5000,
+                    timerProgressBar: true
+                });
+            @endif
+
+            // Intercept Onclick Confirm
+            document.addEventListener('click', function(e) {
+                let el = e.target.closest('[onclick*="return confirm("]');
+                if (el) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    
+                    let onclickAttr = el.getAttribute('onclick');
+                    let match = onclickAttr.match(/confirm\(\s*['"](.*?)['"]\s*\)/);
+                    let message = match ? match[1] : 'Yakin ingin melanjutkan?';
+                    
+                    swalAdmin.fire({
+                        title: 'Konfirmasi',
+                        text: message,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Ya',
+                        cancelButtonText: 'Batal'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            el.removeAttribute('onclick');
+                            if(el.tagName === 'A' && el.href) {
+                                window.location.href = el.href;
+                            } else if(el.tagName === 'BUTTON' && el.type === 'submit' && el.form) {
+                                el.form.submit();
+                            } else {
+                                el.click();
+                            }
+                            el.setAttribute('onclick', onclickAttr);
+                        }
+                    });
+                }
+            }, true);
+
+            // Intercept Onsubmit Confirm
+            document.addEventListener('submit', function(e) {
+                if (e.target.hasAttribute('onsubmit')) {
+                    let onsubmitAttr = e.target.getAttribute('onsubmit');
+                    if (onsubmitAttr.includes('return confirm(')) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        e.stopImmediatePropagation();
+                        
+                        let match = onsubmitAttr.match(/confirm\(\s*['"](.*?)['"]\s*\)/);
+                        let message = match ? match[1] : 'Yakin ingin melanjutkan?';
+                        
+                        swalAdmin.fire({
+                            title: 'Konfirmasi',
+                            text: message,
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonText: 'Ya',
+                            cancelButtonText: 'Batal'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                e.target.removeAttribute('onsubmit');
+                                e.target.submit();
+                                e.target.setAttribute('onsubmit', onsubmitAttr);
+                            }
+                        });
+                    }
+                }
+            }, true);
+        });
+    </script>
 </body>
 </html>

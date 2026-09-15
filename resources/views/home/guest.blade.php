@@ -11,9 +11,7 @@
         <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-6">
             <h3 class="text-[11px] font-bold text-neutral-800 uppercase mb-4 tracking-wider">Login</h3>
 
-            @if($errors->any())
-                <div class="bg-red-50 text-red-600 text-[10px] p-2 rounded mb-3">{{ $errors->first() }}</div>
-            @endif
+            
 
             <form method="POST" action="/login" class="space-y-4">
                 @csrf

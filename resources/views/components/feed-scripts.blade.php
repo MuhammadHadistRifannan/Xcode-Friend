@@ -428,7 +428,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (window.switchTab) switchTab('status');
                     if (window.lucide) window.lucide.createIcons();
                 } else {
-                    alert(data.message || 'Gagal membagikan status.');
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: data.message || 'Gagal membagikan status.', showConfirmButton: false, timer: 3000 });
                 }
             })
             .catch(err => {

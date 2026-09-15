@@ -15,11 +15,7 @@
             </div>
         </div>
 
-        @if(session('success'))
-            <div class="bg-green-100 border border-green-200 text-green-700 px-4 py-3 rounded-xl mb-6 shadow-sm">
-                {{ session('success') }}
-            </div>
-        @endif
+        
 
         <div class="mb-6 flex gap-2">
             <a href="{{ route('admin.reports') }}" class="px-4 py-2 rounded-lg text-sm font-bold transition-colors {{ !request('status') ? 'bg-gray-800 text-white shadow-md' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50' }}">

@@ -1,5 +1,6 @@
  @forelse ($streams as $stream)
- <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5" x-data="{ editingStream: false, openOptions: false }">
+ @php $i = $loop->index; $delays = ['', 'delay-75', 'delay-150', 'delay-200', 'delay-300', 'delay-400']; $delay = $delays[min($i, 5)]; @endphp
+ <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5 animate-fade-in-up {{ $delay }}" x-data="{ editingStream: false, openOptions: false }">
  <div class="flex justify-between items-start mb-2">
  <div class="flex items-center space-x-3">
  <a href="/{{ '@' . ($stream->user->username ?? '') }}" class="w-10 h-10 rounded-full bg-neutral-100 overflow-hidden flex-shrink-0 border border-neutral-200 hover:ring-2 hover:ring-red-700 transition">

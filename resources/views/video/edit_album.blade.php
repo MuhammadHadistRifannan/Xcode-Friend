@@ -21,26 +21,10 @@
         </div>
 
         {{-- ===== PESAN ERROR ===== --}}
-        @if ($errors->any())
-            <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <h4 class="text-sm font-bold text-red-700 mb-2">Terdapat kesalahan:</h4>
-                <ul class="list-disc list-inside space-y-1">
-                    @foreach ($errors->all() as $error)
-                        <li class="text-sm text-red-600">{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
+        
 
         {{-- ===== PESAN SUKSES ===== --}}
-        @if (session('success'))
-            <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-3">
-                <svg class="w-5 h-5 text-green-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                </svg>
-                <p class="text-sm font-semibold text-green-700">{{ session('success') }}</p>
-            </div>
-        @endif
+        
 
         {{-- ===== FORM EDIT ALBUM ===== --}}
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"

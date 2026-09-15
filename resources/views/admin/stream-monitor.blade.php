@@ -34,13 +34,7 @@
             </div>
         </div>
 
-        @if(session('success'))
-            <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)"
-                 class="fixed bottom-4 right-4 z-50 bg-green-50 border border-green-200 text-green-700 px-6 py-4 rounded-lg shadow-lg text-sm font-bold flex items-center gap-3">
-                <i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>
-                {{ session('success') }}
-            </div>
-        @endif
+        
 
         {{-- Type Filter --}}
         <div class="flex flex-wrap gap-2 mb-6">
@@ -76,13 +70,13 @@
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
                     <div class="flex justify-between items-start mb-3">
                         <div class="flex items-start gap-3">
-                            <img src="{{ $stream->avatar ? asset('storage/avatars/'.$stream->avatar) : asset('assets/img/default.png') }}" alt="{{ $stream->username }}" class="w-10 h-10 rounded-full border border-gray-200 object-cover bg-gray-100">
+                            <img src="{{ $stream->user?->avatar_url ?? asset('assets/img/default.png') }}" alt="{{ $stream->user?->username }}" class="w-10 h-10 rounded-full border border-gray-200 object-cover bg-gray-100">
                             <div>
                                 <div class="font-bold text-gray-900 text-sm">
-                                    <a href="{{ route('profile.show', $stream->username) }}" target="_blank" class="hover:underline">{{ $stream->fullname ?: $stream->username }}</a>
+                                    <a href="{{ route('profile.show', $stream->user?->username ?? '#') }}" target="_blank" class="hover:underline">{{ $stream->user?->fullname ?: $stream->user?->username }}</a>
                                 </div>
                                 <div class="text-xs text-gray-500">
-                                    {{ \Carbon\Carbon::createFromTimestamp($stream->created)->diffForHumans() }} &bull; 
+                                    {{ $stream->created_at->diffForHumans() }} &bull; 
                                     ID: {{ $stream->id }} &bull; 
                                     @if($stream->type == 1)
                                         <span class="text-blue-600 font-semibold"><i data-lucide="file-text" class="w-3 h-3 inline"></i> Teks</span>

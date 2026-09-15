@@ -40,25 +40,14 @@
                 <a href="?tab=pemberitahuan" class="text-[11px] font-bold pb-3 uppercase tracking-wider transition {{ $tab === 'pemberitahuan' ? 'text-red-700 border-b-2 border-red-700' : 'text-neutral-500 hover:text-neutral-800' }}">Pemberitahuan</a>
                 <a href="?tab=privasi" class="text-[11px] font-bold pb-3 uppercase tracking-wider transition {{ $tab === 'privasi' ? 'text-red-700 border-b-2 border-red-700' : 'text-neutral-500 hover:text-neutral-800' }}">Privasi</a>
                 <a href="?tab=sandi" class="text-[11px] font-bold pb-3 uppercase tracking-wider transition {{ $tab === 'sandi' ? 'text-red-700 border-b-2 border-red-700' : 'text-neutral-500 hover:text-neutral-800' }}">Sandi</a>
+                <a href="?tab=blokir" class="text-[11px] font-bold pb-3 uppercase tracking-wider transition {{ $tab === 'blokir' ? 'text-red-700 border-b-2 border-red-700' : 'text-neutral-500 hover:text-neutral-800' }}">Daftar Blokir</a>
             </div>
 
             <!-- ISI TAB -->
             <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-8 mb-6">
                 
-                @if(session('success'))
-                    <div class="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm font-medium">
-                        {{ session('success') }}
-                    </div>
-                @endif
-                @if($errors->any())
-                    <div class="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm font-medium">
-                        <ul class="list-disc pl-5">
-                            @foreach($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
+                
+                
 
                 @if($tab === 'informasi')
                     <!-- TAB 1: INFORMASIKU -->
@@ -219,7 +208,7 @@
                                             @if($user->profile && $user->profile->background)
                                                 <img src="{{ asset('storage/backgrounds/' . $user->profile->background) }}" class="w-full h-full object-cover">
                                             @else
-                                                <div class="w-full h-full bg-gradient-to-r from-neutral-200 to-neutral-300 flex items-center justify-center">
+                                                <div class="w-full h-full bg-neutral-100 flex items-center justify-center">
                                                     <span class="text-neutral-500 text-sm font-bold opacity-50">Belum ada banner</span>
                                                 </div>
                                             @endif
@@ -366,6 +355,152 @@
                             <button type="submit" class="bg-[#990000] text-white text-xs font-bold tracking-wide px-8 py-2.5 rounded hover:bg-red-800 transition shadow">Simpan</button>
                         </div>
                     </form>
+
+                @elseif($tab === 'blokir')
+                    <!-- TAB 6: DAFTAR BLOKIR -->
+                    <h2 class="text-lg font-bold text-neutral-900 mb-2">Daftar Pengguna Diblokir</h2>
+                    <p class="text-xs text-neutral-500 mb-6 border-b border-neutral-100 pb-4">Kelola pengguna yang telah kamu blokir.</p>
+                    
+                    <div class="mb-4 relative">
+                        <svg class="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/></svg>
+                        <input type="text" id="searchBlocked" placeholder="Cari nama pengguna..." class="w-full pl-9 pr-4 py-2.5 text-sm bg-neutral-50 border border-neutral-200 rounded-lg focus:outline-none focus:border-red-700 transition">
+                    </div>
+
+                    <div class="space-y-4" id="blockedList">
+                        @forelse($blockedUsers as $blocked)
+                            <div class="blocked-item flex items-center justify-between p-4 border border-neutral-100 bg-neutral-50 rounded-lg hover:bg-neutral-100 transition" data-name="{{ strtolower($blocked->fullname) }}" data-username="{{ strtolower($blocked->username) }}">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-700 font-bold text-sm shrink-0">
+                                        @if(!empty($blocked->avatar))
+                                            <img src="{{ asset('uploads/avatars/' . $blocked->avatar) }}" alt="{{ $blocked->fullname }}" class="w-full h-full rounded-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                            <span style="display:none;">{{ strtoupper(substr($blocked->fullname, 0, 1)) }}</span>
+                                        @else
+                                            <span>{{ strtoupper(substr($blocked->fullname, 0, 1)) }}</span>
+                                        @endif
+                                    </div>
+                                    <div>
+                                        <h4 class="text-sm font-bold text-neutral-800">{{ $blocked->fullname }}</h4>
+                                        <p class="text-[11px] text-neutral-500">{{ '@' . $blocked->username }}</p>
+                                    </div>
+                                </div>
+                                <form id="unblockForm-{{ $blocked->id }}" action="{{ route('friends.unblock', $blocked->id) }}" method="POST">
+                                    @csrf
+                                    <button type="button" onclick="openUnblockModal({{ $blocked->id }}, '{{ e($blocked->fullname) }}')" class="text-xs font-semibold text-neutral-500 hover:text-red-700 bg-white border border-neutral-200 hover:border-red-200 px-3 py-1.5 rounded-md transition shadow-sm">
+                                        Buka Blokir
+                                    </button>
+                                </form>
+                            </div>
+                        @empty
+                            <div class="py-12 text-center text-neutral-400">
+                                <svg class="w-12 h-12 mx-auto mb-3 text-neutral-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                                <p class="text-sm">Belum ada pengguna yang diblokir.</p>
+                            </div>
+                        @endforelse
+                        
+                        <div id="noResult" class="hidden py-8 text-center text-neutral-400">
+                            <p class="text-sm">Tidak ditemukan hasil pencarian.</p>
+                        </div>
+                    </div>
+
+                    {{-- Modal Konfirmasi Buka Blokir --}}
+                    <div id="unblockModal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-300 opacity-0">
+                        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden transform scale-95 transition-transform duration-300" id="unblockModalContent">
+                            <div class="p-6">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <div class="w-10 h-10 bg-red-50 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <svg class="w-5 h-5 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-base font-bold text-neutral-900">Buka Blokir Pengguna</h3>
+                                        <p class="text-xs text-neutral-500">Tindakan ini akan mengizinkan interaksi.</p>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-neutral-600 mb-6 leading-relaxed">
+                                    Yakin ingin membuka blokir <span id="modalUserName" class="font-bold text-neutral-900"></span>? Pengguna ini akan bisa berinteraksi denganmu kembali.
+                                </p>
+                                <div class="flex gap-3">
+                                    <button type="button" onclick="closeUnblockModal()" class="flex-1 px-4 py-2.5 text-sm font-medium text-neutral-700 bg-neutral-100 hover:bg-neutral-200 rounded-xl transition">Batal</button>
+                                    <button type="button" onclick="submitUnblockForm()" class="flex-1 px-4 py-2.5 text-sm font-bold text-white bg-red-700 hover:bg-red-800 rounded-xl transition shadow-md hover:shadow-lg transform active:scale-95">Ya, Buka Blokir</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <script>
+                        let currentUnblockId = null;
+
+                        function openUnblockModal(userId, userName) {
+                            currentUnblockId = userId;
+                            document.getElementById('modalUserName').textContent = userName;
+                            const modal = document.getElementById('unblockModal');
+                            const modalContent = document.getElementById('unblockModalContent');
+                            
+                            modal.classList.remove('hidden');
+                            modal.classList.add('flex');
+                            
+                            // Animasi muncul
+                            setTimeout(() => {
+                                modal.classList.remove('opacity-0');
+                                modal.classList.add('opacity-100');
+                                modalContent.classList.remove('scale-95');
+                                modalContent.classList.add('scale-100');
+                            }, 10);
+                        }
+
+                        function closeUnblockModal() {
+                            const modal = document.getElementById('unblockModal');
+                            const modalContent = document.getElementById('unblockModalContent');
+                            
+                            // Animasi hilang
+                            modal.classList.remove('opacity-100');
+                            modal.classList.add('opacity-0');
+                            modalContent.classList.remove('scale-100');
+                            modalContent.classList.add('scale-95');
+                            
+                            setTimeout(() => {
+                                modal.classList.add('hidden');
+                                modal.classList.remove('flex');
+                                currentUnblockId = null;
+                            }, 300);
+                        }
+
+                        function submitUnblockForm() {
+                            if (currentUnblockId) {
+                                document.getElementById('unblockForm-' + currentUnblockId).submit();
+                            }
+                        }
+
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const searchInput = document.getElementById('searchBlocked');
+                            const items = document.querySelectorAll('.blocked-item');
+                            const noResult = document.getElementById('noResult');
+
+                            if (searchInput) {
+                                searchInput.addEventListener('input', function() {
+                                    const q = this.value.toLowerCase().trim();
+                                    let visible = 0;
+                                    items.forEach(item => {
+                                        const name = item.dataset.name || '';
+                                        const username = item.dataset.username || '';
+                                        if (name.includes(q) || username.includes(q)) {
+                                            item.style.display = '';
+                                            visible++;
+                                        } else {
+                                            item.style.display = 'none';
+                                        }
+                                    });
+                                    if(noResult) {
+                                        if(visible === 0 && q !== '') {
+                                            noResult.classList.remove('hidden');
+                                        } else {
+                                            noResult.classList.add('hidden');
+                                        }
+                                    }
+                                });
+                            }
+                        });
+                    </script>
+
                 @endif
             </div>
 

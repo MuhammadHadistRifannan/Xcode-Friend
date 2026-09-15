@@ -21,12 +21,7 @@
     </div>
 
     <!-- Flash Message -->
-    @if(session('success'))
-        <div class="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md text-sm flex items-center gap-2">
-            <i data-lucide="check-circle" class="w-4 h-4 shrink-0"></i>
-            {{ session('success') }}
-        </div>
-    @endif
+    
 
     <!-- Tab Navigation -->
     <div class="border-b border-gray-200 mb-6 flex gap-6">

@@ -24,12 +24,7 @@
             @endif
         </div>
 
-        @if(session('success'))
-            <div class="mb-6 flex items-center gap-3 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-xl text-sm font-medium">
-                <i data-lucide="check-circle" class="w-4 h-4 text-green-500 shrink-0"></i>
-                {{ session('success') }}
-            </div>
-        @endif
+        
 
         {{-- Stats Cards --}}
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">

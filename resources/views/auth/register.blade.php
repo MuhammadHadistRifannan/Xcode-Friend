@@ -12,19 +12,7 @@
         <p class="text-sm text-neutral-500 mt-1">Create your account to get started.</p>
     </div>
 
-    @if($errors->any())
-        <div class="bg-red-50 border border-red-100 text-red-600 text-xs p-3 rounded-lg mb-6">
-            <div class="flex items-center font-bold mb-1">
-                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                Periksa kembali data Anda:
-            </div>
-            <ul class="list-disc list-inside ml-2">
-                @foreach($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
+    
 
     <form method="POST" action="/register" id="register-form" class="space-y-6" onsubmit="this.querySelector('button[type=submit]').disabled = true; this.querySelector('button[type=submit]').innerHTML = 'Processing...';">
         @csrf

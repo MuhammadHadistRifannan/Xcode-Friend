@@ -26,16 +26,7 @@
             <div class="col-span-12 lg:col-span-9 space-y-6">
                 
                 {{-- ===== PESAN ERROR ===== --}}
-                @if ($errors->any())
-                    <div class="p-4 bg-red-50 border border-red-200 rounded-xl">
-                        <h4 class="text-sm font-bold text-red-700 mb-2">Terdapat kesalahan:</h4>
-                        <ul class="list-disc list-inside space-y-1">
-                            @foreach ($errors->all() as $error)
-                                <li class="text-sm text-red-600">{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
+                
 
                 {{-- ===== COMPACT UPLOAD WIDGET ===== --}}
                 <div x-data="{

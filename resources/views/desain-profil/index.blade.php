@@ -131,12 +131,7 @@
         {{-- ===== KOLOM KANAN: FORM ===== --}}
         <div class="col-span-12 lg:col-span-8">
 
-            @if(session('success'))
-                <div class="mb-5 px-4 py-3 bg-green-50 border border-green-200 rounded-xl flex items-center gap-2 text-sm text-green-700 font-medium">
-                    <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                    {{ session('success') }}
-                </div>
-            @endif
+            
 
             <form action="{{ route('desain-profil.save') }}" method="POST" enctype="multipart/form-data" id="design-form">
                 @csrf

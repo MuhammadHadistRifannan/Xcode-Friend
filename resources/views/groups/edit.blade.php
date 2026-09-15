@@ -8,15 +8,7 @@
         </div>
 
         <div class="p-8">
-            @if($errors->any())
-                <div class="bg-red-50 text-red-600 p-4 rounded-lg mb-6 text-sm">
-                    <ul class="list-disc pl-5">
-                        @foreach($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
+            
 
             <form action="{{ route('groups.update', $group->id) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
                 @csrf

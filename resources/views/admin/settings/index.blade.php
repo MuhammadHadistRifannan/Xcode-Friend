@@ -11,14 +11,7 @@
             <p class="text-gray-500 text-sm mt-2 max-w-2xl">Configure core platform behavior, privacy thresholds, and global network settings for the X-CODE infrastructure.</p>
         </div>
 
-        @if(session('success'))
-            <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)" 
-                 x-transition.duration.500ms
-                 class="fixed bottom-4 right-4 z-50 bg-green-50 border border-green-200 text-green-700 px-6 py-4 rounded-lg shadow-lg text-sm font-bold flex items-center gap-3">
-                <i data-lucide="check-circle" class="w-5 h-5 text-green-500"></i>
-                {{ session('success') }}
-            </div>
-        @endif
+        
 
         <form action="{{ route('admin.settings.update') }}" method="POST" class="space-y-6">
             @csrf

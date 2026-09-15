@@ -10,26 +10,26 @@
             <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
         </div>
         <div class="text-3xl font-extrabold text-neutral-800 my-1">4.9</div>
-        <a href="#" class="text-xs text-blue-600 hover:underline">532 Reviews</a>
+        <a href="https://www.google.com/search?hl=en-ID&gl=id&q=Satellite+Office+-+PT.+Teknologi+Server+Indonesia+(X-code+Training),+Jl.+Minggiran+MJ2,+RT.58+/+RW16,+Suryodiningratan,+Mantrijeron,+Yogyakarta+City,+Special+Region+of+Yogyakarta+55141&ludocid=10033632468579715152&lsig=AB86z5UigswTJ_G4jixZUKKQyV2H#lrd=0x2e7a57b99e22d3d3:0x8b3e9f91d8850850,1" target="_blank" class="text-xs text-blue-600 hover:underline">532 Reviews</a>
     </div>
 
     <!-- Network Links -->
     <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
         <h3 class="text-xs font-bold text-neutral-800 uppercase mb-4">Network Links</h3>
         <div class="space-y-2">
-            <a href="#" class="flex items-center justify-between p-3 bg-neutral-50 border border-neutral-100 rounded-lg hover:bg-neutral-100 transition group">
+            <a href="https://www.linkedin.com/company/xcodetraining2/posts/?feedView=all" target="_blank" class="flex items-center justify-between p-3 bg-neutral-50 border border-neutral-100 rounded-lg hover:bg-neutral-100 transition group">
                 <div class="flex items-center text-sm font-medium text-neutral-600">
                     <img src="{{ asset('assets/img/logo-linkedin.png') }}" class="w-4 h-4 mr-3 opacity-60 group-hover:opacity-100 transition" alt="LinkedIn"> LinkedIn
                 </div>
                 <span class="text-blue-500 font-bold">&rarr;</span>
             </a>
-            <a href="#" class="flex items-center justify-between p-3 bg-neutral-50 border border-neutral-100 rounded-lg hover:bg-neutral-100 transition group">
+            <a href="https://xcode.co.id/forum/" target="_blank" class="flex items-center justify-between p-3 bg-neutral-50 border border-neutral-100 rounded-lg hover:bg-neutral-100 transition group">
                 <div class="flex items-center text-sm font-medium text-neutral-600">
                     <img src="{{ asset('assets/img/logo-phpbb.png') }}" class="w-4 h-4 mr-3 opacity-60 group-hover:opacity-100 transition" alt="phpBB Group"> phpBB Group
                 </div>
                 <span class="text-blue-500 font-bold">&rarr;</span>
             </a>
-            <a href="#" class="flex items-center justify-between p-3 bg-neutral-50 border border-neutral-100 rounded-lg hover:bg-neutral-100 transition group">
+            <a href="https://www.facebook.com/groups/yogyafreexcode" target="_blank" class="flex items-center justify-between p-3 bg-neutral-50 border border-neutral-100 rounded-lg hover:bg-neutral-100 transition group">
                 <div class="flex items-center text-sm font-medium text-neutral-600">
                     <svg class="w-4 h-4 mr-3 text-neutral-400 group-hover:text-[#1877F2] transition" fill="currentColor" viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"></path></svg> Facebook
                 </div>

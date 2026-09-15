@@ -14,19 +14,8 @@
             </p>
         </div>
 
-        @if(session('success'))
-            <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)" 
-                 class="mb-6 bg-[#d4edda] text-[#155724] border border-[#c3e6cb] px-4 py-3 rounded text-[13px]">
-                {{ session('success') }}
-            </div>
-        @endif
-        @if($errors->any())
-            <div class="mb-6 bg-[#f8d7da] text-[#721c24] border border-[#f5c6cb] px-4 py-3 rounded text-[13px]">
-                <ul class="list-disc pl-5">
-                    @foreach($errors->all() as $e) <li>{{ $e }}</li> @endforeach
-                </ul>
-            </div>
-        @endif
+        
+        
 
         <form action="{{ route('admin.themes.blocks.update') }}" method="POST">
             @csrf
