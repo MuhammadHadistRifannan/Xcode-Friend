@@ -62,9 +62,10 @@ COPY . .
 RUN composer install --no-dev --no-interaction --prefer-dist \
     && composer dump-autoload --optimize --classmap-authoritative
 
-RUN composer install
-
 # --- Build frontend assets (Vite) ---
+# VITE_ vars must point to where the BROWSER connects (nginx), not the server bind address.
+# nginx proxies /app/ → app:8080 (Reverb), so browser connects via port 80.
+ENV VITE_REVERB_HOST=localhost VITE_REVERB_PORT=80 VITE_REVERB_SCHEME=http
 RUN VITE_REMOTE_FONTS=0 npm run build \
     && rm -rf node_modules
 

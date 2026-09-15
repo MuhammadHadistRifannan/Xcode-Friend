@@ -26,7 +26,7 @@ class MessageService
         return $this->messageRepo->getConversation($userId, $otherId);
     }
 
-    public function getById(int $id, int $userId)
+    public function getById($id, int $userId)
     {
         return $this->messageRepo->getById($id, $userId);
     }
@@ -98,7 +98,7 @@ class MessageService
                 'subject' => $subject ?? '',
                 'message' => $safeMessage,
                 'attachment' => $attachment,
-                'attachment_url' => $attachment ? asset('storage/' . $attachment) : null,
+                'attachment_url' => $attachment ? '/storage/' . $attachment : null,
                 'created' => $now,
                 'hasread' => 0,
                 'reply_to' => $replyTo,
@@ -108,6 +108,19 @@ class MessageService
         $sender = $this->accountRepo->findById($senderId);
         $recipientUnread = $this->messageRepo->countUnread($recipientId);
         $recipientNotifCount = $this->notifRepo->countUnread($recipientId);
+
+        // Attach reply context if this is a reply
+        if ($replyTo) {
+            $repliedMsg = DB::table('jcow_messages')
+                ->join('jcow_accounts', 'jcow_accounts.id', '=', 'jcow_messages.from_id')
+                ->where('jcow_messages.id', $replyTo)
+                ->select('jcow_messages.message', 'jcow_accounts.fullname as replied_sender_name')
+                ->first();
+            if ($repliedMsg) {
+                $result->replied_message = $repliedMsg->message;
+                $result->replied_sender_name = $repliedMsg->replied_sender_name;
+            }
+        }
 
         $notifText = !empty($safeMessage) ? "Pesan baru dari {$sender->fullname}" : "{$sender->fullname} mengirim foto";
 

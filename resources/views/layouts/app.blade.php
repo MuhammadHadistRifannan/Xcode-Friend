@@ -66,15 +66,20 @@
     <script src="https://cdn.jsdelivr.net/npm/pusher-js@7/dist/web/pusher.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1/dist/echo.iife.js"></script>
     <script>
+        var _isSecure = window.location.protocol === 'https:';
+        var _wsPort = window.location.port ? parseInt(window.location.port) : (_isSecure ? 443 : 80);
         window.Echo = new Echo({
             broadcaster: 'pusher',
             key: '{{ config("broadcasting.connections.reverb.key") }}',
-            wsHost: '{{ config("broadcasting.connections.reverb.options.host", "127.0.0.1") }}',
-            wsPort: {{ config("broadcasting.connections.reverb.options.port", 8080) }},
-            wssPort: {{ config("broadcasting.connections.reverb.options.port", 8080) }},
-            forceTLS: false,
+            wsHost: window.location.hostname,
+            wsPort: _wsPort,
+            wssPort: _wsPort,
+            forceTLS: _isSecure,
             enabledTransports: ['ws', 'wss'],
         });
+
+        // Base URL dinamis untuk asset (storage, dll)
+        window.AppBase = window.location.origin;
 
         // ==== Realtime online presence (WebSocket) ====
         window.onlineUsers = {};

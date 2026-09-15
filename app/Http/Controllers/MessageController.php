@@ -142,6 +142,9 @@ class MessageController extends Controller
                         'created_formatted' => date('H:i'),
                         'from_id' => $userId,
                         'to_id' => (int) $recipientId,
+                        'reply_to' => $result->reply_to ?? null,
+                        'replied_message' => $result->replied_message ?? null,
+                        'replied_sender_name' => $result->replied_sender_name ?? null,
                     ]
                 ]);
             }
@@ -368,7 +371,7 @@ class MessageController extends Controller
         }
     }
 
-    public function deleteForEveryone(int $id): mixed
+    public function deleteForEveryone($id): mixed
     {
         try {
             $userId = Auth::id();

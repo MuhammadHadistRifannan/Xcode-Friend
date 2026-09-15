@@ -142,11 +142,11 @@
 
                                 @if(!empty($msg->attachment))
                                     <div class="mb-2 overflow-hidden rounded-lg">
-                                        <img src="{{ asset('storage/' . $msg->attachment) }}" 
+                                        <img src="{{ '/storage/' . $msg->attachment }}" 
                                              alt="Foto lampiran" 
                                              class="max-w-full max-h-64 object-cover rounded-lg hover:opacity-95 transition cursor-zoom-in"
                                              loading="lazy"
-                                             onclick="openLightbox(event, '{{ asset('storage/' . $msg->attachment) }}')">
+                                             onclick="openLightbox(event, '{{ '/storage/' . $msg->attachment }}')">
                                     </div>
                                 @endif
 
@@ -357,7 +357,7 @@
         var timeAlign = isMine ? 'justify-end' : 'justify-start';
         var time = formatTime(message.created);
 
-        var imgUrl = message.attachment_url || (message.attachment ? '{{ asset('storage') }}/' + message.attachment : null);
+        var imgUrl = message.attachment_url || (message.attachment ? (window.AppBase || window.location.origin) + '/storage/' + message.attachment : null);
         var imgHtml = '';
         if (imgUrl) {
             imgHtml = '<div class="mb-2 overflow-hidden rounded-lg">'
@@ -370,6 +370,18 @@
             textHtml = '<p class="text-sm whitespace-pre-wrap">' + escapeHtml(message.message) + '</p>';
         }
 
+        var replyHtml = '';
+        if (message.reply_to && message.replied_message) {
+            var replySenderClass = isMine ? 'text-white/90' : 'text-[#b71c1c]';
+            var replyTextClass = isMine ? 'text-white/70' : 'text-gray-500';
+            var replyBgClass = isMine ? 'bg-white/15' : 'bg-gray-50';
+            var replyBorderClass = isMine ? 'border-white/40' : 'border-[#b71c1c]';
+            replyHtml = '<div class="mb-2 ' + replyBgClass + ' rounded-lg px-3 py-2 border-l-[3px] ' + replyBorderClass + '">'
+                + '<p class="text-[10px] font-bold ' + replySenderClass + '">' + escapeHtml(message.replied_sender_name || '') + '</p>'
+                + '<p class="text-[10px] ' + replyTextClass + ' truncate">' + escapeHtml(message.replied_message.length > 80 ? message.replied_message.substring(0, 80) + '...' : message.replied_message) + '</p>'
+                + '</div>';
+        }
+
         var html = '<div class="flex ' + justify + ' mb-2">'
             + '<div class="max-w-[70%]">'
             + '<div class="chat-bubble chat-bubble-pop ' + originClass + ' ' + bubbleClass + ' rounded-[14px] px-4 py-3 shadow-sm cursor-pointer select-none"'
@@ -379,6 +391,7 @@
             + ' data-attachment="' + (message.attachment || '') + '"'
             + ' data-attachment-url="' + (imgUrl || '') + '"'
             + ' onclick="showContextMenu(event, this)">'
+            + replyHtml
             + imgHtml
             + textHtml
             + '</div>'
@@ -589,7 +602,10 @@
                 to_id: otherUserId,
                 message: text,
                 attachment_url: tempAttachmentUrl,
-                created: Math.floor(Date.now() / 1000)
+                created: Math.floor(Date.now() / 1000),
+                reply_to: replyToInput.value || null,
+                replied_message: (replyToInput.value && replyText) ? replyText.textContent : null,
+                replied_sender_name: (replyToInput.value && replySender) ? replySender.textContent : null
             };
             appendBubble(tempMsg, { id: currentUserId, fullname: 'Saya' });
 

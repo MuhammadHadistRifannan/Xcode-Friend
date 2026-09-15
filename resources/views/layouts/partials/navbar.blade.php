@@ -9,8 +9,8 @@
             </a>
         </div>
 
-        <!-- BAGIAN TENGAH: Menu Navigasi -->
-        <div class="hidden md:flex absolute left-1/2 transform -translate-x-1/2 items-center space-x-8 text-[13px] font-medium text-neutral-400 mt-1">
+        <!-- BAGIAN TENGAH: Menu Navigasi (desktop) -->
+        <div class="hidden lg:flex items-center justify-center flex-1 space-x-8 text-[13px] font-medium text-neutral-400 mt-1">
             <a href="{{ auth()->check() ? route('beranda') : '/' }}" class="{{ request()->routeIs('beranda') ? 'text-red-600' : 'hover:text-white' }} transition">Beranda</a>
             @if(\App\Helpers\ModuleHelper::isActive('BROWSE'))
             <a href="{{ route('telusur.index') }}" class="{{ request()->routeIs('telusur.*') ? 'text-red-600' : 'hover:text-white' }} transition">Telusur</a>
@@ -80,6 +80,12 @@
 
         <!-- BAGIAN KANAN: Search & Ikon Aksi -->
         <div class="flex-shrink-0 flex items-center justify-end space-x-3 sm:space-x-4">
+
+            {{-- Hamburger Button (mobile) --}}
+            <button id="mobile-menu-btn" type="button" class="lg:hidden p-1.5 rounded-md hover:bg-neutral-800 transition text-neutral-400 hover:text-white focus:outline-none">
+                <svg id="hamburger-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                <svg id="close-icon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
             
             {{-- Global Search with Autocomplete --}}
             <div class="relative hidden md:block" id="navbar-search-wrapper">
@@ -223,6 +229,161 @@
         </div>
     </div>
 </nav>
+
+<!-- ========== MOBILE MENU PANEL (md below) ========== -->
+<div id="mobile-menu-panel" class="lg:hidden hidden fixed inset-x-0 top-14 z-40 bg-[#0A0A0A] border-b border-neutral-800 shadow-2xl max-h-[calc(100vh-3.5rem)] overflow-y-auto">
+    <div class="px-4 py-4 space-y-4">
+
+        {{-- Search (mobile) --}}
+        <form method="GET" action="{{ route('search.index') }}" autocomplete="off">
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-neutral-500 pointer-events-none">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </span>
+                <input type="text" name="q" placeholder="Cari anggota, grup, halaman..." value="{{ request('q') }}" class="w-full bg-[#1A1A1A] border border-neutral-800 rounded-lg pl-9 pr-3 py-2.5 text-sm text-neutral-300 focus:outline-none focus:border-neutral-600 placeholder-neutral-600">
+            </div>
+        </form>
+
+        {{-- Nav Links --}}
+        <div class="space-y-1">
+            <a href="{{ auth()->check() ? route('beranda') : '/' }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('beranda') ? 'text-red-600 bg-neutral-900' : 'text-neutral-400 hover:text-white hover:bg-neutral-800' }} transition">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                Beranda
+            </a>
+            @if(\App\Helpers\ModuleHelper::isActive('BROWSE'))
+            <a href="{{ route('telusur.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('telusur.*') ? 'text-red-600 bg-neutral-900' : 'text-neutral-400 hover:text-white hover:bg-neutral-800' }} transition">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                Telusur
+            </a>
+            @endif
+            @if(\App\Helpers\ModuleHelper::isActive('VIDEOS'))
+            <a href="{{ route('videos.public') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('videos.*') || request()->routeIs('video.*') ? 'text-red-600 bg-neutral-900' : 'text-neutral-400 hover:text-white hover:bg-neutral-800' }} transition">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                Video
+            </a>
+            @endif
+            @if(\App\Helpers\ModuleHelper::isActive('PAGES'))
+            <a href="{{ route('pages.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('pages.*') ? 'text-red-600 bg-neutral-900' : 'text-neutral-400 hover:text-white hover:bg-neutral-800' }} transition">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                Pages
+            </a>
+            @endif
+
+            @auth
+            <button type="button" onclick="this.nextElementSibling.classList.toggle('hidden')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-400 hover:text-white hover:bg-neutral-800 transition">
+                <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                My Apps
+                <svg class="w-3 h-3 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div class="hidden pl-4 space-y-1">
+                <a href="{{ auth()->check() ? route('beranda') : '/' }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs {{ request()->is('dasbor') ? 'text-red-600 bg-neutral-900' : 'text-neutral-400 hover:text-white hover:bg-neutral-800' }} transition">Dasbor</a>
+                @if(\App\Helpers\ModuleHelper::isActive('PHOTOS'))
+                <a href="{{ route('foto.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs {{ request()->routeIs('foto.*') ? 'text-red-600 bg-neutral-900' : 'text-neutral-400 hover:text-white hover:bg-neutral-800' }} transition">Foto</a>
+                @endif
+                @if(\App\Helpers\ModuleHelper::isActive('VIDEOS'))
+                <a href="{{ route('video.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs {{ request()->routeIs('video.*') ? 'text-red-600 bg-neutral-900' : 'text-neutral-400 hover:text-white hover:bg-neutral-800' }} transition">Video</a>
+                @endif
+                <a href="{{ route('undang.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs {{ request()->routeIs('undang.*') ? 'text-red-600 bg-neutral-900' : 'text-neutral-400 hover:text-white hover:bg-neutral-800' }} transition">Undang</a>
+                <a href="{{ route('desain-profil.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs {{ request()->routeIs('desain-profil.*') ? 'text-red-600 bg-neutral-900' : 'text-neutral-400 hover:text-white hover:bg-neutral-800' }} transition">Desain Profil</a>
+                @if(\App\Helpers\ModuleHelper::isActive('PAGES'))
+                <a href="{{ route('my-pages.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs {{ request()->routeIs('my-pages.*') ? 'text-red-600 bg-neutral-900' : 'text-neutral-400 hover:text-white hover:bg-neutral-800' }} transition">My Pages</a>
+                @endif
+                @if(\App\Helpers\ModuleHelper::isActive('GROUPS'))
+                <a href="{{ route('groups.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs {{ request()->routeIs('groups.*') ? 'text-red-600 bg-neutral-900' : 'text-neutral-400 hover:text-white hover:bg-neutral-800' }} transition">Groups</a>
+                @endif
+            </div>
+            @endauth
+        </div>
+
+        {{-- Action Icons (mobile) --}}
+        @auth
+        <div class="border-t border-neutral-800 pt-4 space-y-1">
+            <a href="{{ route('friends.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-400 hover:text-white hover:bg-neutral-800 transition">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                Teman
+            </a>
+            <a href="{{ route('profile.edit') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-400 hover:text-white hover:bg-neutral-800 transition">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                Pengaturan
+            </a>
+            <a href="{{ route('notifications.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-400 hover:text-white hover:bg-neutral-800 transition">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                Notifikasi
+            </a>
+            <a href="{{ route('messages.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-400 hover:text-white hover:bg-neutral-800 transition">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                Pesan
+            </a>
+        </div>
+        @endauth
+
+        {{-- Profile & Auth (mobile) --}}
+        <div class="border-t border-neutral-800 pt-4">
+            @guest
+            <a href="{{ route('login') }}" class="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-lg bg-[#1A1A1A] border border-neutral-800 text-sm text-neutral-300 hover:bg-neutral-800 hover:text-white transition font-medium">Masuk</a>
+            <a href="{{ route('register') }}" class="flex items-center justify-center gap-2 w-full px-4 py-2.5 mt-2 rounded-lg bg-red-900/30 border border-red-900/50 text-sm text-red-400 hover:bg-red-900/50 transition font-medium">Daftar Akun</a>
+            @endguest
+            @auth
+            <div class="flex items-center gap-3 px-3 py-2">
+                <img src="{{ auth()->user()->avatar_url }}" alt="Avatar" class="w-9 h-9 rounded-full object-cover border border-neutral-700">
+                <div class="min-w-0">
+                    <p class="text-xs text-white font-semibold truncate">{{ auth()->user()->fullname ?: auth()->user()->username }}</p>
+                    <p class="text-[10px] text-neutral-500 truncate">{{ auth()->user()->email }}</p>
+                </div>
+            </div>
+            <a href="{{ route('profile.show', auth()->user()->username) }}" class="block px-3 py-2 rounded-lg text-xs text-neutral-400 hover:text-white hover:bg-neutral-800 transition">Profil Saya</a>
+            @php
+                $isAdmin = auth()->check() && (auth()->user()->roles == 1 || in_array(strtolower(auth()->user()->roles), ['admin', 'administrator']));
+            @endphp
+            @if($isAdmin)
+            <a href="{{ route('admin.dashboard') }}" class="block px-3 py-2 rounded-lg text-xs text-neutral-400 hover:text-white hover:bg-neutral-800 transition">Tampilan Admin</a>
+            @endif
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="w-full text-left px-3 py-2 rounded-lg text-xs text-red-500 font-bold hover:bg-neutral-800 hover:text-red-400 transition">Logout</button>
+            </form>
+            @endauth
+        </div>
+
+    </div>
+</div>
+
+<script>
+(function() {
+    var btn = document.getElementById('mobile-menu-btn');
+    var panel = document.getElementById('mobile-menu-panel');
+    var hamburger = document.getElementById('hamburger-icon');
+    var close = document.getElementById('close-icon');
+    if (!btn || !panel) return;
+
+    function closeMenu() {
+        panel.classList.add('hidden');
+        hamburger.classList.remove('hidden');
+        close.classList.add('hidden');
+    }
+
+    btn.addEventListener('click', function() {
+        var isOpen = !panel.classList.contains('hidden');
+        if (isOpen) {
+            closeMenu();
+        } else {
+            panel.classList.remove('hidden');
+            hamburger.classList.add('hidden');
+            close.classList.remove('hidden');
+        }
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!panel.contains(e.target) && !btn.contains(e.target)) {
+            closeMenu();
+        }
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeMenu();
+    });
+})();
+</script>
 
 <script>
 (function () {
