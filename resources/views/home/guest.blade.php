@@ -75,137 +75,140 @@
 
         <h3 class="text-xs font-bold text-neutral-800 uppercase border-b border-neutral-200 pb-2 tracking-wider mt-4">Community activities</h3>
 
-        <!-- Feed Iteration -->
-        @forelse($publicStreams as $stream)
-        <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
-            <div class="flex items-center space-x-3 mb-3">
-                <div class="w-10 h-10 rounded-full bg-neutral-100 overflow-hidden flex-shrink-0 border border-neutral-200">
-                    <img src="{{ $stream->user->avatar_url }}" class="w-full h-full object-cover">
-                </div>
-                <div>
-                    <p class="text-sm text-neutral-800">
-                        <span class="font-bold">{{ $stream->user->fullname ?? 'User Tidak Diketahui' }}</span> 
-                        @if($stream->type == 1 && !$stream->attachment)
-                        <span class="font-normal text-neutral-500">memperbarui status</span>
-                        @elseif($stream->type == 2)
-                        <span class="font-normal text-neutral-500">mengunggah foto</span>
-                        @elseif($stream->type == 3)
-                        <span class="font-normal text-neutral-500">membagikan video</span>
-                        @else
-                        <span class="font-normal text-neutral-500">memposting</span>
-                        @endif
-                    </p>
-                    <p class="text-[11px] text-neutral-400">
-                        {{ \Carbon\Carbon::createFromTimestamp($stream->created)->diffForHumans() }}
-                        @if($stream->app === 'group' && $stream->targetPage)
-                            &bull; Mengunggah di Grup <a href="{{ url('/groups/' . $stream->targetPage->id) }}" class="font-semibold text-neutral-600 hover:text-red-700 hover:underline">{{ $stream->targetPage->name }}</a>
-                        @elseif($stream->app === 'page' && $stream->targetPage)
-                            &bull; Mengunggah di Halaman <a href="{{ url('/pages/' . $stream->targetPage->id) }}" class="font-semibold text-neutral-600 hover:text-red-700 hover:underline">{{ $stream->targetPage->name }}</a>
-                        @elseif($stream->app === 'feed' && $stream->wall_id != $stream->uid && $stream->targetWallUser)
-                            &bull; Mengunggah di Profil <a href="{{ url('/@' . $stream->targetWallUser->username) }}" class="font-semibold text-neutral-600 hover:text-red-700 hover:underline">{{ $stream->targetWallUser->fullname ?? $stream->targetWallUser->username }}</a>
-                        @endif
-                    </p>
-                </div>
-            </div>
-
-            <div class="pl-13 mb-4">
-                <p class="text-sm text-neutral-700 whitespace-pre-wrap mb-4">{{ $stream->message }}</p>
-
-                @if($stream->app === 'music' && $stream->attachment)
-                    <div class="mb-4 bg-neutral-50 rounded-xl border border-neutral-200 p-4 flex items-center gap-4 shadow-sm">
-                        <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center text-red-600 flex-shrink-0">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <h5 class="text-sm font-bold text-neutral-800 truncate mb-2">{{ $stream->message ?: 'Lagu tanpa judul' }}</h5>
-                            <audio controls class="w-full h-8 outline-none" preload="none">
-                                <source src="{{ asset('storage/music/' . $stream->attachment) }}" type="audio/mpeg">
-                                Browser Anda tidak mendukung elemen audio.
-                            </audio>
-                        </div>
+        <!-- Scrollable Wrapper Khusus Feed Berita -->
+        <div class="h-[90vh] min-h-[800px] overflow-y-auto overflow-x-hidden custom-scrollbar pr-2 pb-6">
+            <!-- Feed Iteration -->
+            @forelse($publicStreams as $stream)
+            <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5 mb-4">
+                <div class="flex items-center space-x-3 mb-3">
+                    <div class="w-10 h-10 rounded-full bg-neutral-100 overflow-hidden flex-shrink-0 border border-neutral-200">
+                        <img src="{{ $stream->user->avatar_url }}" class="w-full h-full object-cover">
                     </div>
-                @endif
+                    <div>
+                        <p class="text-sm text-neutral-800">
+                            <span class="font-bold">{{ $stream->user->fullname ?? 'User Tidak Diketahui' }}</span> 
+                            @if($stream->type == 1 && !$stream->attachment)
+                            <span class="font-normal text-neutral-500">memperbarui status</span>
+                            @elseif($stream->type == 2)
+                            <span class="font-normal text-neutral-500">mengunggah foto</span>
+                            @elseif($stream->type == 3)
+                            <span class="font-normal text-neutral-500">membagikan video</span>
+                            @else
+                            <span class="font-normal text-neutral-500">memposting</span>
+                            @endif
+                        </p>
+                        <p class="text-[11px] text-neutral-400">
+                            {{ \Carbon\Carbon::createFromTimestamp($stream->created)->diffForHumans() }}
+                            @if($stream->app === 'group' && $stream->targetPage)
+                                &bull; Mengunggah di Grup <a href="{{ url('/groups/' . $stream->targetPage->id) }}" class="font-semibold text-neutral-600 hover:text-red-700 hover:underline">{{ $stream->targetPage->name }}</a>
+                            @elseif($stream->app === 'page' && $stream->targetPage)
+                                &bull; Mengunggah di Halaman <a href="{{ url('/pages/' . $stream->targetPage->id) }}" class="font-semibold text-neutral-600 hover:text-red-700 hover:underline">{{ $stream->targetPage->name }}</a>
+                            @elseif($stream->app === 'feed' && $stream->wall_id != $stream->uid && $stream->targetWallUser)
+                                &bull; Mengunggah di Profil <a href="{{ url('/@' . $stream->targetWallUser->username) }}" class="font-semibold text-neutral-600 hover:text-red-700 hover:underline">{{ $stream->targetWallUser->fullname ?? $stream->targetWallUser->username }}</a>
+                            @endif
+                        </p>
+                    </div>
+                </div>
 
-                @if($stream->type == 2 && $stream->attachment)
-                    @php $att = json_decode($stream->attachment, true); @endphp
-                    @if(isset($att['photos']) && is_array($att['photos']))
-                        @php 
-                            $ptCount = count($att['photos']); 
-                            $photoUrls = array_map(fn($p) => asset('storage/posts/' . $p), $att['photos']);
-                        @endphp
-                        <div class="mb-4 rounded-xl overflow-hidden border border-neutral-200">
-                            @if($ptCount == 1)
-                                <img src="{{ $photoUrls[0] }}" class="w-full h-auto max-h-[500px] object-cover" alt="Post Photo">
-                            @elseif($ptCount == 2)
-                                <div class="grid grid-cols-2 gap-1 h-64 sm:h-80">
-                                    <img src="{{ $photoUrls[0] }}" class="w-full h-full object-cover" alt="Post Photo">
-                                    <img src="{{ $photoUrls[1] }}" class="w-full h-full object-cover" alt="Post Photo">
-                                </div>
-                            @elseif($ptCount == 3)
-                                <div class="grid grid-cols-2 gap-1 h-64 sm:h-80">
-                                    <img src="{{ $photoUrls[0] }}" class="w-full h-full object-cover" alt="Post Photo">
-                                    <div class="grid grid-rows-2 gap-1 h-full">
+                <div class="pl-13 mb-4">
+                    <p class="text-sm text-neutral-700 whitespace-pre-wrap break-all mb-4">{{ $stream->message }}</p>
+
+                    @if($stream->app === 'music' && $stream->attachment)
+                        <div class="mb-4 bg-neutral-50 rounded-xl border border-neutral-200 p-4 flex items-center gap-4 shadow-sm">
+                            <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center text-red-600 flex-shrink-0">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h5 class="text-sm font-bold text-neutral-800 truncate mb-2">{{ $stream->message ?: 'Lagu tanpa judul' }}</h5>
+                                <audio controls class="w-full h-8 outline-none" preload="none">
+                                    <source src="{{ asset('storage/music/' . $stream->attachment) }}" type="audio/mpeg">
+                                    Browser Anda tidak mendukung elemen audio.
+                                </audio>
+                            </div>
+                        </div>
+                    @endif
+
+                    @if($stream->type == 2 && $stream->attachment)
+                        @php $att = json_decode($stream->attachment, true); @endphp
+                        @if(isset($att['photos']) && is_array($att['photos']))
+                            @php 
+                                $ptCount = count($att['photos']); 
+                                $photoUrls = array_map(fn($p) => asset('storage/posts/' . $p), $att['photos']);
+                            @endphp
+                            <div class="mb-4 rounded-xl overflow-hidden border border-neutral-200">
+                                @if($ptCount == 1)
+                                    <img src="{{ $photoUrls[0] }}" class="w-full h-auto max-h-[500px] object-cover" alt="Post Photo">
+                                @elseif($ptCount == 2)
+                                    <div class="grid grid-cols-2 gap-1 h-64 sm:h-80">
+                                        <img src="{{ $photoUrls[0] }}" class="w-full h-full object-cover" alt="Post Photo">
+                                        <img src="{{ $photoUrls[1] }}" class="w-full h-full object-cover" alt="Post Photo">
+                                    </div>
+                                @elseif($ptCount == 3)
+                                    <div class="grid grid-cols-2 gap-1 h-64 sm:h-80">
+                                        <img src="{{ $photoUrls[0] }}" class="w-full h-full object-cover" alt="Post Photo">
+                                        <div class="grid grid-rows-2 gap-1 h-full">
+                                            <img src="{{ $photoUrls[1] }}" class="w-full h-full object-cover" alt="Post Photo">
+                                            <img src="{{ $photoUrls[2] }}" class="w-full h-full object-cover" alt="Post Photo">
+                                        </div>
+                                    </div>
+                                @elseif($ptCount >= 4)
+                                    <div class="grid grid-cols-2 grid-rows-2 gap-1 h-72 sm:h-96">
+                                        <img src="{{ $photoUrls[0] }}" class="w-full h-full object-cover" alt="Post Photo">
                                         <img src="{{ $photoUrls[1] }}" class="w-full h-full object-cover" alt="Post Photo">
                                         <img src="{{ $photoUrls[2] }}" class="w-full h-full object-cover" alt="Post Photo">
+                                        <div class="relative w-full h-full">
+                                            <img src="{{ $photoUrls[3] }}" class="w-full h-full object-cover" alt="Post Photo">
+                                            @if($ptCount > 4)
+                                                <div class="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                                    <span class="text-white text-3xl font-bold">+{{ $ptCount - 4 }}</span>
+                                                </div>
+                                            @endif
+                                        </div>
                                     </div>
-                                </div>
-                            @elseif($ptCount >= 4)
-                                <div class="grid grid-cols-2 grid-rows-2 gap-1 h-72 sm:h-96">
-                                    <img src="{{ $photoUrls[0] }}" class="w-full h-full object-cover" alt="Post Photo">
-                                    <img src="{{ $photoUrls[1] }}" class="w-full h-full object-cover" alt="Post Photo">
-                                    <img src="{{ $photoUrls[2] }}" class="w-full h-full object-cover" alt="Post Photo">
-                                    <div class="relative w-full h-full">
-                                        <img src="{{ $photoUrls[3] }}" class="w-full h-full object-cover" alt="Post Photo">
-                                        @if($ptCount > 4)
-                                            <div class="absolute inset-0 bg-black/60 flex items-center justify-center">
-                                                <span class="text-white text-3xl font-bold">+{{ $ptCount - 4 }}</span>
-                                            </div>
-                                        @endif
-                                    </div>
-                                </div>
-                            @endif
-                        </div>
-                    @elseif(isset($att['photo']))
-                        <div class="mb-4 rounded-xl overflow-hidden border border-neutral-200">
-                            <img src="{{ asset('storage/posts/' . $att['photo']) }}" class="w-full h-auto" alt="Post Photo">
-                        </div>
+                                @endif
+                            </div>
+                        @elseif(isset($att['photo']))
+                            <div class="mb-4 rounded-xl overflow-hidden border border-neutral-200">
+                                <img src="{{ asset('storage/posts/' . $att['photo']) }}" class="w-full h-auto" alt="Post Photo">
+                            </div>
+                        @endif
                     @endif
-                @endif
-                
-                @if($stream->type == 3 && $stream->attachment)
-                    @php $att = json_decode($stream->attachment, true); @endphp
-                    @if(isset($att['video_url']))
-                        @php
-                            $videoUrl = $att['video_url'];
-                            $embedUrl = '';
-                            if (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i', $videoUrl, $matches)) {
-                                $embedUrl = 'https://www.youtube.com/embed/' . $matches[1];
-                            }
-                        @endphp
-                        <div class="mb-4 rounded-xl overflow-hidden border border-neutral-200">
-                            @if($embedUrl)
-                                <iframe src="{{ $embedUrl }}" class="w-full h-[300px]" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                            @else
-                                <a href="{{ $videoUrl }}" target="_blank" class="text-blue-600 hover:underline flex items-center p-3 bg-neutral-50"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Tonton Video</a>
-                            @endif
-                        </div>
+                    
+                    @if($stream->type == 3 && $stream->attachment)
+                        @php $att = json_decode($stream->attachment, true); @endphp
+                        @if(isset($att['video_url']))
+                            @php
+                                $videoUrl = $att['video_url'];
+                                $embedUrl = '';
+                                if (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i', $videoUrl, $matches)) {
+                                    $embedUrl = 'https://www.youtube.com/embed/' . $matches[1];
+                                }
+                            @endphp
+                            <div class="mb-4 rounded-xl overflow-hidden border border-neutral-200">
+                                @if($embedUrl)
+                                    <iframe src="{{ $embedUrl }}" class="w-full h-[300px]" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                                @else
+                                    <a href="{{ $videoUrl }}" target="_blank" class="text-blue-600 hover:underline flex items-center p-3 bg-neutral-50"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Tonton Video</a>
+                                @endif
+                            </div>
+                        @endif
                     @endif
-                @endif
-            </div>
+                </div>
 
-            <div class="text-right border-t border-neutral-100 pt-3">
-                <a href="{{ route('login') }}" class="text-[11px] font-bold text-red-700 hover:underline inline-flex items-center transition">
-                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
-                    Login to comment
-                </a>
+                <div class="text-right border-t border-neutral-100 pt-3">
+                    <a href="{{ route('login') }}" class="text-[11px] font-bold text-red-700 hover:underline inline-flex items-center transition">
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
+                        Login to comment
+                    </a>
+                </div>
             </div>
-        </div>
-        @empty
-            <div class="text-center text-sm text-neutral-500 py-10">Belum ada aktivitas. Jadilah yang pertama membuat postingan!</div>
-        @endforelse
+            @empty
+                <div class="text-center text-sm text-neutral-500 py-10">Belum ada aktivitas. Jadilah yang pertama membuat postingan!</div>
+            @endforelse
 
-        <div class="text-center pt-4 pb-10">
-            <a href="{{ route('login') }}" class="inline-block bg-white border border-neutral-200 text-neutral-600 font-bold px-6 py-2.5 rounded-full text-[11px] tracking-wider shadow-sm hover:bg-neutral-50 transition">LOAD MORE ACTIVITIES</a>
+            <div class="text-center pt-4 pb-10">
+                <a href="{{ route('login') }}" class="inline-block bg-white border border-neutral-200 text-neutral-600 font-bold px-6 py-2.5 rounded-full text-[11px] tracking-wider shadow-sm hover:bg-neutral-50 transition">LOAD MORE ACTIVITIES</a>
+            </div>
         </div>
     </div>
 
