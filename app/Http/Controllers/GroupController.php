@@ -380,46 +380,17 @@ class GroupController extends Controller
         return back()->with('success', 'Permintaan bergabung ditolak.');
     }
 
-    // --- MANAJEMEN GRUP: EDIT & HAPUS ---
-    public function edit(Group $group)
-    {
-        if ($group->uid !== Auth::id()) {
-            return redirect()->route('groups.show', $group->id)->with('error', 'Hanya pembuat grup yang bisa mengedit.');
-        }
-        
-        return view('groups.edit', compact('group'));
-    }
 
-    public function update(Request $request, Group $group)
-    {
-        if ($group->uid !== Auth::id()) {
-            return back()->with('error', 'Akses ditolak.');
-        }
-
-        $request->validate([
-            'name' => 'required|string|max:100',
-            'description' => 'nullable|string|max:1000',
-            'type' => 'required|in:group,private_group',
-            'logo' => 'nullable|image|max:2048'
-        ]);
-
-        $data = $request->only('name', 'description', 'type');
-
-        if ($request->hasFile('logo')) {
-            $path = $request->file('logo')->store('groups/logos', 'public');
-            $data['logo'] = $path;
-        }
-
-        $group->update($data);
-
-        return redirect()->route('groups.show', $group->id)->with('success', 'Grup berhasil diperbarui.');
-    }
 
     public function destroy(Group $group)
     {
         if ($group->uid !== Auth::id()) {
             return back()->with('error', 'Hanya pembuat grup yang berhak menghapus grup.');
         }
+
+        // Hapus logo dan background jika ada
+        if ($group->logo) Storage::disk('public')->delete($group->logo);
+        if ($group->background) Storage::disk('public')->delete($group->background);
 
         // Cascade hapus konten
         \App\Models\Story::where('page_id', $group->id)->delete();
@@ -432,7 +403,7 @@ class GroupController extends Controller
 
         $group->delete();
 
-        return redirect()->route('groups.browse')->with('success', 'Grup beserta seluruh isinya berhasil dihapus permanen.');
+        return redirect()->route('groups.mine')->with('success', 'Grup beserta seluruh isinya berhasil dihapus permanen.');
     }
 
     public function members(Group $group)
@@ -529,24 +500,7 @@ class GroupController extends Controller
         return redirect()->route('groups.show', $group->id)->with('success', 'Undangan berhasil dikirim ke ' . count($request->uids) . ' pengguna.');
     }
 
-    public function destroy(Group $group)
-    {
-        if ($group->uid !== Auth::id()) abort(403);
 
-        // Cascade delete members
-        $group->members()->detach();
-        $group->pendingMembers()->detach();
-
-        // Bersihkan post dari seluruh tabel legacy
-        DB::table('jcow_stories')->where('page_id', $group->id)->delete();
-        DB::table('jcow_streams')->where('wall_id', $group->id)->delete();
-
-        if ($group->logo) Storage::disk('public')->delete($group->logo);
-
-        $group->delete();
-
-        return redirect()->route('groups.mine')->with('success', 'Grup berhasil dibongkar secara permanen.');
-    }
 
     public function reports(Group $group)
     {

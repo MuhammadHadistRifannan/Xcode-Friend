@@ -167,10 +167,7 @@ Route::prefix('admin')->group(function () {
         Route::post('/themes/update', [\App\Http\Controllers\AdminThemeController::class, 'update'])->name('admin.themes.update');
         Route::get('/themes/blocks', [\App\Http\Controllers\AdminBlockController::class, 'index'])->name('admin.themes.blocks');
         Route::post('/themes/blocks', [\App\Http\Controllers\AdminBlockController::class, 'update'])->name('admin.themes.blocks.update');
-        Route::get('/menu', [\App\Http\Controllers\AdminMenuController::class, 'index'])->name('admin.menu');
-        Route::post('/menu', [\App\Http\Controllers\AdminMenuController::class, 'store'])->name('admin.menu.store');
-        Route::put('/menu/bulk', [\App\Http\Controllers\AdminMenuController::class, 'updateBulk'])->name('admin.menu.updateBulk');
-        Route::delete('/menu/{id}', [\App\Http\Controllers\AdminMenuController::class, 'destroy'])->name('admin.menu.destroy');
+
         Route::get('/user-roles', [\App\Http\Controllers\AdminController::class, 'userRoles'])->name('admin.user-roles');
         Route::post('/user-roles', [\App\Http\Controllers\AdminController::class, 'storeRole'])->name('admin.roles.store');
         Route::put('/user-roles/{id}', [\App\Http\Controllers\AdminController::class, 'updateRoleName'])->name('admin.roles.update');
