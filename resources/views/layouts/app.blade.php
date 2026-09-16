@@ -70,7 +70,7 @@
     <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1/dist/echo.iife.js"></script>
     <script>
         var _isSecure = window.location.protocol === 'https:';
-        var _wsPort = window.location.port ? parseInt(window.location.port) : (_isSecure ? 443 : 80);
+        var _wsPort = {{ config('broadcasting.connections.reverb.options.port', 8080) }};
         window.Echo = new Echo({
             broadcaster: 'pusher',
             key: '{{ config("broadcasting.connections.reverb.key") }}',
