@@ -11,9 +11,19 @@
         <p class="text-sm text-neutral-500 mt-1.5">Sign in to your account.</p>
     </div>
 
-    
+    @if($errors->any())
+        <div class="bg-red-50 border border-red-100 text-red-600 text-xs p-3 rounded-lg mb-6 flex items-start">
+            <svg class="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span>{{ $errors->first() }}</span>
+        </div>
+    @endif
 
-    
+    @if(session('success'))
+        <div class="bg-green-50 border border-green-200 text-green-700 text-xs p-3 rounded-lg mb-6 flex items-start">
+            <svg class="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span>{{ session('success') }}</span>
+        </div>
+    @endif
 
     <form method="POST" action="/login" class="space-y-5" onsubmit="this.querySelector('button[type=submit]').disabled = true; this.querySelector('button[type=submit]').innerHTML = 'Processing...';">
         @csrf
