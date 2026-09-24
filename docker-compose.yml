@@ -44,7 +44,7 @@ services:
     container_name: xcode-friend-nginx
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "80:80"
     depends_on:
       - app
     volumes:
