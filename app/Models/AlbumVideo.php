@@ -25,13 +25,34 @@ class AlbumVideo extends Model
     // Tabel ini tidak memiliki kolom created_at / updated_at standar Laravel
     public $timestamps = false;
 
+    protected $attributes = [
+        'var1' => '',
+        'var2' => '',
+        'var3' => '',
+        'var4' => '',
+        'var5' => '',
+        'uri'  => '',
+        'description' => '',
+        'weight' => 0,
+        'app' => 'video',
+    ];
+
     /**
-     * Global scope: hanya tampilkan album dengan app = 'video'.
+     * Global scope: hanya tampilkan album dengan app = 'video' dan pemilik akun yang masih aktif.
      */
     protected static function booted(): void
     {
         static::addGlobalScope('video_app', function ($query) {
             $query->whereIn('app', ['video', 'videos']);
+        });
+
+        static::addGlobalScope('valid_owner', function ($query) {
+            $query->where('jcow_story_categories.gid', '>', 0)
+                  ->whereExists(function ($sub) {
+                      $sub->select(\Illuminate\Support\Facades\DB::raw(1))
+                          ->from('jcow_accounts')
+                          ->whereColumn('jcow_accounts.id', 'jcow_story_categories.gid');
+                  });
         });
     }
 

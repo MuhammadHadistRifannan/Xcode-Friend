@@ -9,10 +9,10 @@
         @click="showPopup = true"
     >
         <img
-            src="{{ asset('storage/' . $photo->uri) }}"
+            src="{{ $photo->photo_url }}"
             alt="{{ $photo->des ?: $album->name }}"
             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center bg-gray-100\'><span class=\'text-xs text-gray-400\'>Tidak tersedia</span></div>'"
+            onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-full h-full flex flex-col items-center justify-center bg-gray-100 text-gray-400 p-2 text-center\'><svg class=\'w-8 h-8 mb-1 text-gray-300\' fill=\'none\' stroke=\'currentColor\' viewBox=\'0 0 24 24\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z\'></path></svg><span class=\'text-[10px] font-medium text-gray-400\'>Gambar tidak tersedia</span></div>';"
         >
         {{-- Badge ukuran --}}
         <div class="absolute top-2 left-2 bg-black/50 text-white text-[9px] font-bold px-2 py-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
@@ -41,6 +41,7 @@
                         <p class="text-xs text-gray-400 italic">Tanpa deskripsi</p>
                     @endif
                 </div>
+                @if(auth()->check() && $album->gid == auth()->id())
                 {{-- Tombol Titik Tiga --}}
                 <div class="relative shrink-0">
                     <button type="button" @click.stop="open = !open" class="w-7 h-7 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors">
@@ -73,9 +74,11 @@
                         </form>
                     </div>
                 </div>
+                @endif
             </div>
         </div>
 
+        @if(auth()->check() && $album->gid == auth()->id())
         {{-- MODE EDIT DESKRIPSI (Inline) --}}
         <div x-show="editMode" style="display: none;">
             <form action="{{ route('foto.photo.update', $photo->id) }}" method="POST">
@@ -88,6 +91,7 @@
                 </div>
             </form>
         </div>
+        @endif
 
         {{-- POPUP MODAL KHUSUS FOTO INI --}}
         <template x-teleport="body">
@@ -107,7 +111,7 @@
 
                 {{-- Gambar (Dipaksa fit ke layar maksimal) --}}
                 <div class="w-full h-full flex items-center justify-center pointer-events-none" @click.self="showPopup = false">
-                    <img src="{{ asset('storage/' . $photo->uri) }}" class="w-full h-full object-contain pointer-events-auto" @click.stop>
+                    <img src="{{ $photo->photo_url }}" class="w-full h-full object-contain pointer-events-auto" @click.stop onerror="this.onerror=null; this.src='{{ asset('assets/img/default.png') }}';">
                 </div>
             </div>
         </template>

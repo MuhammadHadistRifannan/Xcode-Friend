@@ -14,6 +14,16 @@ class LikeController extends Controller
         $userId = auth()->id();
         $stream = Stream::findOrFail($streamId);
 
+        if ($userId && (int) $userId !== (int) $stream->uid) {
+            $friendRepo = app(\App\Repositories\Contracts\FriendRepositoryInterface::class);
+            if ($friendRepo->areBlocked((int) $userId, (int) $stream->uid)) {
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json(['status' => 'error', 'message' => 'Tidak dapat menyukai postingan ini.'], 403);
+                }
+                return back()->with('error', 'Tidak dapat menyukai postingan ini.');
+            }
+        }
+
         $existingLike = DB::table('jcow_liked')
             ->where('uid', $userId)
             ->where('stream_id', $streamId)

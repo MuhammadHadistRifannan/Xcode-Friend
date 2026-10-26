@@ -13,10 +13,6 @@
     $link_color  = $theme['link_color']  ?? '#b91c1c';
     $block_bg    = $theme['block_bg']    ?? '#ffffff';
     $block_text  = $theme['block_text']  ?? '#111827';
-    $repeat_x    = $theme['repeat_x']    ?? false;
-    $repeat_y    = $theme['repeat_y']    ?? false;
-    $transparent = $theme['transparent'] ?? false;
-    $bg_position = $theme['bg_position'] ?? 'center';
     $bg_image    = $theme['bg_image']    ?? null;
     $musicplayer = $theme['musicplayer'] ?? false;
     $profile_music = $theme['profile_music'] ?? null;
@@ -43,9 +39,9 @@
 
     {{-- Header --}}
     <div class="mb-8">
-        <div class="text-xs text-gray-500 font-medium mb-1 uppercase tracking-widest">Pengaturan / Desain Profil</div>
-        <h1 class="text-3xl font-black text-gray-900 uppercase tracking-tight">Desain Profil</h1>
-        <p class="text-sm text-gray-500 mt-1">Personalisasi tampilan halaman profilmu agar tampil unik.</p>
+        <div class="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1 uppercase tracking-widest">Pengaturan / Desain Profil</div>
+        <h1 class="text-3xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Desain Profil</h1>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Personalisasi tampilan halaman profilmu agar tampil unik.</p>
     </div>
 
     <div class="grid grid-cols-12 gap-8">
@@ -56,51 +52,45 @@
                 <div class="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Preview Tampilan</div>
 
                 {{-- Mock browser window --}}
-                <div class="rounded-xl overflow-hidden border-2 border-gray-200 shadow-lg">
+                <div class="rounded-xl overflow-hidden border-2 border-gray-200 dark:border-gray-700 shadow-lg">
                     {{-- Browser chrome --}}
-                    <div class="bg-gray-100 px-3 py-2 flex items-center gap-1.5 border-b border-gray-200">
+                    <div class="bg-gray-100 dark:bg-gray-800 px-3 py-2 flex items-center gap-1.5 border-b border-gray-200 dark:border-gray-700">
                         <div class="w-3 h-3 rounded-full bg-red-400"></div>
                         <div class="w-3 h-3 rounded-full bg-yellow-400"></div>
                         <div class="w-3 h-3 rounded-full bg-green-400"></div>
-                        <div class="flex-1 ml-2 bg-white rounded text-[10px] text-gray-400 px-2 py-0.5">xcode-friends.com/@{{ auth()->user()->username }}</div>
+                        <div class="flex-1 ml-2 bg-white dark:bg-gray-700 rounded text-[10px] text-gray-400 dark:text-gray-300 px-2 py-0.5">xcode-friends.com/{{ '@' . auth()->user()->username }}</div>
                     </div>
 
                     {{-- Preview content --}}
                     <div id="preview-wrapper" class="p-4 transition-all duration-300"
-                         style="background-color: {{ $bg_color }}; color: {{ $font_color }};">
+                         style="{{ $wallpaper_enabled ? 'background-color: '.$bg_color.'; color: '.$font_color.';' . ($bg_image ? ' background-image: url(\''.asset('uploads/backgrounds/' . $bg_image).'\'); background-size: cover; background-position: center;' : '') : '' }}">
                         {{-- Mock cover --}}
                         <div class="w-full h-16 rounded-lg mb-3 relative overflow-hidden"
                              style="background: linear-gradient(135deg, #e5e7eb, #d1d5db);">
-                            @if($bg_image)
-                                <img src="{{ asset('storage/backgrounds/' . $bg_image) }}" class="w-full h-full object-cover" alt="">
+                            @if(auth()->user()->profile && auth()->user()->profile->background)
+                                <img src="{{ asset('uploads/backgrounds/' . auth()->user()->profile->background) }}" class="w-full h-full object-cover" alt="">
                             @endif
                         </div>
                         {{-- Mock avatar & name --}}
                         <div class="flex items-center gap-3 mb-4">
                             <div class="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-sm shrink-0">
-                                @if(auth()->user()->avatar)
-                                    <img src="{{ asset('storage/avatars/' . auth()->user()->avatar) }}" class="w-full h-full object-cover" alt="">
-                                @else
-                                    <div class="w-full h-full bg-red-700 flex items-center justify-center text-white text-sm font-bold">
-                                        {{ strtoupper(substr(auth()->user()->fullname ?? 'U', 0, 1)) }}
-                                    </div>
-                                @endif
+                                <img src="{{ auth()->user()->avatar_url }}" class="w-full h-full object-cover" alt="" onerror="this.onerror=null; this.src='{{ asset('assets/img/default.png') }}';">
                             </div>
                             <div>
-                                <div id="preview-name" class="text-xs font-bold" style="color: {{ $font_color }}">{{ auth()->user()->fullname }}</div>
-                                <div id="preview-link" class="text-[10px]" style="color: {{ $link_color }}">@{{ auth()->user()->username }}</div>
+                                <div id="preview-name" class="text-xs font-bold" style="{{ $wallpaper_enabled ? 'color: '.$font_color.';' : '' }}">{{ auth()->user()->fullname }}</div>
+                                <div id="preview-link" class="text-[10px]" style="{{ $wallpaper_enabled ? 'color: '.$link_color.';' : '' }}">{{ '@' . auth()->user()->username }}</div>
                             </div>
                         </div>
                         {{-- Mock blocks --}}
-                        <div id="preview-block" class="rounded-lg p-3 mb-2" style="background-color: {{ $block_bg }}; border: 1px solid rgba(0,0,0,0.08);">
-                            <div class="text-[10px] font-bold uppercase mb-1" style="color: {{ $block_text }}">Tentang Saya</div>
+                        <div id="preview-block" class="rounded-lg p-3 mb-2" style="{{ $block_enabled ? 'background-color: '.$block_bg.';' : 'background-color: #ffffff;' }} border: 1px solid rgba(0,0,0,0.08);">
+                            <div class="text-[10px] font-bold uppercase mb-1" style="{{ $block_enabled ? 'color: '.$block_text.';' : '' }}">Tentang Saya</div>
                             <div class="space-y-1">
                                 <div class="h-1.5 bg-gray-200 rounded w-3/4"></div>
                                 <div class="h-1.5 bg-gray-200 rounded w-1/2"></div>
                             </div>
                         </div>
-                        <div class="rounded-lg p-3" style="background-color: {{ $block_bg }}; border: 1px solid rgba(0,0,0,0.08);">
-                            <div class="text-[10px] font-bold uppercase mb-1" style="color: {{ $block_text }}">Teman</div>
+                        <div class="rounded-lg p-3" style="{{ $block_enabled ? 'background-color: '.$block_bg.';' : 'background-color: #ffffff;' }} border: 1px solid rgba(0,0,0,0.08);">
+                            <div class="text-[10px] font-bold uppercase mb-1" style="{{ $block_enabled ? 'color: '.$block_text.';' : '' }}">Teman</div>
                             <div class="flex gap-1">
                                 <div class="w-7 h-7 rounded bg-gray-200"></div>
                                 <div class="w-7 h-7 rounded bg-gray-200"></div>
@@ -112,9 +102,9 @@
 
                 {{-- Current bg image --}}
                 @if($bg_image)
-                    <div class="mt-4 text-xs text-gray-500">
+                    <div class="mt-4 text-xs text-gray-500 dark:text-gray-400">
                         <span class="font-medium">Background saat ini:</span>
-                        <img src="{{ asset('storage/backgrounds/' . $bg_image) }}" class="mt-2 w-full h-20 object-cover rounded-lg border border-gray-200" alt="">
+                        <img src="{{ asset('uploads/backgrounds/' . $bg_image) }}" class="mt-2 w-full h-20 object-cover rounded-lg border border-gray-200 dark:border-gray-700" alt="">
                         {{-- Tombol hapus --}}
                         <form action="{{ route('desain-profil.destroy-bg') }}" method="POST" class="mt-2">
                             @csrf @method('DELETE')
@@ -131,67 +121,79 @@
         {{-- ===== KOLOM KANAN: FORM ===== --}}
         <div class="col-span-12 lg:col-span-8">
 
-            
+            <form id="delete-music-form" action="{{ route('desain-profil.destroy-music') }}" method="POST" class="hidden">
+                @csrf
+                @method('DELETE')
+            </form>
 
             <form action="{{ route('desain-profil.save') }}" method="POST" enctype="multipart/form-data" id="design-form">
                 @csrf
 
                 {{-- ── 0. PEMUTAR MUSIK ── --}}
-                <div class="bg-white rounded-xl border border-gray-200 shadow-sm mb-5 overflow-hidden">
-                    <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm mb-5 overflow-hidden">
+                    <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-700">
                         <div>
-                            <h2 class="text-sm font-bold text-gray-800">Pemutar Musik (Music Player)</h2>
-                            <p class="text-xs text-gray-400 mt-0.5">Mainkan musik yang kusukai secara otomatis di halaman profilku.</p>
+                            <h2 class="text-sm font-bold text-gray-800 dark:text-gray-100">Pemutar Musik (Music Player)</h2>
+                            <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Mainkan musik yang kusukai secara otomatis di halaman profilku.</p>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" name="musicplayer" id="musicplayer" value="1" class="sr-only peer" {{ $musicplayer ? 'checked' : '' }}>
-                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:bg-red-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
+                            <div class="w-11 h-6 bg-gray-200 dark:bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:bg-red-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
                         </label>
                     </div>
-                    <div id="music-section" class="{{ !$musicplayer ? 'hidden' : '' }} p-5 space-y-4 border-t border-gray-100">
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Unggah File Musik (.mp3)</label>
+                    <div id="music-section" class="{{ !$musicplayer ? 'hidden' : '' }} p-5 space-y-4 border-t border-gray-100 dark:border-gray-700">
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">Unggah File Musik (.mp3)</label>
                         <div class="flex flex-col sm:flex-row items-center gap-4">
                             @if($profile_music)
-                                <div class="flex-1 w-full bg-gray-50 p-3 rounded-xl border border-gray-200">
-                                    <p class="text-xs font-semibold text-gray-600 mb-2 truncate">Saat ini: {{ $profile_music }}</p>
+                                <div class="flex-1 w-full bg-gray-50 dark:bg-gray-700/50 p-3 rounded-xl border border-gray-200 dark:border-gray-700">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <p class="text-xs font-semibold text-gray-600 dark:text-gray-300 truncate max-w-[200px]" title="{{ $profile_music }}">Saat ini: {{ $profile_music }}</p>
+                                        <button type="submit" form="delete-music-form" onclick="return confirm('Hapus file musik profil?')" class="text-red-600 hover:text-red-800 text-xs font-semibold flex items-center gap-1 cursor-pointer">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            Hapus
+                                        </button>
+                                    </div>
                                     <audio controls class="w-full h-8 outline-none">
-                                        <source src="{{ asset('storage/music/' . $profile_music) }}" type="audio/mpeg">
+                                        <source src="{{ file_exists(public_path('uploads/music/' . $profile_music)) ? asset('uploads/music/' . $profile_music) : asset('storage/music/' . $profile_music) }}" type="audio/mpeg">
                                     </audio>
                                 </div>
                             @endif
                             <div class="flex-1 w-full">
-                                <label class="flex flex-col items-center justify-center w-full h-24 border-2 border-gray-300 border-dashed rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition relative overflow-hidden group">
+                                <label class="flex flex-col items-center justify-center w-full h-24 border-2 @error('profile_music') border-red-400 @else border-gray-300 dark:border-gray-600 @enderror border-dashed rounded-xl cursor-pointer bg-gray-50 dark:bg-gray-750 hover:bg-gray-100 dark:hover:bg-gray-700 transition relative overflow-hidden group">
                                     <div class="flex flex-col items-center justify-center pt-4 pb-4">
-                                        <svg class="w-6 h-6 text-gray-400 mb-2 group-hover:text-red-500 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
-                                        <p class="text-sm text-gray-500"><span class="font-semibold text-red-600">Klik untuk upload</span></p>
-                                        <p class="text-xs text-gray-400 mt-1" id="music-filename-preview">Maks 10MB (.mp3)</p>
+                                        <svg class="w-6 h-6 text-gray-400 dark:text-gray-500 mb-2 group-hover:text-red-500 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold text-red-600">Klik untuk upload</span></p>
+                                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-1" id="music-filename-preview">Maks 10MB (.mp3)</p>
                                     </div>
-                                    <input type="file" name="profile_music" id="profile_music_input" class="hidden" accept=".mp3,audio/mpeg" onchange="document.getElementById('music-filename-preview').textContent = this.files[0] ? this.files[0].name : 'Maks 10MB (.mp3)';">
+                                    <input type="file" name="profile_music" id="profile_music_input" class="hidden" accept=".mp3,audio/mpeg,audio/mp3,audio/*" onchange="document.getElementById('music-filename-preview').textContent = this.files[0] ? this.files[0].name : 'Maks 10MB (.mp3)';">
                                 </label>
+                                @error('profile_music')
+                                    <p class="text-xs text-red-600 mt-1 font-medium">{{ $message }}</p>
+                                @enderror
                             </div>
                         </div>
                     </div>
                 </div>
 
                 {{-- ── 1. LATAR BELAKANG / WALLPAPER ── --}}
-                <div class="bg-white rounded-xl border border-gray-200 shadow-sm mb-5 overflow-hidden">
-                    <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm mb-5 overflow-hidden">
+                    <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-700">
                         <div>
-                            <h2 class="text-sm font-bold text-gray-800">Latar Belakang (Wallpaper)</h2>
-                            <p class="text-xs text-gray-400 mt-0.5">Unggah gambar sebagai latar belakang halaman profilmu.</p>
+                            <h2 class="text-sm font-bold text-gray-800 dark:text-gray-100">Latar Belakang (Wallpaper)</h2>
+                            <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Unggah gambar sebagai latar belakang halaman profilmu.</p>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" name="wallpaper_enabled" id="wallpaper_enabled" value="1" class="sr-only peer" {{ $wallpaper_enabled ? 'checked' : '' }}>
-                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:bg-red-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
+                            <div class="w-11 h-6 bg-gray-200 dark:bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:bg-red-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
                         </label>
                     </div>
                     <div id="wallpaper-section" class="{{ !$wallpaper_enabled ? 'hidden' : '' }} p-5 space-y-4">
                         {{-- Upload image --}}
                         <div>
-                            <label class="block text-xs font-semibold text-gray-600 mb-1.5">Unggah Gambar Background</label>
-                            <label class="flex items-center gap-3 cursor-pointer border-2 border-dashed border-gray-300 hover:border-red-400 rounded-lg px-4 py-3 transition-colors group">
+                            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1.5">Unggah Gambar Background</label>
+                            <label class="flex items-center gap-3 cursor-pointer border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-red-400 rounded-lg px-4 py-3 transition-colors group">
                                 <svg class="w-5 h-5 text-gray-400 group-hover:text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                <span class="text-xs text-gray-500 group-hover:text-gray-700" id="bg-file-label">Pilih gambar (JPG, PNG, WEBP, maks 3MB)</span>
+                                <span class="text-xs text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200" id="bg-file-label">Pilih gambar (JPG, PNG, WEBP, maks 3MB)</span>
                                 <input type="file" name="bg_image" id="bg-image-input" accept="image/jpeg,image/png,image/webp,image/gif" class="hidden" onchange="previewBg(this)">
                             </label>
                         </div>
@@ -199,88 +201,57 @@
                         {{-- Warna latar --}}
                         <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
                             <div>
-                                <label class="block text-xs font-semibold text-gray-600 mb-1.5">Warna Latar</label>
+                                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1.5">Warna Latar</label>
                                 <div class="flex items-center gap-2">
-                                    <input type="color" name="bg_color" value="{{ $bg_color }}" class="w-10 h-9 rounded cursor-pointer border border-gray-200 p-0.5" oninput="syncColor(this, 'preview-wrapper', 'backgroundColor', 'bg_color_hex')">
-                                    <input type="text" id="bg_color_hex" value="{{ $bg_color }}" maxlength="7" class="flex-1 text-xs border border-gray-200 rounded-lg px-2 py-2 font-mono" oninput="syncHexToColor(this, 'bg_color')" placeholder="#ffffff">
+                                    <input type="color" name="bg_color" value="{{ $bg_color }}" class="w-10 h-9 rounded cursor-pointer border border-gray-200 dark:border-gray-600 p-0.5" oninput="syncColor(this, 'preview-wrapper', 'backgroundColor', 'bg_color_hex')">
+                                    <input type="text" id="bg_color_hex" value="{{ $bg_color }}" maxlength="7" class="flex-1 text-xs border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg px-2 py-2 font-mono" oninput="syncHexToColor(this, 'bg_color')" placeholder="#ffffff">
                                 </div>
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-gray-600 mb-1.5">Warna Teks</label>
+                                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1.5">Warna Teks</label>
                                 <div class="flex items-center gap-2">
-                                    <input type="color" name="font_color" value="{{ $font_color }}" class="w-10 h-9 rounded cursor-pointer border border-gray-200 p-0.5" oninput="syncFontColor(this, 'font_color_hex')">
-                                    <input type="text" id="font_color_hex" value="{{ $font_color }}" maxlength="7" class="flex-1 text-xs border border-gray-200 rounded-lg px-2 py-2 font-mono" oninput="syncHexToColor(this, 'font_color')" placeholder="#111827">
+                                    <input type="color" name="font_color" value="{{ $font_color }}" class="w-10 h-9 rounded cursor-pointer border border-gray-200 dark:border-gray-600 p-0.5" oninput="syncFontColor(this, 'font_color_hex')">
+                                    <input type="text" id="font_color_hex" value="{{ $font_color }}" maxlength="7" class="flex-1 text-xs border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg px-2 py-2 font-mono" oninput="syncHexToColor(this, 'font_color')" placeholder="#111827">
                                 </div>
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-gray-600 mb-1.5">Warna Tautan</label>
+                                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1.5">Warna Tautan</label>
                                 <div class="flex items-center gap-2">
-                                    <input type="color" name="link_color" value="{{ $link_color }}" class="w-10 h-9 rounded cursor-pointer border border-gray-200 p-0.5" oninput="syncLinkColor(this, 'link_color_hex')">
-                                    <input type="text" id="link_color_hex" value="{{ $link_color }}" maxlength="7" class="flex-1 text-xs border border-gray-200 rounded-lg px-2 py-2 font-mono" oninput="syncHexToColor(this, 'link_color')" placeholder="#b91c1c">
+                                    <input type="color" name="link_color" value="{{ $link_color }}" class="w-10 h-9 rounded cursor-pointer border border-gray-200 dark:border-gray-600 p-0.5" oninput="syncLinkColor(this, 'link_color_hex')">
+                                    <input type="text" id="link_color_hex" value="{{ $link_color }}" maxlength="7" class="flex-1 text-xs border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg px-2 py-2 font-mono" oninput="syncHexToColor(this, 'link_color')" placeholder="#b91c1c">
                                 </div>
                             </div>
                         </div>
 
-                        {{-- Posisi & Pengulangan --}}
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                            <div class="col-span-2 sm:col-span-1">
-                                <label class="block text-xs font-semibold text-gray-600 mb-1.5">Posisi</label>
-                                <select name="bg_position" class="w-full text-xs border border-gray-200 rounded-lg px-2 py-2 bg-white">
-                                    <option value="center" {{ $bg_position === 'center' ? 'selected' : '' }}>Tengah</option>
-                                    <option value="left"   {{ $bg_position === 'left'   ? 'selected' : '' }}>Kiri</option>
-                                    <option value="right"  {{ $bg_position === 'right'  ? 'selected' : '' }}>Kanan</option>
-                                    <option value="top"    {{ $bg_position === 'top'    ? 'selected' : '' }}>Atas</option>
-                                    <option value="bottom" {{ $bg_position === 'bottom' ? 'selected' : '' }}>Bawah</option>
-                                </select>
-                            </div>
-                            <div class="flex items-end pb-1">
-                                <label class="flex items-center gap-2 cursor-pointer text-xs text-gray-700">
-                                    <input type="checkbox" name="repeat_x" value="1" {{ $repeat_x ? 'checked' : '' }} class="w-4 h-4 text-red-600 rounded border-gray-300">
-                                    Ulangi-X
-                                </label>
-                            </div>
-                            <div class="flex items-end pb-1">
-                                <label class="flex items-center gap-2 cursor-pointer text-xs text-gray-700">
-                                    <input type="checkbox" name="repeat_y" value="1" {{ $repeat_y ? 'checked' : '' }} class="w-4 h-4 text-red-600 rounded border-gray-300">
-                                    Ulangi-Y
-                                </label>
-                            </div>
-                            <div class="flex items-end pb-1">
-                                <label class="flex items-center gap-2 cursor-pointer text-xs text-gray-700">
-                                    <input type="checkbox" name="transparent" value="1" {{ $transparent ? 'checked' : '' }} class="w-4 h-4 text-red-600 rounded border-gray-300">
-                                    Transparan
-                                </label>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
                 {{-- ── 2. JUDUL BLOK (Block Header) ── --}}
-                <div class="bg-white rounded-xl border border-gray-200 shadow-sm mb-5 overflow-hidden">
-                    <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm mb-5 overflow-hidden">
+                    <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-700">
                         <div>
-                            <h2 class="text-sm font-bold text-gray-800">Judul Blok (Block Header)</h2>
-                            <p class="text-xs text-gray-400 mt-0.5">Warna khusus untuk header setiap widget/blok di profilmu.</p>
+                            <h2 class="text-sm font-bold text-gray-800 dark:text-gray-100">Judul Blok (Block Header)</h2>
+                            <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Warna khusus untuk header setiap widget/blok di profilmu.</p>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" name="block_enabled" id="block_enabled" value="1" class="sr-only peer" {{ $block_enabled ? 'checked' : '' }}>
-                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:bg-red-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
+                            <div class="w-11 h-6 bg-gray-200 dark:bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:bg-red-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
                         </label>
                     </div>
                     <div id="block-section" class="{{ !$block_enabled ? 'hidden' : '' }} p-5">
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-semibold text-gray-600 mb-1.5">Warna Latar Blok</label>
+                                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1.5">Warna Latar Blok</label>
                                 <div class="flex items-center gap-2">
-                                    <input type="color" name="block_bg" value="{{ $block_bg }}" class="w-10 h-9 rounded cursor-pointer border border-gray-200 p-0.5" oninput="syncBlockBg(this, 'block_bg_hex')">
-                                    <input type="text" id="block_bg_hex" value="{{ $block_bg }}" maxlength="7" class="flex-1 text-xs border border-gray-200 rounded-lg px-2 py-2 font-mono" oninput="syncHexToColor(this, 'block_bg')" placeholder="#ffffff">
+                                    <input type="color" name="block_bg" value="{{ $block_bg }}" class="w-10 h-9 rounded cursor-pointer border border-gray-200 dark:border-gray-600 p-0.5" oninput="syncBlockBg(this, 'block_bg_hex')">
+                                    <input type="text" id="block_bg_hex" value="{{ $block_bg }}" maxlength="7" class="flex-1 text-xs border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg px-2 py-2 font-mono" oninput="syncHexToColor(this, 'block_bg')" placeholder="#ffffff">
                                 </div>
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-gray-600 mb-1.5">Warna Teks Blok</label>
+                                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1.5">Warna Teks Blok</label>
                                 <div class="flex items-center gap-2">
-                                    <input type="color" name="block_text" value="{{ $block_text }}" class="w-10 h-9 rounded cursor-pointer border border-gray-200 p-0.5" oninput="syncBlockText(this, 'block_text_hex')">
-                                    <input type="text" id="block_text_hex" value="{{ $block_text }}" maxlength="7" class="flex-1 text-xs border border-gray-200 rounded-lg px-2 py-2 font-mono" oninput="syncHexToColor(this, 'block_text')" placeholder="#111827">
+                                    <input type="color" name="block_text" value="{{ $block_text }}" class="w-10 h-9 rounded cursor-pointer border border-gray-200 dark:border-gray-600 p-0.5" oninput="syncBlockText(this, 'block_text_hex')">
+                                    <input type="text" id="block_text_hex" value="{{ $block_text }}" maxlength="7" class="flex-1 text-xs border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg px-2 py-2 font-mono" oninput="syncHexToColor(this, 'block_text')" placeholder="#111827">
                                 </div>
                             </div>
                         </div>
@@ -289,7 +260,7 @@
 
                 {{-- ── 3. TOMBOL SIMPAN ── --}}
                 <div class="flex items-center justify-between gap-4">
-                    <a href="{{ route('profile.show', auth()->user()->username) }}" class="text-sm text-gray-500 hover:text-gray-800 transition font-medium flex items-center gap-1">
+                    <a href="{{ route('profile.show', auth()->user()->username) }}" class="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition font-medium flex items-center gap-1">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                         Lihat Profil
                     </a>
@@ -310,12 +281,55 @@
 // ── Toggle sections (manual klik) ──
 document.getElementById('wallpaper_enabled').addEventListener('change', function () {
     document.getElementById('wallpaper-section').classList.toggle('hidden', !this.checked);
+    const wrapper = document.getElementById('preview-wrapper');
+    const previewName = document.getElementById('preview-name');
+    if (this.checked) {
+        const bgColor = document.querySelector('input[name="bg_color"]').value;
+        const fontColor = document.querySelector('input[name="font_color"]').value;
+        if (bgColor) wrapper.style.backgroundColor = bgColor;
+        if (fontColor) {
+            wrapper.style.color = fontColor;
+            if (previewName) previewName.style.color = fontColor;
+        }
+        @if($bg_image)
+        wrapper.style.backgroundImage = 'url("{{ asset('uploads/backgrounds/' . $bg_image) }}")';
+        wrapper.style.backgroundSize = 'cover';
+        wrapper.style.backgroundPosition = 'center';
+        @endif
+    } else {
+        wrapper.style.backgroundColor = '';
+        wrapper.style.backgroundImage = '';
+        wrapper.style.color = '';
+        if (previewName) previewName.style.color = '';
+    }
 });
 document.getElementById('musicplayer').addEventListener('change', function () {
     document.getElementById('music-section').classList.toggle('hidden', !this.checked);
 });
 document.getElementById('block_enabled').addEventListener('change', function () {
     document.getElementById('block-section').classList.toggle('hidden', !this.checked);
+    const blocks = document.querySelectorAll('#preview-block, .rounded-lg.p-3');
+    if (this.checked) {
+        const blockBg = document.querySelector('input[name="block_bg"]').value;
+        const blockText = document.querySelector('input[name="block_text"]').value;
+        blocks.forEach(block => {
+            if (block.id === 'preview-block' || block.querySelector('.font-bold.uppercase')) {
+                if (blockBg) block.style.backgroundColor = blockBg;
+                if (blockText) {
+                    const title = block.querySelector('.font-bold.uppercase');
+                    if (title) title.style.color = blockText;
+                }
+            }
+        });
+    } else {
+        blocks.forEach(block => {
+            if (block.id === 'preview-block' || block.querySelector('.font-bold.uppercase')) {
+                block.style.backgroundColor = '#ffffff';
+                const title = block.querySelector('.font-bold.uppercase');
+                if (title) title.style.color = '';
+            }
+        });
+    }
 });
 
 // ── Auto-aktifkan toggle saat user berinteraksi dengan input di dalam section ──

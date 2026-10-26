@@ -136,6 +136,11 @@ class FriendService
         if ($userId === $targetId) {
             throw new FriendException('Tidak bisa mengikuti diri sendiri.');
         }
+
+        if ($this->friendRepo->areBlocked($userId, $targetId)) {
+            throw new FriendException('Tidak dapat mengikuti pengguna ini karena terblokir.');
+        }
+
         $this->friendRepo->follow($userId, $targetId);
     }
 
@@ -159,7 +164,21 @@ class FriendService
 
     public function unblock(int $userId, int $targetId): void
     {
+        if (!$this->friendRepo->hasBlocked($userId, $targetId)) {
+            throw new FriendException('Anda tidak memblokir pengguna ini.');
+        }
+
         $this->friendRepo->unblock($userId, $targetId);
+    }
+
+    public function hasBlocked(int $userId, int $targetId): bool
+    {
+        return $this->friendRepo->hasBlocked($userId, $targetId);
+    }
+
+    public function isBlockedBy(int $userId, int $blockerId): bool
+    {
+        return $this->friendRepo->isBlockedBy($userId, $blockerId);
     }
 
     public function isBlocked(int $userId, int $targetId): bool

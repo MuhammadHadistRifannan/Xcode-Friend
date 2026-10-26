@@ -6,6 +6,10 @@ use App\Models\Group;
 use App\Models\Stream;
 use App\Models\Like;
 use App\Models\Comment;
+use App\Models\Album;
+use App\Models\Photo;
+use App\Models\Video;
+use App\Models\AlbumVideo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -18,10 +22,20 @@ class GroupController extends Controller
         return redirect()->route('groups.browse');
     }
 
-    public function browse()
+    public function browse(Request $request)
     {
-        $groups = Group::withCount('members')->latest('updated')->get();
-        return view('groups.browse', compact('groups'));
+        $query = Group::withCount('members')->latest('updated');
+
+        $q = trim((string) $request->input('q', ''));
+        if ($q !== '') {
+            $query->where(function ($w) use ($q) {
+                $w->where('name', 'like', "%{$q}%")
+                  ->orWhere('description', 'like', "%{$q}%");
+            });
+        }
+
+        $groups = $query->get();
+        return view('groups.browse', compact('groups', 'q'));
     }
 
     public function mine()
@@ -39,11 +53,18 @@ class GroupController extends Controller
 
     public function create()
     {
+        if (Auth::check() && (int) Auth::user()->disabled === 1) {
+            return redirect()->route('groups.browse')->with('error', 'Akun Anda masih berstatus pending verifikasi. Pembuatan grup baru hanya dapat dilakukan setelah akun disetujui penuh oleh Administrator.');
+        }
+
         return view('groups.create');
     }
 
     public function store(Request $request)
     {
+        if (Auth::check() && (int) Auth::user()->disabled === 1) {
+            return redirect()->route('groups.browse')->with('error', 'Akun Anda masih berstatus pending verifikasi. Pembuatan grup baru hanya dapat dilakukan setelah akun disetujui penuh oleh Administrator.');
+        }
         $request->validate([
             'uri' => 'required|alpha_num|unique:jcow_pages,uri',
             'name' => 'required|string|max:255',
@@ -90,37 +111,60 @@ class GroupController extends Controller
             },
             'streams' => function ($query) use ($filter) {
                 if ($filter === 'photo') {
-                    $query->where('attachment', '!=', '')
-                          ->where('attachment', 'not like', 'youtube:%');
+                    $query->where(function($q) {
+                        $q->where('type', 2)
+                          ->orWhereIn('app', ['photo', 'photos'])
+                          ->orWhere(function($sq) {
+                              $sq->whereNotIn('app', ['events', 'blogs', 'video', 'videos', 'music'])
+                                 ->where('type', '!=', 3)
+                                 ->where('attachment', '!=', '')
+                                 ->where('attachment', 'not like', 'youtube:%')
+                                 ->where('attachment', 'not like', 'a:%');
+                          });
+                    });
                 } elseif ($filter === 'video') {
-                    $query->where('attachment', 'like', 'youtube:%');
+                    $query->where(function($q) {
+                        $q->where('type', 3)
+                          ->orWhere('attachment', 'like', 'youtube:%')
+                          ->orWhereIn('app', ['video', 'videos']);
+                    });
                 }
-                $query->with('user');
+                $query->with(['user', 'comments.user', 'targetPage', 'targetWallUser']);
                 $query->orderBy('created', 'desc');
             },
         ]);
         
-        $isMember = $group->uid === Auth::id() || $group->members()->where('uid', Auth::id())->exists();
-        $isPending = $group->type === 'private_group' && $group->pendingMembers()->where('uid', Auth::id())->exists();
+        $isMember = $group->uid === Auth::id() || $group->members()->where('jcow_page_users.uid', Auth::id())->exists();
+        $isPending = $group->type === 'private_group' && $group->pendingMembers()->where('jcow_group_members_pending.uid', Auth::id())->where('ignored', 0)->exists();
         
         $recentPhotos = \App\Models\Stream::where('wall_id', $group->id)
             ->where('attachment', '!=', '')
             ->where(function($q) {
                 $q->where('type', 2)
+                  ->orWhereIn('app', ['photo', 'photos'])
                   ->orWhere(function($sq) {
-                      $sq->where('type', '!=', 3)->where('attachment', 'not like', 'youtube:%');
+                      $sq->whereNotIn('app', ['events', 'blogs', 'video', 'videos', 'music'])
+                         ->where('type', '!=', 3)
+                         ->where('attachment', 'not like', 'youtube:%');
                   });
             })
+            ->with('user')
             ->orderBy('created', 'desc')
-            ->take(9)
-            ->get();
+            ->take(30)
+            ->get()
+            ->filter(function($stream) {
+                return count($stream->photo_urls) > 0;
+            })
+            ->take(9);
 
         $recentVideos = \App\Models\Stream::where('wall_id', $group->id)
             ->where('attachment', '!=', '')
             ->where(function($q) {
                 $q->where('type', 3)
-                  ->orWhere('attachment', 'like', 'youtube:%');
+                  ->orWhere('attachment', 'like', 'youtube:%')
+                  ->orWhereIn('app', ['video', 'videos']);
             })
+            ->with('user')
             ->orderBy('created', 'desc')
             ->take(9)
             ->get();
@@ -135,27 +179,44 @@ class GroupController extends Controller
             abort(403, 'Anda tidak memiliki akses ke halaman ini.');
         }
 
-        $query = \App\Models\Stream::where('wall_id', $group->id)->where('attachment', '!=', '');
-
         if ($type === 'photo') {
-            $query->where(function($q) {
-                $q->where('type', 2)
-                  ->orWhere(function($sq) {
-                      $sq->where('type', '!=', 3)->where('attachment', 'not like', 'youtube:%');
-                  });
-            });
+            $rawList = \App\Models\Stream::where('wall_id', $group->id)
+                ->where('attachment', '!=', '')
+                ->where(function($q) {
+                    $q->where('type', 2)
+                      ->orWhereIn('app', ['photo', 'photos'])
+                      ->orWhere(function($sq) {
+                          $sq->whereNotIn('app', ['events', 'blogs', 'video', 'videos', 'music'])
+                             ->where('type', '!=', 3)
+                             ->where('attachment', 'not like', 'youtube:%');
+                      });
+                })
+                ->with('user')
+                ->orderBy('created', 'desc')
+                ->get()
+                ->filter(function($stream) {
+                    return count($stream->photo_urls) > 0;
+                });
+
+            $currentPage = \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPage();
+            $perPage = 12;
+            $currentItems = $rawList->slice(($currentPage - 1) * $perPage, $perPage)->all();
+            $mediaList = new \Illuminate\Pagination\LengthAwarePaginator($currentItems, $rawList->count(), $perPage, $currentPage, [
+                'path' => \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPath()
+            ]);
             $title = 'Foto Grup';
         } elseif ($type === 'video') {
+            $query = \App\Models\Stream::where('wall_id', $group->id)->where('attachment', '!=', '');
             $query->where(function($q) {
                 $q->where('type', 3)
-                  ->orWhere('attachment', 'like', 'youtube:%');
+                  ->orWhere('attachment', 'like', 'youtube:%')
+                  ->orWhereIn('app', ['video', 'videos']);
             });
+            $mediaList = $query->with('user')->orderBy('created', 'desc')->paginate(12);
             $title = 'Vidio Grup';
         } else {
             abort(404);
         }
-
-        $mediaList = $query->orderBy('created', 'desc')->paginate(12);
 
         return view('groups.media', compact('group', 'mediaList', 'type', 'title', 'isMember'));
     }
@@ -176,21 +237,50 @@ class GroupController extends Controller
         ]);
 
         if (empty($request->message) && !$request->hasFile('photos') && empty($request->video_url)) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Postingan tidak boleh kosong.'
+                ], 422);
+            }
             return back()->withErrors(['message' => 'Postingan tidak boleh kosong.']);
         }
 
         $attachment = '';
         $type = 1; // 1 = teks
-        $albumId = $request->input('album_id', 0);
-        $videoAlbumId = $request->input('video_album_id', 0);
+        $albumId = (int) $request->input('album_id', 0);
+        $videoAlbumId = (int) $request->input('video_album_id', 0);
 
         if ($request->hasFile('photos')) {
+            if ($albumId > 0) {
+                $exists = Album::where('id', $albumId)->exists();
+                if (!$exists) {
+                    $albumId = 0;
+                }
+            }
+            if ($albumId === 0) {
+                $defaultAlbum = Album::firstOrCreate(
+                    ['gid' => Auth::id(), 'app' => 'photos', 'name' => 'Unggahan Grup ' . $group->name],
+                    ['description' => 'Foto yang diunggah di grup ' . $group->name, 'weight' => 0, 'var1' => 'public', 'uri' => '', 'var2' => '', 'var3' => '', 'var4' => '', 'var5' => '']
+                );
+                $albumId = $defaultAlbum->id;
+            }
+
             $files = $request->file('photos');
             $savedPhotos = [];
             foreach($files as $index => $file) {
-                $filename = 'POST-' . auth()->id() . '-' . time() . '-' . $index . '.' . $file->getClientOriginalExtension();
+                $filename = 'POST-' . Auth::id() . '-' . time() . '-' . $index . '.' . $file->getClientOriginalExtension();
                 $file->storeAs('posts', $filename, 'public');
                 $savedPhotos[] = $filename;
+
+                // Simpan ke jcow_story_photos agar masuk ke album
+                Photo::create([
+                    'sid'   => $albumId,
+                    'uri'   => 'posts/' . $filename,
+                    'des'   => $request->message ?? '',
+                    'thumb' => 'posts/' . $filename,
+                    'size'  => $file->getSize(),
+                ]);
             }
             $attachment = json_encode([
                 'photos' => $savedPhotos,
@@ -198,6 +288,20 @@ class GroupController extends Controller
             ]);
             $type = 2; // 2 = gambar
         } elseif (!empty($request->video_url)) {
+            if ($videoAlbumId > 0) {
+                $exists = AlbumVideo::where('id', $videoAlbumId)->exists();
+                if (!$exists) {
+                    $videoAlbumId = 0;
+                }
+            }
+            if ($videoAlbumId === 0) {
+                $defaultAlbum = AlbumVideo::firstOrCreate(
+                    ['gid' => Auth::id(), 'app' => 'video', 'name' => 'Unggahan Grup ' . $group->name],
+                    ['description' => 'Video yang diunggah di grup ' . $group->name, 'weight' => 0, 'var1' => 'public', 'uri' => '', 'var2' => '', 'var3' => '', 'var4' => '', 'var5' => '']
+                );
+                $videoAlbumId = $defaultAlbum->id;
+            }
+
             $attachment = json_encode([
                 'video_url' => $request->video_url,
                 'album_id' => $videoAlbumId,
@@ -205,9 +309,54 @@ class GroupController extends Controller
                 'desc' => $request->video_desc ?? ''
             ]);
             $type = 3; // 3 = video
+
+            // Simpan ke jcow_stories agar masuk ke album video
+            $createdVideo = Video::create([
+                'title'   => $request->video_title ?? 'Video Grup',
+                'content' => $request->video_desc ?? ($request->message ?? ''),
+                'var1'    => $request->video_url,
+                'tags'    => $request->video_tags ?? '',
+                'cid'     => $videoAlbumId,
+                'uid'     => Auth::id(),
+                'app'     => 'video',
+                'created' => time(),
+                'updated' => time(),
+                'views'   => 0,
+                'featured'=> 0,
+                'sticky'  => 0,
+                'closed'  => 0,
+                'digg'    => 0,
+                'dugg'    => 0,
+                'photos'  => 0,
+                'rating'  => 0,
+                'blob1'   => '',
+                'thumbnail' => '',
+                'lastreply' => 0,
+                'lastreplyuname' => '',
+                'lastreplyuid' => 0,
+                'comments' => 0,
+                'stream_id' => 0,
+                'var2' => '',
+                'var3' => '',
+                'var4' => '',
+                'var5' => '',
+                'text1' => '',
+                'text2' => '',
+                'page_id' => 0,
+                'page_type' => '',
+            ]);
+
+            $attachment = json_encode([
+                'video_url' => $request->video_url,
+                'album_id' => $videoAlbumId,
+                'video_id' => $createdVideo->id,
+                'title' => $request->video_title ?? '',
+                'desc' => $request->video_desc ?? ''
+            ]);
+            $type = 3; // 3 = video
         }
 
-        Stream::create([
+        $stream = Stream::create([
             'message'    => $request->message ?? '',
             'wall_id'    => $id,
             'uid'        => Auth::id(),
@@ -218,7 +367,30 @@ class GroupController extends Controller
             'aid'        => $id,
             'hide'       => 0,
             'likes'      => 0,
+            'privacy'    => $request->input('privacy', 'public'),
         ]);
+
+        if (isset($createdVideo) && $createdVideo) {
+            $createdVideo->update(['stream_id' => $stream->id]);
+        }
+
+        $stream->loadMissing(['user', 'comments.user', 'targetPage', 'targetWallUser']);
+        $html = view('components.single-stream', ['stream' => $stream])->render();
+
+        try {
+            \App\Events\StreamCreated::dispatch($stream, $html);
+        } catch (\Throwable $e) {
+            \Log::warning('Gagal broadcast StreamCreated: ' . $e->getMessage());
+        }
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Postingan berhasil diunggah!',
+                'stream_id' => $stream->id,
+                'html' => $html
+            ]);
+        }
 
         return redirect()->route('groups.show', $id)->with('success', 'Postingan berhasil diunggah!');
     }
@@ -246,13 +418,15 @@ class GroupController extends Controller
 
     public function edit(Group $group)
     {
-        if ($group->uid !== Auth::id()) abort(403);
+        $isAdmin = auth()->check() && auth()->user()->isAdmin();
+        if ((int) $group->uid !== (int) Auth::id() && !$isAdmin) abort(403);
         return view('groups.edit', compact('group'));
     }
 
     public function update(Request $request, Group $group)
     {
-        if ($group->uid !== Auth::id()) abort(403);
+        $isAdmin = auth()->check() && auth()->user()->isAdmin();
+        if ((int) $group->uid !== (int) Auth::id() && !$isAdmin) abort(403);
 
         $request->validate([
             'name' => 'required|string|max:255',
@@ -289,7 +463,7 @@ class GroupController extends Controller
 
             if (!$isInvited) {
                 // Cek apakah sudah pending
-                if (!$group->pendingMembers()->where('uid', Auth::id())->exists()) {
+                if (!$group->pendingMembers()->where('jcow_group_members_pending.uid', Auth::id())->exists()) {
                     $group->pendingMembers()->attach(Auth::id(), [
                         'created' => time(),
                         'ignored' => 0
@@ -299,9 +473,11 @@ class GroupController extends Controller
             }
         }
 
-        if (!$group->members()->where('uid', Auth::id())->exists()) {
+        if (!$group->members()->where('jcow_page_users.uid', Auth::id())->exists()) {
             $group->members()->attach(Auth::id());
         }
+        $group->pendingMembers()->detach(Auth::id());
+
         return back()->with('success', 'Berhasil bergabung dengan grup.');
     }
 
@@ -309,15 +485,16 @@ class GroupController extends Controller
     {
         $userId = Auth::id();
         
-        // 1. Lepaskan status keanggotaan
+        // 1. Lepaskan status keanggotaan dan pending
         $group->members()->detach($userId);
+        $group->pendingMembers()->detach($userId);
 
         // 2. Destruktif: Hapus semua legacy content post di grup tersebut
         // Asumsi page_id dan wall_id adalah penanda identitas grup untuk story/stream
         \App\Models\Story::where('uid', $userId)->where('page_id', $group->id)->delete();
         $group->streams()->where('uid', $userId)->delete();
 
-        return redirect()->route('groups.browse')->with('success', 'Anda telah keluar. Semua jejak konten di grup ini dihapus.');
+        return redirect()->route('groups.show', $group->id)->with('success', 'Anda telah berhasil keluar dari grup.');
     }
 
     public function removeMember(Request $request, Group $group, $uid)
@@ -414,6 +591,9 @@ class GroupController extends Controller
     public function pending(Group $group)
     {
         if ($group->uid !== Auth::id()) abort(403);
+        if ($group->type !== 'private_group') {
+            return redirect()->route('groups.show', $group->id)->with('error', 'Menu ini hanya untuk grup privat.');
+        }
         
         // Asumsikan ignored=0 adalah pending, ignored=2 adalah kick/block
         $group->load(['pendingMembers' => function($query) {

@@ -2,7 +2,19 @@
 @section('title', 'Members Management - Admin')
 
 @section('content')
-<div class="bg-[#f5f5f5] min-h-screen py-8">
+<div class="bg-[#f5f5f5] min-h-screen py-8"
+     x-data="{
+        editRoleModal: false,
+        memberId: null,
+        memberName: '',
+        memberRole: '',
+        openRoleModal(id, name, role) {
+            this.memberId = id;
+            this.memberName = name;
+            this.memberRole = role;
+            this.editRoleModal = true;
+        }
+     }">
     <div class="max-w-7xl mx-auto px-4 sm:px-6">
 
         {{-- Header --}}
@@ -83,8 +95,7 @@
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         @forelse($members as $member)
-                            <tr class="hover:bg-gray-50 transition-colors {{ $member->disabled == 2 ? 'bg-red-50/30' : ($member->disabled == 1 ? 'bg-yellow-50/30' : '') }}"
-                                x-data="{ editRoleModal: false }">
+                            <tr class="hover:bg-gray-50 transition-colors {{ $member->disabled == 2 ? 'bg-red-50/30' : ($member->disabled == 1 ? 'bg-yellow-50/30' : '') }}">
 
                                 {{-- User Info --}}
                                 <td class="px-6 py-4 whitespace-nowrap">
@@ -93,7 +104,7 @@
                                              class="w-9 h-9 rounded-full object-cover border border-gray-200 bg-gray-100 shrink-0">
                                         <div>
                                             <div class="font-bold text-gray-900 text-sm">{{ $member->fullname ?: $member->username }}</div>
-                                            <div class="text-xs text-gray-400">@{{ $member->username }}</div>
+                                            <div class="text-xs text-gray-400">{{ '@' . $member->username }}</div>
                                         </div>
                                     </div>
                                 </td>
@@ -117,8 +128,8 @@
 
                                 {{-- Role --}}
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold {{ ($member->level == 1 || in_array(strtolower($member->roles ?? ''), ['admin','administrator'])) ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700' }}">
-                                        {{ $member->level == 1 || in_array(strtolower($member->roles ?? ''), ['admin','administrator']) ? 'Administrator' : ($member->roles ?: 'Member') }}
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold {{ $member->isAdmin() ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700' }}">
+                                        {{ $member->isAdmin() ? 'Administrator' : ($member->roles ?: 'Member') }}
                                     </span>
                                 </td>
 
@@ -140,56 +151,37 @@
                                             <i data-lucide="eye" class="w-4 h-4"></i>
                                         </a>
 
-                                        {{-- Edit Role Modal --}}
-                                        <button @click="editRoleModal = true"
+                                        {{-- Edit Role Modal Trigger --}}
+                                        <button type="button"
+                                                @click="openRoleModal({{ $member->id }}, '{{ addslashes($member->fullname ?: $member->username) }}', '{{ addslashes($member->roles ?: 'Member') }}')"
                                                 class="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg transition-colors" title="Edit Role">
                                             <i data-lucide="shield" class="w-4 h-4"></i>
                                         </button>
 
-                                        {{-- Ban/Unban --}}
-                                        <form action="{{ route('admin.members.ban', $member->id) }}" method="POST" class="inline-block"
-                                              onsubmit="return confirm('{{ $member->disabled > 0 ? 'Aktifkan' : 'Suspend' }} pengguna {{ $member->username }}?')">
-                                            @csrf @method('DELETE')
-                                            <button type="submit"
-                                                    class="{{ $member->disabled > 0 ? 'text-green-600 bg-green-50 hover:bg-green-100' : 'text-red-600 bg-red-50 hover:bg-red-100' }} p-2 rounded-lg transition-colors"
-                                                    title="{{ $member->disabled > 0 ? 'Aktifkan' : 'Suspend' }}">
-                                                <i data-lucide="{{ $member->disabled > 0 ? 'user-check' : 'user-x' }}" class="w-4 h-4"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-
-                                    {{-- Edit Role Modal --}}
-                                    <div x-show="editRoleModal" x-cloak
-                                         class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center" aria-modal="true">
-                                        <div class="fixed inset-0 bg-gray-500 bg-opacity-75" @click="editRoleModal = false"></div>
-                                        <div x-show="editRoleModal"
-                                             x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-                                             class="relative bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 p-6 z-10 text-left">
-                                            <h3 class="text-base font-bold text-gray-900 mb-1">Ubah Role Pengguna</h3>
-                                            <p class="text-sm text-gray-500 mb-4">Pengguna: <strong>{{ $member->fullname ?: $member->username }}</strong></p>
-                                            <form action="{{ route('admin.members.role', $member->id) }}" method="POST">
-                                                @csrf @method('PUT')
-                                                <select name="roles" class="w-full bg-gray-50 border border-gray-300 text-sm rounded-lg p-2.5 mb-4">
-                                                    @foreach($roles as $r)
-                                                        @php
-                                                            $isSelected = strtolower($member->roles ?? '') === strtolower($r->name);
-                                                            // Legacy logic support
-                                                            if (empty($member->roles) && $member->level != 1 && strtolower($r->name) == 'member') $isSelected = true;
-                                                            if ($member->level == 1 && strtolower($r->name) == 'administrator') $isSelected = true;
-                                                        @endphp
-                                                        <option value="{{ $r->name }}" {{ $isSelected ? 'selected' : '' }}>
-                                                            {{ $r->name }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                <div class="flex justify-end gap-2">
-                                                    <button type="button" @click="editRoleModal = false"
-                                                            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg">Batal</button>
-                                                    <button type="submit"
-                                                            class="px-4 py-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg">Simpan</button>
-                                                </div>
+                                        {{-- Actions based on Status --}}
+                                        @if($member->disabled == 1)
+                                            {{-- Approve Pending Member --}}
+                                            <form action="{{ route('admin.members.approve', $member->id) }}" method="POST" class="inline-block"
+                                                  onsubmit="return confirm('Setujui dan aktifkan akun pending {{ $member->username }}?')">
+                                                @csrf
+                                                <button type="submit"
+                                                        class="text-emerald-600 bg-emerald-50 hover:bg-emerald-100 p-2 rounded-lg transition-colors"
+                                                        title="Setujui & Aktifkan Akun">
+                                                    <i data-lucide="user-check" class="w-4 h-4"></i>
+                                                </button>
                                             </form>
-                                        </div>
+                                        @else
+                                            {{-- Ban/Unban (Active <-> Suspended) --}}
+                                            <form action="{{ route('admin.members.ban', $member->id) }}" method="POST" class="inline-block"
+                                                  onsubmit="return confirm('{{ $member->disabled == 2 ? 'Aktifkan kembali' : 'Suspend' }} pengguna {{ $member->username }}?')">
+                                                @csrf @method('DELETE')
+                                                <button type="submit"
+                                                        class="{{ $member->disabled == 2 ? 'text-green-600 bg-green-50 hover:bg-green-100' : 'text-red-600 bg-red-50 hover:bg-red-100' }} p-2 rounded-lg transition-colors"
+                                                        title="{{ $member->disabled == 2 ? 'Aktifkan Kembali' : 'Suspend Pengguna' }}">
+                                                    <i data-lucide="{{ $member->disabled == 2 ? 'user-check' : 'user-x' }}" class="w-4 h-4"></i>
+                                                </button>
+                                            </form>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
@@ -210,6 +202,32 @@
                     {{ $members->appends(request()->query())->links() }}
                 </div>
             @endif
+        </div>
+
+        {{-- Single Global Edit Role Modal --}}
+        <div x-show="editRoleModal" x-cloak
+             class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center" aria-modal="true">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75" @click="editRoleModal = false"></div>
+            <div x-show="editRoleModal"
+                 x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                 class="relative bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 p-6 z-10 text-left">
+                <h3 class="text-base font-bold text-gray-900 mb-1">Ubah Role Pengguna</h3>
+                <p class="text-sm text-gray-500 mb-4">Pengguna: <strong x-text="memberName"></strong></p>
+                <form :action="'{{ url('admin/members') }}/' + memberId + '/role'" method="POST">
+                    @csrf @method('PUT')
+                    <select name="roles" x-model="memberRole" class="w-full bg-gray-50 border border-gray-300 text-sm rounded-lg p-2.5 mb-4">
+                        @foreach($roles as $r)
+                            <option value="{{ $r->name }}">{{ $r->name }}</option>
+                        @endforeach
+                    </select>
+                    <div class="flex justify-end gap-2">
+                        <button type="button" @click="editRoleModal = false"
+                                class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg">Batal</button>
+                        <button type="submit"
+                                class="px-4 py-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg">Simpan</button>
+                    </div>
+                </form>
+            </div>
         </div>
 
     </div>

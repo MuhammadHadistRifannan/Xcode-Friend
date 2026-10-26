@@ -32,3 +32,11 @@ test_*.php
 seed_*.php
 replace_avatars.*
 /scratch/
+
+# Local backups, session cookies, and temporary uploads
+cookie*.txt
+data.json
+uploads.tar
+uploads/
+database/backups/
+

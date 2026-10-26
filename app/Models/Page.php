@@ -92,6 +92,35 @@ class Page extends Model
      */
     public function getLogoUrlAttribute(): ?string
     {
-        return $this->logo ? asset('storage/' . $this->logo) : null;
+        $logo = trim((string) $this->logo);
+        if ($logo === '') {
+            return null;
+        }
+
+        if (str_starts_with($logo, 'http://') || str_starts_with($logo, 'https://')) {
+            return $logo;
+        }
+
+        if (str_starts_with($logo, 'uploads/')) {
+            return asset($logo);
+        }
+
+        if (str_starts_with($logo, 'storage/')) {
+            return asset($logo);
+        }
+
+        if (file_exists(public_path('uploads/' . $logo))) {
+            return asset('uploads/' . $logo);
+        }
+
+        if (file_exists(public_path('uploads/avatars/' . $logo))) {
+            return asset('uploads/avatars/' . $logo);
+        }
+
+        if (str_starts_with($logo, 'pages/') || str_starts_with($logo, 'pages_logo/')) {
+            return asset('uploads/' . $logo);
+        }
+
+        return asset('uploads/avatars/' . $logo);
     }
 }

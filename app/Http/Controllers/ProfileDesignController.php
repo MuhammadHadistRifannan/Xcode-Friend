@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Profile;
+use Illuminate\Support\Facades\Storage;
 
 class ProfileDesignController extends Controller
 {
@@ -21,8 +22,11 @@ class ProfileDesignController extends Controller
             'link_color'  => 'nullable|string|max:7',
             'block_bg'    => 'nullable|string|max:7',
             'block_text'  => 'nullable|string|max:7',
-            'bg_position' => 'nullable|in:center,left,right,top,bottom',
-            'profile_music' => 'nullable|file|mimes:mp3|max:10240',
+            'profile_music' => 'nullable|file|mimes:mp3,wav,ogg,m4a,mpga|max:10240',
+        ], [
+            'profile_music.mimes' => 'Format file musik harus berupa file audio (.mp3).',
+            'profile_music.max' => 'Ukuran file musik tidak boleh melebihi 10MB.',
+            'profile_music.uploaded' => 'File musik gagal diunggah. Pastikan ukuran file tidak melebihi batas 10MB.',
         ]);
 
         $user = auth()->user();
@@ -49,11 +53,18 @@ class ProfileDesignController extends Controller
 
         if ($request->hasFile('profile_music') && $request->file('profile_music')->isValid()) {
             $musicFile = $request->file('profile_music');
-            $musicName = 'PROFILE-MUSIC-' . $user->username . '-' . time() . '.' . $musicFile->getClientOriginalExtension();
+            $extension = $musicFile->getClientOriginalExtension() ?: 'mp3';
+            $musicName = 'PROFILE-MUSIC-' . $user->username . '-' . time() . '.' . $extension;
+            
+            if (!file_exists(public_path('uploads/music'))) {
+                @mkdir(public_path('uploads/music'), 0777, true);
+            }
+
             $musicFile->storeAs('music', $musicName, 'public');
 
             if (!empty($theme['profile_music'])) {
-                $oldMusicPath = storage_path('app/public/music/' . $theme['profile_music']);
+                Storage::disk('public')->delete('music/' . $theme['profile_music']);
+                $oldMusicPath = public_path('uploads/music/' . $theme['profile_music']);
                 if (file_exists($oldMusicPath)) {
                     @unlink($oldMusicPath);
                 }
@@ -73,11 +84,7 @@ class ProfileDesignController extends Controller
         if ($newFontColor) $theme['font_color']  = $newFontColor;
         if ($newLinkColor) $theme['link_color']  = $newLinkColor;
 
-        // Selalu simpan pengaturan posisi & repeat
-        $theme['bg_position'] = $request->input('bg_position', $theme['bg_position'] ?? 'center');
-        $theme['repeat_x']    = $request->boolean('repeat_x');
-        $theme['repeat_y']    = $request->boolean('repeat_y');
-        $theme['transparent'] = $request->boolean('transparent');
+        // Pengaturan posisi dan repeat dihapus sesuai permintaan
 
         // Auto-aktifkan wallpaper_enabled jika ada data warna atau gambar tersimpan
         if (!empty($theme['bg_color']) || !empty($theme['font_color']) || !empty($theme['link_color']) || !empty($theme['bg_image'])) {
@@ -98,11 +105,17 @@ class ProfileDesignController extends Controller
         if ($request->hasFile('bg_image') && $request->file('bg_image')->isValid()) {
             $file     = $request->file('bg_image');
             $filename = 'BG-' . $user->username . '-' . time() . '.' . $file->getClientOriginalExtension();
+            
+            if (!file_exists(public_path('uploads/backgrounds'))) {
+                @mkdir(public_path('uploads/backgrounds'), 0777, true);
+            }
+
             $file->storeAs('backgrounds', $filename, 'public');
 
             // Hapus file lama jika ada
             if (!empty($theme['bg_image'])) {
-                $oldPath = storage_path('app/public/backgrounds/' . $theme['bg_image']);
+                Storage::disk('public')->delete('backgrounds/' . $theme['bg_image']);
+                $oldPath = public_path('uploads/backgrounds/' . $theme['bg_image']);
                 if (file_exists($oldPath)) {
                     @unlink($oldPath);
                 }
@@ -131,7 +144,8 @@ class ProfileDesignController extends Controller
 
             // Hapus file lama
             if (!empty($theme['bg_image'])) {
-                $oldPath = storage_path('app/public/backgrounds/' . $theme['bg_image']);
+                Storage::disk('public')->delete('backgrounds/' . $theme['bg_image']);
+                $oldPath = public_path('uploads/backgrounds/' . $theme['bg_image']);
                 if (file_exists($oldPath)) {
                     @unlink($oldPath);
                 }
@@ -139,11 +153,36 @@ class ProfileDesignController extends Controller
 
             $theme['bg_image']  = null;
             $profile->custom_css = json_encode($theme);
-            $profile->background = '';
             $profile->save();
         }
 
         return back()->with('success', 'Gambar background berhasil dihapus.');
+    }
+
+    public function destroyMusic()
+    {
+        $user    = auth()->user();
+        $profile = Profile::where('id', $user->id)->first();
+
+        if ($profile) {
+            $theme = json_decode($profile->custom_css ?? '{}', true);
+            if (!is_array($theme)) $theme = [];
+
+            // Hapus file lama
+            if (!empty($theme['profile_music'])) {
+                Storage::disk('public')->delete('music/' . $theme['profile_music']);
+                $oldPath = public_path('uploads/music/' . $theme['profile_music']);
+                if (file_exists($oldPath)) {
+                    @unlink($oldPath);
+                }
+            }
+
+            $theme['profile_music'] = null;
+            $profile->custom_css = json_encode($theme);
+            $profile->save();
+        }
+
+        return back()->with('success', 'File musik profil berhasil dihapus.');
     }
 
     /**

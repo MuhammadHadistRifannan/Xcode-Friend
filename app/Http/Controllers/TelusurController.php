@@ -31,8 +31,19 @@ class TelusurController extends Controller
             $dbLocations = $this->accountRepo->getDistinctLocations($userId);
             $allProvinces = config('provinces.list', []);
 
+            $locationMap = [
+                'Daerah Istimewa Yogyakarta' => 'DI Yogyakarta',
+                'Daerah Khusus Ibukota Jakarta' => 'DKI Jakarta',
+                'Nanggroe Aceh Darussalam' => 'Aceh',
+                'Jawa Selatan' => 'Jawa Barat',
+            ];
+
+            $normalizedDbLocations = collect($dbLocations)
+                ->map(fn($loc) => $locationMap[$loc] ?? $loc)
+                ->filter(fn($loc) => !empty($loc) && $loc !== 'Jawa Selatan');
+
             $locations = collect($allProvinces)
-                ->merge($dbLocations)
+                ->merge($normalizedDbLocations)
                 ->unique()
                 ->sort()
                 ->values();

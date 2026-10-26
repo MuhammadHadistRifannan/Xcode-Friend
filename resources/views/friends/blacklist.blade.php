@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Daftar Blokir')
 
@@ -52,12 +52,7 @@
                             <div class="blocked-item flex items-center gap-4 px-6 py-4 hover:bg-gray-50/70 transition group" data-name="{{ strtolower($blocked->fullname) }}" data-username="{{ strtolower($blocked->username) }}">
                                 {{-- Avatar --}}
                                 <div class="relative flex-shrink-0">
-                                    @if(!empty($blocked->avatar))
-                                        <img src="{{ asset('uploads/avatars/' . $blocked->avatar) }}" alt="{{ $blocked->fullname }}" class="w-12 h-12 rounded-full object-cover ring-2 ring-gray-100" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-[#f4dada] to-[#fce8e8] flex items-center justify-center text-[#b71c1c] font-bold text-lg ring-2 ring-gray-100" style="display:none;">{{ strtoupper(substr($blocked->fullname, 0, 1)) }}</div>
-                                    @else
-                                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-[#f4dada] to-[#fce8e8] flex items-center justify-center text-[#b71c1c] font-bold text-lg ring-2 ring-gray-100">{{ strtoupper(substr($blocked->fullname, 0, 1)) }}</div>
-                                    @endif
+                                    <img src="{{ \App\Models\User::avatarUrl($blocked->avatar ?? null) }}" alt="{{ $blocked->fullname }}" class="w-12 h-12 rounded-full object-cover ring-2 ring-gray-100" onerror="this.onerror=null; this.src='{{ asset('assets/img/default.png') }}';">
                                     <div class="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-[#b71c1c] rounded-full flex items-center justify-center ring-2 ring-white">
                                         <svg class="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"/></svg>
                                     </div>
@@ -65,7 +60,7 @@
                                 {{-- Info --}}
                                 <div class="flex-grow min-w-0">
                                     <p class="text-sm font-semibold text-gray-900 truncate">{{ $blocked->fullname }}</p>
-                                    <p class="text-xs text-gray-400 truncate">@{{ $blocked->username }}</p>
+                                    <p class="text-xs text-gray-400 truncate">{{ '@' . $blocked->username }}</p>
                                 </div>
                                 {{-- Buka Blokir --}}
                                 <button type="button" onclick="openUnblockModal({{ $blocked->id }}, '{{ addslashes($blocked->fullname) }}')" class="flex-shrink-0 flex items-center gap-1.5 text-xs font-medium text-gray-400 hover:text-[#b71c1c] bg-gray-100 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-all duration-200">

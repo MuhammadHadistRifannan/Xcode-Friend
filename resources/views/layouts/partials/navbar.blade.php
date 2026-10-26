@@ -16,7 +16,7 @@
             <a href="{{ route('telusur.index') }}" class="{{ request()->routeIs('telusur.*') ? 'text-red-600' : 'hover:text-white' }} transition">Telusur</a>
             @endif
             @if(\App\Helpers\ModuleHelper::isActive('VIDEOS'))
-            <a href="{{ route('videos.public') }}" class="{{ request()->routeIs('videos.*') || request()->routeIs('video.*') ? 'text-red-600' : 'hover:text-white' }} transition">Video</a>
+            <a href="{{ route('videos.public') }}" class="{{ request()->routeIs('videos.*') ? 'text-red-600' : 'hover:text-white' }} transition">Video</a>
             @endif
             @if(\App\Helpers\ModuleHelper::isActive('PAGES'))
             <a href="{{ route('pages.index') }}" class="{{ request()->routeIs('pages.*') ? 'text-red-600' : 'hover:text-white' }} transition">Pages</a>
@@ -97,15 +97,15 @@
                         type="text"
                         name="q"
                         id="navbar-search-input"
-                        placeholder="Cari anggota, grup, halaman..."
+                        placeholder="Cari anggota, grup, postingan..."
                         value="{{ request('q') }}"
                         class="bg-[#1A1A1A] border border-neutral-800 rounded-md pl-9 pr-3 py-1.5 text-xs text-neutral-300 focus:outline-none focus:border-neutral-600 w-56 transition placeholder-neutral-600"
                     >
                 </form>
                 {{-- Dropdown Autocomplete --}}
                 <div id="navbar-search-dropdown"
-                     class="absolute top-full right-0 mt-1.5 w-80 bg-[#1A1A1A] border border-neutral-800 rounded-xl shadow-2xl z-50 overflow-hidden hidden">
-                    <div id="navbar-search-results" class="py-1"></div>
+                     class="absolute top-full right-0 mt-1.5 w-80 sm:w-96 bg-[#1A1A1A] border border-neutral-800 rounded-xl shadow-2xl z-50 overflow-hidden hidden">
+                    <div id="navbar-search-results" class="py-1 max-h-96 overflow-y-auto"></div>
                     <div id="navbar-search-footer" class="hidden border-t border-neutral-800 px-3 py-2">
                         <a id="navbar-search-all" href="#"
                            class="text-xs text-[#990000] hover:text-red-400 font-semibold transition">
@@ -207,11 +207,8 @@
                             <a href="{{ route('profile.show', auth()->user()->username) }}" class="block px-4 py-2 text-xs text-neutral-300 hover:bg-neutral-800 hover:text-white transition mt-1">Profil Saya</a>
                             <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-xs text-neutral-300 hover:bg-neutral-800 hover:text-white transition">Pengaturan</a>
                             
-                            @php
-                                $isAdmin = auth()->check() && (auth()->user()->roles == 1 || in_array(strtolower(auth()->user()->roles), ['admin', 'administrator']));
-                            @endphp
-                            @if($isAdmin)
-                                <a href="{{ route('admin.dashboard') }}" class="block px-4 py-2 text-xs text-neutral-300 hover:bg-neutral-800 hover:text-white transition">Tampilan Admin</a>
+                            @if(auth()->user()->isAdmin())
+                                <a href="{{ route('admin.dashboard') }}" class="block px-4 py-2 text-xs text-neutral-300 hover:bg-neutral-800 hover:text-white transition">Dashboard Admin</a>
                             @endif
 
                             <form method="POST" action="{{ route('logout') }}" class="block w-full text-left">
@@ -240,7 +237,7 @@
                 <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-neutral-500 pointer-events-none">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 </span>
-                <input type="text" name="q" placeholder="Cari anggota, grup, halaman..." value="{{ request('q') }}" class="w-full bg-[#1A1A1A] border border-neutral-800 rounded-lg pl-9 pr-3 py-2.5 text-sm text-neutral-300 focus:outline-none focus:border-neutral-600 placeholder-neutral-600">
+                <input type="text" name="q" placeholder="Cari anggota, grup, postingan..." value="{{ request('q') }}" class="w-full bg-[#1A1A1A] border border-neutral-800 rounded-lg pl-9 pr-3 py-2.5 text-sm text-neutral-300 focus:outline-none focus:border-neutral-600 placeholder-neutral-600">
             </div>
         </form>
 
@@ -257,7 +254,7 @@
             </a>
             @endif
             @if(\App\Helpers\ModuleHelper::isActive('VIDEOS'))
-            <a href="{{ route('videos.public') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('videos.*') || request()->routeIs('video.*') ? 'text-red-600 bg-neutral-900' : 'text-neutral-400 hover:text-white hover:bg-neutral-800' }} transition">
+            <a href="{{ route('videos.public') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('videos.*') ? 'text-red-600 bg-neutral-900' : 'text-neutral-400 hover:text-white hover:bg-neutral-800' }} transition">
                 <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                 Video
             </a>
@@ -332,11 +329,9 @@
                 </div>
             </div>
             <a href="{{ route('profile.show', auth()->user()->username) }}" class="block px-3 py-2 rounded-lg text-xs text-neutral-400 hover:text-white hover:bg-neutral-800 transition">Profil Saya</a>
-            @php
-                $isAdmin = auth()->check() && (auth()->user()->roles == 1 || in_array(strtolower(auth()->user()->roles), ['admin', 'administrator']));
-            @endphp
-            @if($isAdmin)
-            <a href="{{ route('admin.dashboard') }}" class="block px-3 py-2 rounded-lg text-xs text-neutral-400 hover:text-white hover:bg-neutral-800 transition">Tampilan Admin</a>
+            <a href="{{ route('profile.edit') }}" class="block px-3 py-2 rounded-lg text-xs text-neutral-400 hover:text-white hover:bg-neutral-800 transition">Pengaturan</a>
+            @if(auth()->user()->isAdmin())
+            <a href="{{ route('admin.dashboard') }}" class="block px-3 py-2 rounded-lg text-xs text-neutral-400 hover:text-white hover:bg-neutral-800 transition">Dashboard Admin</a>
             @endif
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
@@ -401,15 +396,17 @@
         user:  `<svg class="w-3.5 h-3.5 text-neutral-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>`,
         group: `<svg class="w-3.5 h-3.5 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>`,
         page:  `<svg class="w-3.5 h-3.5 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>`,
+        post:  `<svg class="w-3.5 h-3.5 text-yellow-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>`,
     };
 
-    const labels = { user: 'Anggota', group: 'Grup', page: 'Halaman' };
+    const labels = { user: 'Anggota', group: 'Grup', page: 'Halaman', post: 'Postingan' };
 
     function renderItems(data) {
         const all = [
-            ...data.users.map(u => ({ ...u, type: 'user' })),
-            ...data.groups.map(g => ({ ...g, type: 'group' })),
-            ...data.pages.map(p => ({ ...p, type: 'page' })),
+            ...(data.users || []).map(u => ({ ...u, type: 'user' })),
+            ...(data.groups || []).map(g => ({ ...g, type: 'group' })),
+            ...(data.pages || []).map(p => ({ ...p, type: 'page' })),
+            ...(data.posts || []).map(p => ({ ...p, type: 'post' })),
         ];
 
         if (!all.length) {
@@ -431,12 +428,21 @@
                 ? `<img src="${item.avatar || item.logo}" class="w-7 h-7 rounded-full object-cover border border-neutral-700 flex-shrink-0">`
                 : `<div class="w-7 h-7 rounded-full bg-neutral-800 flex items-center justify-center flex-shrink-0">${icons[item.type]}</div>`;
 
-            const sub = item.username ? `<span class="text-[10px] text-neutral-500">@${item.username}</span>` : '';
+            let sub = '';
+            if (item.type === 'post') {
+                if (item.group_name) {
+                    sub = `<div class="text-[10px] text-neutral-400 truncate">di Grup <span class="text-blue-400 font-medium">${item.group_name}</span> &bull; ${item.author}</div>`;
+                } else {
+                    sub = `<div class="text-[10px] text-neutral-400 truncate">oleh ${item.author}</div>`;
+                }
+            } else if (item.username) {
+                sub = `<span class="text-[10px] text-neutral-500">@${item.username}</span>`;
+            }
 
             html += `
                 <a href="${item.url}" class="flex items-center gap-2.5 px-3 py-2 hover:bg-neutral-800 transition group">
                     ${avatar}
-                    <div class="min-w-0">
+                    <div class="min-w-0 flex-1">
                         <div class="text-xs text-neutral-200 font-medium truncate group-hover:text-white">${item.name}</div>
                         ${sub}
                     </div>

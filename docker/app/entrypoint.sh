@@ -51,6 +51,20 @@ spawn() {
 }
 
 start_services() {
+    # Configure PHP upload limits
+    if [ -d /usr/local/etc/php/conf.d ]; then
+        cat << 'EOF' > /usr/local/etc/php/conf.d/uploads.ini
+upload_max_filesize = 50M
+post_max_size = 50M
+memory_limit = 256M
+EOF
+        log "configured php uploads.ini"
+    fi
+
+    # Ensure upload directories exist with proper permissions
+    mkdir -p public/uploads/music public/uploads/backgrounds
+    chmod -R 777 public/uploads/music public/uploads/backgrounds 2>/dev/null || true
+
     # One-time setup
     if [ ! -L public/storage ] && [ ! -e public/storage ]; then
         php artisan storage:link >/dev/null 2>&1 && log "storage:link OK" || log "storage:link skipped/failed"

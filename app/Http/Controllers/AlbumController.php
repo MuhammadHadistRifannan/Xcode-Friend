@@ -17,7 +17,9 @@ class AlbumController extends Controller
         $q    = $request->get('q', '');
         $type = $request->get('type', 'photos'); // photos atau videos
 
-        $albums = Album::where('app', $type)
+        $apps = in_array($type, ['video', 'videos']) ? ['video', 'videos'] : ['photos', 'photo'];
+
+        $albums = Album::whereIn('app', $apps)
             ->where('gid', $uid)
             ->when($q, fn($query) => $query->where('name', 'like', "%{$q}%"))
             ->orderBy('name')
@@ -34,14 +36,16 @@ class AlbumController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:150',
-            'type' => 'required|in:photos,video',
+            'type' => 'required|in:photos,photo,video,videos',
         ]);
+
+        $appType = in_array($request->type, ['video', 'videos']) ? 'video' : 'photos';
 
         $album = Album::create([
             'gid'         => auth()->id(),
             'name'        => $request->name,
             'description' => $request->description ?? '',
-            'app'         => $request->type,
+            'app'         => $appType,
             'var1'        => $request->privacy ?? 'public', // Menyimpan privasi di var1
         ]);
 

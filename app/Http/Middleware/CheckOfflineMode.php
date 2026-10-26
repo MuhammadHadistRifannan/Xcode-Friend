@@ -18,7 +18,14 @@ class CheckOfflineMode
     public function handle(Request $request, Closure $next): Response
     {
         // Pengecualian route untuk admin dan authentication (login/logout)
-        if ($request->is('admin*') || $request->is('login*') || $request->is('logout*') || $request->is('offline*')) {
+        if (
+            $request->is('admin*') ||
+            $request->is('site-configuration*') ||
+            $request->is('login*') ||
+            $request->is('logout*') ||
+            $request->is('offline*') ||
+            $request->is('dev-*')
+        ) {
             return $next($request);
         }
 
@@ -30,7 +37,7 @@ class CheckOfflineMode
                 // Biarkan administrator tetap bisa akses frontend walau offline mode
                 if (Auth::check()) {
                     $user = Auth::user();
-                    if ($user->level == 1 || in_array(strtolower($user->roles ?? ''), ['admin', 'administrator'])) {
+                    if ($user->isAdmin() || (int) $user->level === 1 || in_array(strtolower($user->roles ?? ''), ['admin', 'administrator', '3'])) {
                         return $next($request);
                     }
                 }

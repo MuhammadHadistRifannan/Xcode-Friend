@@ -98,7 +98,7 @@ class MessageService
                 'subject' => $subject ?? '',
                 'message' => $safeMessage,
                 'attachment' => $attachment,
-                'attachment_url' => $attachment ? '/storage/' . $attachment : null,
+                'attachment_url' => $attachment ? asset('uploads/' . $attachment) : null,
                 'created' => $now,
                 'hasread' => 0,
                 'reply_to' => $replyTo,
@@ -114,10 +114,11 @@ class MessageService
             $repliedMsg = DB::table('jcow_messages')
                 ->join('jcow_accounts', 'jcow_accounts.id', '=', 'jcow_messages.from_id')
                 ->where('jcow_messages.id', $replyTo)
-                ->select('jcow_messages.message', 'jcow_accounts.fullname as replied_sender_name')
+                ->select('jcow_messages.message', 'jcow_messages.attachment as replied_attachment', 'jcow_accounts.fullname as replied_sender_name')
                 ->first();
             if ($repliedMsg) {
                 $result->replied_message = $repliedMsg->message;
+                $result->replied_attachment = $repliedMsg->replied_attachment;
                 $result->replied_sender_name = $repliedMsg->replied_sender_name;
             }
         }
@@ -169,6 +170,11 @@ class MessageService
     public function getLastMessagesForFriends(int $userId, array $friendIds): array
     {
         return $this->messageRepo->getLastMessagesForFriends($userId, $friendIds);
+    }
+
+    public function getActiveConversationUserIds(int $userId): array
+    {
+        return $this->messageRepo->getActiveConversationUserIds($userId);
     }
 
     public function countUnreadBetweenMultiple(int $userId, array $friendIds): array

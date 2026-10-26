@@ -56,8 +56,9 @@
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
-                                    <img src="{{ $report->user->avatar_url }}" 
-                                         class="w-8 h-8 rounded-full border border-gray-200">
+                                    <img src="{{ $report->user?->avatar_url ?? asset('assets/img/default.png') }}" 
+                                         class="w-8 h-8 rounded-full border border-gray-200 object-cover"
+                                         onerror="this.onerror=null; this.src='{{ asset('assets/img/default.png') }}';">
                                     <span class="font-bold text-sm text-gray-900">{{ $report->user?->fullname ?? $report->user?->username ?? 'Unknown User' }}</span>
                                 </div>
                             </td>
@@ -67,21 +68,85 @@
                                     $content = null;
                                     $isComment = false;
                                     $isPostOrComment = false;
-                                    if (str_contains($report->url, '#post-')) {
-                                        $parts = explode('#post-', $report->url);
-                                        $contentId = $parts[1] ?? null;
-                                        $isPostOrComment = true;
-                                    } elseif (str_contains($report->url, '#comment-')) {
-                                        $parts = explode('#comment-', $report->url);
-                                        $contentId = $parts[1] ?? null;
+                                    $isPhoto = false;
+
+                                    if (preg_match('/#comment-(\d+)/', $report->url, $m)) {
+                                        $contentId = (int) $m[1];
                                         $isComment = true;
                                         $isPostOrComment = true;
-                                    }
-                                    if ($contentId) {
-                                        if ($isComment) {
-                                            $content = \App\Models\Comment::find($contentId);
+                                        $content = \App\Models\Comment::with('user')->find($contentId);
+                                    } elseif (preg_match('/#post-(\d+)/', $report->url, $m)) {
+                                        $contentId = (int) $m[1];
+                                        $isPostOrComment = true;
+                                        $content = \App\Models\Stream::with('user')->find($contentId);
+                                    } elseif (preg_match('/\/stream\/(\d+)/', $report->url, $m)) {
+                                        $contentId = (int) $m[1];
+                                        $isPostOrComment = true;
+                                        $content = \App\Models\Stream::with('user')->find($contentId);
+                                    } elseif (preg_match('/#(\d+)/', $report->url, $m)) {
+                                        $contentId = (int) $m[1];
+                                        $isPostOrComment = true;
+                                        $content = \App\Models\Comment::with('user')->find($contentId);
+                                        if ($content) {
+                                            $isComment = true;
                                         } else {
-                                            $content = \App\Models\Stream::find($contentId);
+                                            $content = \App\Models\Stream::with('user')->find($contentId);
+                                        }
+                                    } elseif (preg_match('/\/foto(?:s)?\/(\d+)/', $report->url, $m) || preg_match('/\/photo(?:s)?\/(\d+)/', $report->url, $m)) {
+                                        $contentId = (int) $m[1];
+                                        $isPhoto = true;
+                                        $isPostOrComment = true;
+                                        $content = \App\Models\Photo::with('album.user')->find($contentId);
+                                    }
+
+                                    $photoUrls = [];
+                                    $ytEmbed = null;
+                                    $authorName = 'Unknown User';
+                                    $authorAvatar = asset('assets/img/default.png');
+                                    $timeAgo = '-';
+                                    $contentMessage = '';
+                                    $deleteRoute = null;
+                                    $contentTypeLabel = 'Konten';
+
+                                    if ($content) {
+                                        if ($isComment) {
+                                            $contentTypeLabel = 'Komentar';
+                                            $deleteRoute = route('comment.destroy', $content->id);
+                                            $authorName = $content->user?->fullname ?? $content->user?->username ?? 'Unknown';
+                                            $authorAvatar = $content->user?->avatar_url ?? asset('assets/img/default.png');
+                                            $timeAgo = $content->created ? \Carbon\Carbon::createFromTimestamp($content->created)->diffForHumans() : '-';
+                                            $contentMessage = $content->message;
+                                        } elseif ($isPhoto) {
+                                            $contentTypeLabel = 'Foto';
+                                            if (\Illuminate\Support\Facades\Route::has('foto.photo.destroy')) {
+                                                $deleteRoute = route('foto.photo.destroy', $content->id);
+                                            }
+                                            $u = $content->album?->user;
+                                            $authorName = $u?->fullname ?? $u?->username ?? 'Unknown';
+                                            $authorAvatar = $u?->avatar_url ?? asset('assets/img/default.png');
+                                            $contentMessage = $content->des;
+                                            if (!empty($content->photo_url)) {
+                                                $photoUrls[] = $content->photo_url;
+                                            }
+                                        } else {
+                                            $contentTypeLabel = 'Postingan';
+                                            $deleteRoute = route('stream.destroy', $content->id);
+                                            $authorName = $content->user?->fullname ?? $content->user?->username ?? 'Unknown';
+                                            $authorAvatar = $content->user?->avatar_url ?? asset('assets/img/default.png');
+                                            $timeAgo = $content->created ? \Carbon\Carbon::createFromTimestamp($content->created)->diffForHumans() : '-';
+                                            $contentMessage = $content->message;
+                                            $photoUrls = $content->photo_urls ?? [];
+
+                                            if ($content->attachment) {
+                                                if (str_starts_with($content->attachment, 'youtube:')) {
+                                                    $ytEmbed = 'https://www.youtube.com/embed/' . str_replace('youtube:', '', $content->attachment);
+                                                } else {
+                                                    $attJson = $content->parsed_attachment;
+                                                    if (!empty($attJson['video_url']) && preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i', $attJson['video_url'], $matchesYt)) {
+                                                        $ytEmbed = 'https://www.youtube.com/embed/' . $matchesYt[1];
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 @endphp
@@ -89,46 +154,56 @@
                                 @if($content)
                                     <div x-data="{ openPostModal: false }">
                                         <button type="button" @click="openPostModal = true" class="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline inline-flex items-center gap-1">
-                                            Lihat {{ $isComment ? 'Komentar' : 'Postingan' }} <i data-lucide="external-link" class="w-3 h-3"></i>
+                                            Lihat {{ $contentTypeLabel }} <i data-lucide="external-link" class="w-3 h-3"></i>
                                         </button>
                                         
-                                        <!-- Modal Postingan/Komentar -->
+                                        <!-- Modal Postingan/Komentar/Foto -->
                                         <div x-show="openPostModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-50" style="display: none;" x-transition>
                                             <div @click.away="openPostModal = false" class="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 overflow-hidden relative">
                                                 <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                                                    <h3 class="font-bold text-gray-900">Konten yang Dilaporkan</h3>
+                                                    <h3 class="font-bold text-gray-900">Konten yang Dilaporkan ({{ $contentTypeLabel }})</h3>
                                                     <button type="button" @click="openPostModal = false" class="text-gray-400 hover:text-gray-600">
                                                         <i data-lucide="x" class="w-5 h-5"></i>
                                                     </button>
                                                 </div>
-                                                <div class="p-5 max-h-[50vh] overflow-y-auto">
+                                                <div class="p-5 max-h-[60vh] overflow-y-auto">
                                                     <div class="flex items-start gap-3 mb-3">
-                                                        <img src="{{ $content->user->avatar_url }}" class="w-10 h-10 rounded-full object-cover border border-gray-200 shrink-0">
+                                                        <img src="{{ $authorAvatar }}" class="w-10 h-10 rounded-full object-cover border border-gray-200 shrink-0">
                                                         <div>
-                                                            <span class="font-bold text-gray-900 text-sm">{{ $content->user?->fullname ?? $content->user?->username ?? 'Unknown' }}</span>
-                                                            <p class="text-xs text-gray-400">{{ \Carbon\Carbon::createFromTimestamp($content->created)->diffForHumans() }}</p>
+                                                            <span class="font-bold text-gray-900 text-sm">{{ $authorName }}</span>
+                                                            <p class="text-xs text-gray-400">{{ $timeAgo }}</p>
                                                         </div>
                                                     </div>
-                                                    @if($content->message)
-                                                        <p class="text-gray-700 text-sm mb-3 whitespace-pre-wrap">{{ $content->message }}</p>
+                                                    @if($contentMessage)
+                                                        <p class="text-gray-700 text-sm mb-3 whitespace-pre-wrap">{{ $contentMessage }}</p>
                                                     @endif
-                                                    @if(!$isComment && $content->attachment)
-                                                        @if(str_starts_with($content->attachment, 'youtube:'))
-                                                            @php $ytId = str_replace('youtube:', '', $content->attachment); @endphp
-                                                            <iframe class="w-full aspect-video rounded-xl mt-2" src="https://www.youtube.com/embed/{{ $ytId }}" frameborder="0"></iframe>
-                                                        @else
-                                                            <img src="{{ asset('storage/'.$content->attachment) }}" class="w-full rounded-xl max-h-64 object-contain bg-gray-50 mt-2 border border-gray-100">
-                                                        @endif
+
+                                                    @if(count($photoUrls) > 0)
+                                                        <div class="space-y-3 mt-3">
+                                                            @foreach($photoUrls as $pUrl)
+                                                                <a href="{{ $pUrl }}" target="_blank" class="block rounded-xl overflow-hidden border border-gray-200 bg-gray-50 hover:opacity-95 transition" title="Klik untuk membuka ukuran penuh">
+                                                                    <img src="{{ $pUrl }}" class="w-full max-h-80 object-contain rounded-xl" alt="Foto Laporan">
+                                                                </a>
+                                                            @endforeach
+                                                        </div>
+                                                    @endif
+
+                                                    @if($ytEmbed)
+                                                        <div class="mt-3 rounded-xl overflow-hidden border border-gray-200">
+                                                            <iframe class="w-full aspect-video rounded-xl" src="{{ $ytEmbed }}" frameborder="0" allowfullscreen></iframe>
+                                                        </div>
                                                     @endif
                                                 </div>
-                                                <div class="p-4 border-t border-gray-100 bg-gray-50 flex justify-end">
-                                                    <form action="{{ $isComment ? route('comment.destroy', $content->id) : route('stream.destroy', $content->id) }}" method="POST">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit" onclick="return confirm('Hapus konten ini secara permanen?')" class="text-xs font-bold bg-red-100 text-red-700 hover:bg-red-200 px-3 py-1.5 rounded-lg transition-colors border border-red-200">
-                                                            Hapus {{ $isComment ? 'Komentar' : 'Postingan' }}
-                                                        </button>
-                                                    </form>
+                                                <div class="p-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-2">
+                                                    @if($deleteRoute)
+                                                        <form action="{{ $deleteRoute }}" method="POST">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" onclick="return confirm('Hapus {{ strtolower($contentTypeLabel) }} ini secara permanen?')" class="text-xs font-bold bg-red-100 text-red-700 hover:bg-red-200 px-3 py-1.5 rounded-lg transition-colors border border-red-200">
+                                                                Hapus {{ $contentTypeLabel }}
+                                                            </button>
+                                                        </form>
+                                                    @endif
                                                 </div>
                                             </div>
                                         </div>

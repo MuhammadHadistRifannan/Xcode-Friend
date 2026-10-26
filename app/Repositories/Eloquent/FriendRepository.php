@@ -168,6 +168,16 @@ class FriendRepository implements FriendRepositoryInterface
         return $this->blockRepo->areBlocked($userId, $otherId);
     }
 
+    public function hasBlocked(int $userId, int $targetId): bool
+    {
+        return $this->blockRepo->hasBlocked($userId, $targetId);
+    }
+
+    public function isBlockedBy(int $userId, int $blockerId): bool
+    {
+        return $this->blockRepo->isBlockedBy($userId, $blockerId);
+    }
+
     public function follow(int $userId, int $targetId): void
     {
         $exists = DB::table('jcow_followers')

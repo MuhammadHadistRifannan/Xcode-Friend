@@ -11,36 +11,75 @@
         <!-- KOLOM KIRI: Menu Navigasi Samping -->
         <div class="lg:col-span-3 space-y-6 animate-fade-in-up">
 
-            <!-- My Apps Block -->
- <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
- <h3 class="text-xs font-bold text-neutral-800 uppercase border-l-4 border-red-700 pl-2 mb-4">MY APPS</h3>
- <div class="grid grid-cols-2 gap-4">
- <a href="#" class="flex flex-col items-center justify-center p-3 rounded-lg hover:bg-neutral-50 text-neutral-500 hover:text-red-700 transition group">
- <svg class="w-6 h-6 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
- <span class="text-[10px] font-bold uppercase tracking-wider">FOTO</span>
- </a>
- <a href="#" class="flex flex-col items-center justify-center p-3 rounded-lg hover:bg-neutral-50 text-neutral-500 hover:text-red-700 transition group">
- <svg class="w-6 h-6 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
- <span class="text-[10px] font-bold uppercase tracking-wider">VIDEO</span>
- </a>
- <a href="#" class="flex flex-col items-center justify-center p-3 rounded-lg hover:bg-neutral-50 text-neutral-500 hover:text-red-700 transition group">
- <svg class="w-6 h-6 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
- <span class="text-[10px] font-bold uppercase tracking-wider">UNDANG</span>
- </a>
- <a href="#" class="flex flex-col items-center justify-center p-3 rounded-lg hover:bg-neutral-50 text-neutral-500 hover:text-red-700 transition group">
- <svg class="w-6 h-6 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
- <span class="text-[10px] font-bold uppercase tracking-wider text-center">DESAIN PROFIL</span>
- </a>
- <a href="#" class="flex flex-col items-center justify-center p-3 rounded-lg hover:bg-neutral-50 text-neutral-500 hover:text-red-700 transition group">
- <svg class="w-6 h-6 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
- <span class="text-[10px] font-bold uppercase tracking-wider">MY PAGES</span>
- </a>
- <a href="#" class="flex flex-col items-center justify-center p-3 rounded-lg hover:bg-neutral-50 text-neutral-500 hover:text-red-700 transition group">
- <svg class="w-6 h-6 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
- <span class="text-[10px] font-bold uppercase tracking-wider">GROUPS</span>
- </a>
- </div>
- </div>
+            <!-- Pages Populer -->
+            @if(\App\Helpers\ModuleHelper::isActive('PAGES'))
+            <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
+                <div class="flex items-center justify-between border-l-4 border-red-700 pl-2 mb-4">
+                    <h3 class="text-xs font-bold text-neutral-800 uppercase tracking-wider">PAGES POPULER</h3>
+                    <a href="{{ route('pages.index') }}" class="text-[11px] text-red-600 hover:text-red-700 hover:underline font-bold">Semua</a>
+                </div>
+                <div class="space-y-3">
+                    @forelse($popularPages as $page)
+                        <a href="{{ route('pages.show', $page->id) }}" class="flex items-center space-x-3 p-2 rounded-lg hover:bg-neutral-50 transition group">
+                            <div class="shrink-0">
+                                @if($page->logo_url)
+                                    <img src="{{ $page->logo_url }}" alt="{{ $page->name }}" class="w-9 h-9 rounded-lg object-cover border border-neutral-200">
+                                @else
+                                    <div class="w-9 h-9 rounded-lg bg-red-50 text-red-600 flex items-center justify-center border border-red-100 font-bold text-xs">
+                                        {{ strtoupper(substr($page->name, 0, 1)) }}
+                                    </div>
+                                @endif
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <h4 class="text-xs font-bold text-neutral-800 truncate group-hover:text-red-700 transition">
+                                    {{ $page->name }}
+                                </h4>
+                                <p class="text-[11px] text-neutral-400">
+                                    {{ number_format($page->followers_count ?? $page->users ?? 0) }} Pengikut
+                                </p>
+                            </div>
+                        </a>
+                    @empty
+                        <p class="text-xs text-neutral-400 py-2 text-center">Belum ada page populer.</p>
+                    @endforelse
+                </div>
+            </div>
+            @endif
+
+            <!-- Grup Populer -->
+            @if(\App\Helpers\ModuleHelper::isActive('GROUPS'))
+            <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
+                <div class="flex items-center justify-between border-l-4 border-red-700 pl-2 mb-4">
+                    <h3 class="text-xs font-bold text-neutral-800 uppercase tracking-wider">GRUP POPULER</h3>
+                    <a href="{{ route('groups.browse') }}" class="text-[11px] text-red-600 hover:text-red-700 hover:underline font-bold">Semua</a>
+                </div>
+                <div class="space-y-3">
+                    @forelse($popularGroups as $group)
+                        <a href="{{ route('groups.show', $group->id) }}" class="flex items-center space-x-3 p-2 rounded-lg hover:bg-neutral-50 transition group">
+                            <div class="shrink-0">
+                                @if($group->logo_url)
+                                    <img src="{{ $group->logo_url }}" alt="{{ $group->name }}" class="w-9 h-9 rounded-lg object-cover border border-neutral-200">
+                                @else
+                                    <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 font-bold text-xs">
+                                        {{ strtoupper(substr($group->name, 0, 1)) }}
+                                    </div>
+                                @endif
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <h4 class="text-xs font-bold text-neutral-800 truncate group-hover:text-red-700 transition">
+                                    {{ $group->name }}
+                                </h4>
+                                <p class="text-[11px] text-neutral-400">
+                                    {{ number_format($group->members_count ?? $group->users ?? 0) }} Anggota
+                                </p>
+                            </div>
+                        </a>
+                    @empty
+                        <p class="text-xs text-neutral-400 py-2 text-center">Belum ada grup populer.</p>
+                    @endforelse
+                </div>
+            </div>
+            @endif
 
  <!-- Profile Info Menu -->
  <div class="bg-white rounded-xl shadow-sm border border-neutral-200 py-3">
@@ -48,43 +87,24 @@
  <svg class="w-5 h-5 text-neutral-400 mr-3 group-hover:text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
  <span class="text-sm font-semibold text-neutral-700">Profilku</span>
  </a>
- <a href="#" class="flex items-center justify-between px-5 py-3 hover:bg-neutral-50 transition border-b border-neutral-100 group">
+ <a href="{{ route('profile.show', ['username' => auth()->user()->username, 'tab' => 'pengikut']) }}" class="flex items-center justify-between px-5 py-3 hover:bg-neutral-50 transition border-b border-neutral-100 group">
  <div class="flex items-center">
  <svg class="w-5 h-5 text-neutral-400 mr-3 group-hover:text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
  <span class="text-sm font-semibold text-neutral-700">Pengikutku</span>
  </div>
  <span class="text-xs bg-neutral-100 text-neutral-600 px-2 py-0.5 rounded-full">{{ $followerCount }}</span>
  </a>
- <a href="#" class="flex items-center justify-between px-5 py-3 hover:bg-neutral-50 transition border-b border-neutral-100 group">
+ <a href="{{ route('profile.show', ['username' => auth()->user()->username, 'tab' => 'mengikuti']) }}" class="flex items-center justify-between px-5 py-3 hover:bg-neutral-50 transition border-b border-neutral-100 group">
  <div class="flex items-center">
  <svg class="w-5 h-5 text-neutral-400 mr-3 group-hover:text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
  <span class="text-sm font-semibold text-neutral-700">Yang aku ikuti</span>
  </div>
  <span class="text-xs bg-neutral-100 text-neutral-600 px-2 py-0.5 rounded-full">{{ $followingCount }}</span>
  </a>
- <a href="#" class="flex items-center px-5 py-3 hover:bg-neutral-50 transition group">
+ <a href="{{ route('profile.edit') }}" class="flex items-center px-5 py-3 hover:bg-neutral-50 transition group">
  <svg class="w-5 h-5 text-neutral-400 mr-3 group-hover:text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
  <span class="text-sm font-semibold text-neutral-700">Opsi</span>
  </a>
- </div>
-
- <!-- Media X-CODE (Hardcoded sesuai desain) -->
- <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
- <h3 class="text-xs font-bold text-neutral-800 uppercase border-l-4 border-red-700 pl-2 mb-4">MEDIA X-CODE</h3>
- <div class="space-y-3">
- <a href="#" class="flex items-center text-sm font-medium text-red-700 hover:underline hover:translate-x-1 transition transform duration-200">
- <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"></path></svg> Forum X-code
- </a>
- <a href="#" class="flex items-center text-sm font-medium text-red-700 hover:underline hover:translate-x-1 transition transform duration-200">
- <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg> X-code Training
- </a>
- <a href="#" class="flex items-center text-sm font-medium text-red-700 hover:underline hover:translate-x-1 transition transform duration-200">
- <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg> Toko X-code
- </a>
- <a href="#" class="flex items-center text-sm font-medium text-red-700 hover:underline hover:translate-x-1 transition transform duration-200">
- <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg> Kumpulan tulisan
- </a>
- </div>
  </div>
  
  @php $leftColumnHtml = \App\Helpers\SettingHelper::get('theme_block_left_column', ''); @endphp
@@ -156,6 +176,77 @@
 
     <!-- KOLOM KANAN: Review & Links -->
     <div class="lg:col-span-3 space-y-6 animate-fade-in-up delay-200">
+        <!-- Widget Pantauan Member Online -->
+        <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
+            <!-- Header Widget -->
+            <div class="flex items-center justify-between border-l-4 border-red-700 pl-2 mb-3">
+                <h3 class="text-xs font-bold text-neutral-800 uppercase tracking-wider">MEMBER ONLINE</h3>
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <span class="relative flex h-1.5 w-1.5">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                    </span>
+                    LIVE
+                </span>
+            </div>
+
+            <!-- Box Info Teks Berapa Member yang Online -->
+            <div class="bg-gradient-to-r from-emerald-50/80 to-teal-50/60 border border-emerald-100 rounded-xl p-3 mb-4 flex items-center justify-between">
+                <div class="flex items-center space-x-2.5 min-w-0">
+                    <div class="w-8 h-8 rounded-lg bg-white shadow-2xs border border-emerald-200/60 flex items-center justify-center text-emerald-600 shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                    </div>
+                    <div class="min-w-0">
+                        <div id="online-counter-text" class="text-xs font-semibold text-neutral-800 leading-tight">
+                            @if($onlineCount <= 0)
+                                <span>Tidak ada member yang aktif</span>
+                            @elseif($onlineCount == 1)
+                                <span><strong id="online-counter-number" class="text-emerald-700 font-bold">1 member</strong> sedang aktif</span>
+                            @else
+                                <span><strong id="online-counter-number" class="text-emerald-700 font-bold">{{ $onlineCount }} member</strong> sedang aktif</span>
+                            @endif
+                        </div>
+                        <p class="text-[10px] text-neutral-400 mt-0.5">Terpantau secara realtime</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="online-members-container" class="space-y-2 max-h-[615px] overflow-y-auto pr-1.5 custom-scrollbar scroll-smooth">
+                @forelse($onlineMembers as $member)
+                    <a href="{{ route('profile.show', $member->username) }}" 
+                       class="flex items-center justify-between p-2 rounded-lg hover:bg-neutral-50 transition border border-transparent hover:border-neutral-100 group"
+                       data-member-id="{{ $member->id }}">
+                        <div class="flex items-center space-x-2.5 min-w-0">
+                            <div class="relative shrink-0">
+                                <img src="{{ $member->avatar_url }}" alt="{{ $member->fullname }}" class="w-9 h-9 rounded-full object-cover border border-neutral-200">
+                                <span class="member-status-dot absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white bg-emerald-500"></span>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-xs font-bold text-neutral-800 truncate group-hover:text-red-700 transition">
+                                    {{ $member->fullname }}
+                                </p>
+                                <p class="text-[11px] text-neutral-400 truncate">
+                                    {{ '@' . $member->username }}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="shrink-0 text-right ml-2">
+                            <span class="member-status-badge text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/80">
+                                Online
+                            </span>
+                        </div>
+                    </a>
+                @empty
+                    <div id="online-empty-state" class="text-center py-5 px-3 bg-neutral-50 rounded-lg border border-dashed border-neutral-200">
+                        <svg class="w-8 h-8 mx-auto text-neutral-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                        <p class="text-xs font-medium text-neutral-500">Tidak ada member lain yang sedang online.</p>
+                    </div>
+                @endforelse
+            </div>
+        </div>
+
         <x-sidebar-right />
         @php $rightColumnHtml = \App\Helpers\SettingHelper::get('theme_block_right_column', ''); @endphp
         @if($rightColumnHtml)
@@ -204,43 +295,97 @@
  }
 </script>
 
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const trigger = entry.target;
-                const nextUrl = trigger.getAttribute('data-next-url');
-                
-                if (nextUrl) {
-                    observer.unobserve(trigger);
-                    
-                    fetch(nextUrl, {
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    })
-                    .then(response => response.text())
-                    .then(html => {
-                        const tempDiv = document.createElement('div');
-                        tempDiv.innerHTML = html;
-                        
-                        document.getElementById('feed-container').insertAdjacentHTML('beforeend', html);
-                        trigger.remove();
-                        
-                        const newTrigger = tempDiv.querySelector('#infinite-scroll-trigger');
-                        if (newTrigger) {
-                            document.getElementById('feed-container').parentNode.appendChild(newTrigger);
-                            observer.observe(document.getElementById('infinite-scroll-trigger'));
-                        }
-                    });
-                }
+    function syncOnlineWidget() {
+        if (!window.onlineUsers || !window.onlineUsersReady) return;
+        const onlineList = Object.values(window.onlineUsers);
+        const onlineIds = onlineList.map(u => parseInt(u.id));
+        const count = onlineList.length;
+
+        // Perbarui teks info berapa member yang online secara elegan
+        const counterText = document.getElementById('online-counter-text');
+        if (counterText) {
+            if (count <= 0) {
+                counterText.innerHTML = '<span>Tidak ada member yang aktif</span>';
+            } else if (count === 1) {
+                counterText.innerHTML = '<span><strong id="online-counter-number" class="text-emerald-700 font-bold">1 member</strong> sedang aktif</span>';
+            } else {
+                counterText.innerHTML = `<span><strong id="online-counter-number" class="text-emerald-700 font-bold">${count} member</strong> sedang aktif</span>`;
+            }
+        }
+
+        const container = document.getElementById('online-members-container');
+        if (!container) return;
+
+        // Hapus langsung member yang sudah offline (tidak lagi tampil sama sekali)
+        container.querySelectorAll('[data-member-id]').forEach(el => {
+            const uid = parseInt(el.getAttribute('data-member-id'));
+            const isOnline = onlineIds.includes(uid);
+            if (!isOnline) {
+                el.remove();
             }
         });
-    }, { rootMargin: '200px' });
-    
-    const trigger = document.getElementById('infinite-scroll-trigger');
-    if (trigger) observer.observe(trigger);
+
+        // Sisipkan member baru jika ada yang join di presence channel dan belum ada di container
+        onlineList.forEach(u => {
+            if (!u || !u.id) return;
+            const existing = container.querySelector(`[data-member-id="${u.id}"]`);
+            if (!existing && u.username) {
+                const emptyState = document.getElementById('online-empty-state');
+                if (emptyState) emptyState.remove();
+
+                const div = document.createElement('a');
+                div.href = window.AppBase ? `${window.AppBase}/@${u.username}` : `/@${u.username}`;
+                div.className = 'flex items-center justify-between p-2 rounded-lg hover:bg-neutral-50 transition border border-transparent hover:border-neutral-100 group animate-fade-in-up';
+                div.setAttribute('data-member-id', u.id);
+                div.innerHTML = `
+                    <div class="flex items-center space-x-2.5 min-w-0">
+                        <div class="relative shrink-0">
+                            <img src="${u.avatar_url || '/assets/img/default.png'}" alt="${u.fullname || u.username}" class="w-9 h-9 rounded-full object-cover border border-neutral-200">
+                            <span class="member-status-dot absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white bg-emerald-500"></span>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-xs font-bold text-neutral-800 truncate group-hover:text-red-700 transition">
+                                ${u.fullname || u.username}
+                            </p>
+                            <p class="text-[11px] text-neutral-400 truncate">
+                                @${u.username}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="shrink-0 text-right ml-2">
+                        <span class="member-status-badge text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/80">
+                            Online
+                        </span>
+                    </div>
+                `;
+                container.prepend(div);
+            }
+        });
+
+        // Jika tidak ada member yang online sama sekali, tampilkan pesan kosong
+        const remainingMembers = container.querySelectorAll('[data-member-id]');
+        if (remainingMembers.length === 0) {
+            if (!document.getElementById('online-empty-state')) {
+                const emptyDiv = document.createElement('div');
+                emptyDiv.id = 'online-empty-state';
+                emptyDiv.className = 'text-center py-5 px-3 bg-neutral-50 rounded-lg border border-dashed border-neutral-200';
+                emptyDiv.innerHTML = `
+                    <svg class="w-8 h-8 mx-auto text-neutral-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    <p class="text-xs font-medium text-neutral-500">Tidak ada member lain yang sedang online.</p>
+                `;
+                container.appendChild(emptyDiv);
+            }
+        } else {
+            const emptyState = document.getElementById('online-empty-state');
+            if (emptyState) emptyState.remove();
+        }
+    }
+
+    window.addEventListener('online-update', syncOnlineWidget);
+    setTimeout(syncOnlineWidget, 1000);
 });
 </script>
 

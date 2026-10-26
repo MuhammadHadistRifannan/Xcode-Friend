@@ -26,6 +26,10 @@
         <div class="text-sm text-gray-600 font-bold uppercase tracking-widest">
             X-CODE NETWORK INFRASTRUCTURE
         </div>
+
+        <div class="mt-6">
+            <a href="{{ route('login') }}" class="text-xs text-gray-500 hover:text-gray-300 transition underline">Login Administrator</a>
+        </div>
     </div>
 
     <script>

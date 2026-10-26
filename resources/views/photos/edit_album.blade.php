@@ -5,15 +5,17 @@
     <div class="max-w-3xl mx-auto px-4 sm:px-6">
 
         {{-- ===== HEADER ===== --}}
-        <div class="flex items-center gap-4 mb-8">
-            <a href="{{ route('foto.index') }}" class="flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-gray-900 bg-white border border-gray-200 px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-all">
+        <div class="mb-5">
+            <a href="{{ route('foto.show', $album->id) }}" class="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-gray-900 bg-white border border-gray-200 px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-all">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-                Kembali
+                Kembali ke Album
             </a>
-            <div>
-                <div class="text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-0.5">FOTO &gt; EDIT ALBUM</div>
-                <h1 class="text-2xl font-black text-gray-900 uppercase">Edit Album</h1>
-            </div>
+        </div>
+
+        <div class="mb-8">
+            <div class="text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-1">FOTO &gt; EDIT ALBUM</div>
+            <h1 class="text-2xl sm:text-3xl font-black text-gray-900 uppercase tracking-tight">Edit Album</h1>
+            <p class="text-sm text-gray-500 mt-1">{{ $album->name ?: 'Tanpa Nama' }}</p>
         </div>
 
         {{-- ===== PESAN ERROR ===== --}}
@@ -23,7 +25,7 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
              x-data="{
                 selectedPhotoId: '{{ old('cover_photo_id', $album->latestPhoto?->id ?? '') }}',
-                selectedPhotoUrl: '{{ $album->latestPhoto ? asset('storage/' . $album->latestPhoto->uri) : '' }}'
+                selectedPhotoUrl: '{{ $album->latestPhoto ? $album->latestPhoto->photo_url : '' }}'
              }"
         >
             <form action="{{ route('foto.album.update', $album->id) }}" method="POST">
@@ -98,7 +100,7 @@
                                         type="button"
                                         @click="
                                             selectedPhotoId = '{{ $photo->id }}';
-                                            selectedPhotoUrl = '{{ asset('storage/' . $photo->uri) }}';
+                                            selectedPhotoUrl = '{{ $photo->photo_url }}';
                                         "
                                         class="relative aspect-square rounded-xl overflow-hidden border-2 transition-all duration-150 focus:outline-none"
                                         :class="selectedPhotoId == '{{ $photo->id }}'
@@ -106,9 +108,10 @@
                                             : 'border-gray-200 hover:border-gray-400'"
                                     >
                                         <img
-                                            src="{{ asset('storage/' . $photo->uri) }}"
+                                            src="{{ $photo->photo_url }}"
                                             alt="{{ $photo->des ?: 'Foto #' . $photo->id }}"
                                             class="w-full h-full object-cover"
+                                            onerror="this.onerror=null; this.src='{{ asset('assets/img/default.png') }}';"
                                         >
                                         {{-- Centang jika terpilih --}}
                                         <div x-show="selectedPhotoId == '{{ $photo->id }}'" class="absolute inset-0 bg-red-600/20 flex items-center justify-center">

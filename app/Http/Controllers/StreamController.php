@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Stream;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class StreamController extends Controller
 {
@@ -21,6 +23,27 @@ class StreamController extends Controller
 
         if (empty($request->message) && !$request->hasFile('photos') && empty($request->video_url) && !$request->hasFile('music_file')) {
             return back()->withErrors(['message' => 'Postingan tidak boleh kosong.']);
+        }
+
+        // Cek kuota pengiriman harian untuk akun pending (Pending Member Submission Limit)
+        $currentUser = Auth::user();
+        if ($currentUser && (int) $currentUser->disabled === 1) {
+            $pendingLimit = (int) \App\Helpers\SettingHelper::get('pending_post_limit', 5);
+            if ($pendingLimit >= 0) {
+                $todayStart = strtotime('today midnight');
+                $todayPostsCount = DB::table('jcow_streams')
+                    ->where('uid', $currentUser->id)
+                    ->where('created', '>=', $todayStart)
+                    ->count();
+
+                if ($todayPostsCount >= $pendingLimit) {
+                    $limitMessage = "Batas pengiriman untuk akun pending telah tercapai ({$pendingLimit} postingan per hari).";
+                    if ($request->ajax() || $request->wantsJson()) {
+                        return response()->json(['error' => $limitMessage, 'message' => $limitMessage], 422);
+                    }
+                    return back()->withErrors(['message' => $limitMessage]);
+                }
+            }
         }
 
         $message = $request->message ?? '';
@@ -103,7 +126,7 @@ class StreamController extends Controller
             $type = 3; // 3 = video
             
             // Tambahkan ke My Apps (Video)
-            \App\Models\Video::create([
+            $createdVideo = \App\Models\Video::create([
                 'title'   => $request->video_title ?? 'Video Post',
                 'content' => $request->video_desc ?? ($request->message ?? ''),
                 'var1'    => $request->video_url,
@@ -137,6 +160,25 @@ class StreamController extends Controller
                 'page_id' => 0,
                 'page_type' => '',
             ]);
+
+            $attachment = json_encode([
+                'video_url' => $request->video_url,
+                'album_id' => $videoAlbumId,
+                'video_id' => $createdVideo->id,
+                'title' => $request->video_title ?? '',
+                'desc' => $request->video_desc ?? ''
+            ]);
+            $type = 3; // 3 = video
+        }
+
+        $wallId = (int) $request->input('wall_id', 0);
+        $app = $request->input('app', 'feed');
+
+        if ($wallId > 0 && $wallId !== (int) auth()->id() && $app === 'feed') {
+            $friendRepo = app(\App\Repositories\Contracts\FriendRepositoryInterface::class);
+            if ($friendRepo->areBlocked(auth()->id(), $wallId)) {
+                return response()->json(['status' => 'error', 'message' => 'Tidak dapat memposting di dinding pengguna ini.'], 403);
+            }
         }
 
         $stream = Stream::create([
@@ -144,14 +186,18 @@ class StreamController extends Controller
             'uid' => auth()->id(),
             'created' => time(),
             'type' => $type,
-            'app' => $request->input('app', 'feed'),
-            'wall_id' => $request->input('wall_id', 0),
+            'app' => $app,
+            'wall_id' => $wallId,
             'attachment' => $attachment,
             'aid' => $request->input('aid', 0),
             'hide' => 0,
             'likes' => 0,
             'privacy' => $request->input('privacy', 'public')
         ]);
+
+        if (isset($createdVideo) && $createdVideo) {
+            $createdVideo->update(['stream_id' => $stream->id]);
+        }
 
         $stream->loadMissing(['user', 'comments.user', 'targetPage', 'targetWallUser']);
         $html = view('components.single-stream', ['stream' => $stream])->render();
@@ -179,7 +225,7 @@ class StreamController extends Controller
     {
         $stream = Stream::findOrFail($id);
         
-        if (auth()->id() !== $stream->uid) {
+        if ((int) auth()->id() !== (int) $stream->uid) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -215,18 +261,18 @@ class StreamController extends Controller
         $canDelete = false;
         
         $user = auth()->user();
-        $isAdmin = $user && ($user->level == 1 || in_array(strtolower($user->roles ?? ''), ['admin', 'administrator']));
+        $isAdmin = $user && $user->isAdmin();
 
-        if (auth()->id() === $stream->uid || $isAdmin) {
+        if ((int) auth()->id() === (int) $stream->uid || $isAdmin) {
             $canDelete = true;
         } else if ($stream->app === 'group') {
             $group = \App\Models\Group::find($stream->wall_id);
-            if ($group && $group->uid === auth()->id()) {
+            if ($group && (int) $group->uid === (int) auth()->id()) {
                 $canDelete = true;
             }
         } else if ($stream->app === 'page') {
             $page = \App\Models\Page::find($stream->wall_id);
-            if ($page && $page->uid === auth()->id()) {
+            if ($page && (int) $page->uid === (int) auth()->id()) {
                 $canDelete = true;
             }
         }
@@ -239,12 +285,112 @@ class StreamController extends Controller
             $att = json_decode($stream->attachment, true);
             if (isset($att['photos']) && is_array($att['photos'])) {
                 foreach ($att['photos'] as $photo) {
-                    \Illuminate\Support\Facades\Storage::disk('public')->delete('posts/' . $photo);
+                    $cleanPhoto = ltrim(trim($photo), '/');
+                    $filename = basename($cleanPhoto);
+
+                    $pathsToDelete = [
+                        $cleanPhoto,
+                        'posts/' . $cleanPhoto,
+                        'photos/' . $cleanPhoto,
+                        'posts/' . $filename,
+                        'photos/' . $filename,
+                        str_replace(['storage/', 'uploads/'], '', $cleanPhoto),
+                    ];
+
+                    foreach (array_unique($pathsToDelete) as $p) {
+                        if (!empty($p) && \Illuminate\Support\Facades\Storage::disk('public')->exists($p)) {
+                            \Illuminate\Support\Facades\Storage::disk('public')->delete($p);
+                        }
+                    }
+
+                    // Hapus record Photo dari jcow_story_photos agar tidak meninggalkan jejak di album
+                    \App\Models\Photo::where(function($q) use ($photo, $cleanPhoto, $filename) {
+                        $q->where('uri', $photo)
+                          ->orWhere('uri', $cleanPhoto)
+                          ->orWhere('uri', 'posts/' . $filename)
+                          ->orWhere('uri', 'photos/' . $filename)
+                          ->orWhere('uri', 'LIKE', '%' . $filename)
+                          ->orWhere('thumb', $photo)
+                          ->orWhere('thumb', $cleanPhoto)
+                          ->orWhere('thumb', 'posts/' . $filename)
+                          ->orWhere('thumb', 'photos/' . $filename)
+                          ->orWhere('thumb', 'LIKE', '%' . $filename);
+                    })->delete();
                 }
             }
         }
 
         $stream->delete();
         return back()->with('success', 'Postingan berhasil dihapus.');
+    }
+
+    /**
+     * Menampilkan halaman detail satu postingan (single stream).
+     */
+    public function show($id)
+    {
+        $stream = Stream::with([
+            'user',
+            'comments.user',
+            'targetPage',
+            'targetWallUser'
+        ])->findOrFail($id);
+
+        $currentUser = auth()->user();
+        $isAdmin = $currentUser && $currentUser->isAdmin();
+
+        // Pengecekan izin akses jika bukan admin dan bukan pemilik postingan
+        if (!$isAdmin && (!$currentUser || $currentUser->id !== $stream->uid)) {
+            if ($currentUser) {
+                $friendRepo = app(\App\Repositories\Contracts\FriendRepositoryInterface::class);
+                if ($friendRepo->areBlocked($currentUser->id, $stream->uid)) {
+                    abort(404, 'Postingan tidak ditemukan atau telah dihapus.');
+                }
+            }
+
+            // 1. Postingan tersembunyi
+            if ($stream->hide == 1) {
+                abort(404, 'Postingan tidak ditemukan atau telah disembunyikan.');
+            }
+
+            // 2. Postingan private
+            if ($stream->privacy === 'private') {
+                abort(403, 'Postingan ini bersifat pribadi.');
+            }
+
+            // 3. Postingan hanya untuk teman
+            if ($stream->privacy === 'friends') {
+                if (!$currentUser) {
+                    return redirect()->guest(route('login'))->with('error', 'Silakan masuk untuk melihat postingan ini.');
+                }
+                $isFriend = DB::table('jcow_friends')
+                    ->where(function ($q) use ($currentUser, $stream) {
+                        $q->where('uid', $currentUser->id)->where('fid', $stream->uid);
+                    })
+                    ->orWhere(function ($q) use ($currentUser, $stream) {
+                        $q->where('uid', $stream->uid)->where('fid', $currentUser->id);
+                    })
+                    ->exists();
+                if (!$isFriend) {
+                    abort(403, 'Postingan ini hanya dibagikan kepada teman.');
+                }
+            }
+
+            // 4. Postingan pada grup privat
+            if ($stream->app === 'group' && $stream->wall_id) {
+                $group = \App\Models\Group::find($stream->wall_id);
+                if ($group && $group->type === 'private_group') {
+                    if (!$currentUser) {
+                        return redirect()->guest(route('login'))->with('error', 'Silakan masuk untuk melihat postingan pada grup ini.');
+                    }
+                    $isMember = ($group->uid === $currentUser->id) || $group->members()->where('uid', $currentUser->id)->exists();
+                    if (!$isMember) {
+                        abort(403, 'Postingan ini berada di grup privat.');
+                    }
+                }
+            }
+        }
+
+        return view('stream.show', compact('stream'));
     }
 }

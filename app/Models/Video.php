@@ -26,12 +26,21 @@ class Video extends Model
     public $timestamps = false;
 
     /**
-     * Global scope: selalu filter hanya record dengan app = 'video'.
+     * Global scope: selalu filter hanya record dengan app = 'video' dan penulis yang akunnya masih ada.
      */
     protected static function booted(): void
     {
         static::addGlobalScope('video_app', function ($query) {
             $query->whereIn('app', ['video', 'videos']);
+        });
+
+        static::addGlobalScope('valid_author', function ($query) {
+            $query->where('jcow_stories.uid', '>', 0)
+                  ->whereExists(function ($sub) {
+                      $sub->select(\Illuminate\Support\Facades\DB::raw(1))
+                          ->from('jcow_accounts')
+                          ->whereColumn('jcow_accounts.id', 'jcow_stories.uid');
+                  });
         });
     }
 
@@ -83,26 +92,32 @@ class Video extends Model
         return $this->belongsTo(AlbumVideo::class, 'cid', 'id');
     }
 
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'uid', 'id');
+    }
+
     // ────────────────────────────────────────────
     //  ACCESSOR / HELPERS
     // ────────────────────────────────────────────
 
     /**
-     * Ekstrak YouTube Video ID dari var1 (URL YouTube).
-     * Mendukung:
-     *   - https://www.youtube.com/watch?v=VIDEO_ID
-     *   - https://youtu.be/VIDEO_ID
-     *   - https://www.youtube.com/embed/VIDEO_ID
+     * Ekstrak YouTube Video ID dari var1 (URL YouTube atau raw ID).
      */
     public function getYoutubeIdAttribute(): ?string
     {
-        $url = $this->var1;
+        $url = trim($this->var1 ?? '');
         if (!$url) return null;
+
+        // Jika var1 sudah berupa raw 11-char YouTube ID (format legacy JCow)
+        if (preg_match('/^[a-zA-Z0-9_\-]{11}$/', $url)) {
+            return $url;
+        }
 
         if (preg_match('/youtu\.be\/([a-zA-Z0-9_\-]{11})/', $url, $m)) {
             return $m[1];
         }
-        if (preg_match('/(?:v=|\/embed\/)([a-zA-Z0-9_\-]{11})/', $url, $m)) {
+        if (preg_match('/(?:v=|\/embed\/|\/v\/)([a-zA-Z0-9_\-]{11})/', $url, $m)) {
             return $m[1];
         }
 
@@ -110,10 +125,21 @@ class Video extends Model
     }
 
     /**
-     * URL thumbnail YouTube resolusi medium (mqdefault.jpg).
+     * URL thumbnail YouTube resolusi medium, atau file lokal jika tersedia.
      */
     public function getYoutubeThumbnailAttribute(): ?string
     {
+        if (!empty($this->thumbnail)) {
+            $thumb = trim($this->thumbnail);
+            if (str_starts_with($thumb, 'uploads/')) {
+                return asset($thumb);
+            }
+            if (str_starts_with($thumb, 'storage/')) {
+                return asset($thumb);
+            }
+            return asset('uploads/' . $thumb);
+        }
+
         $id = $this->youtube_id;
         return $id ? "https://img.youtube.com/vi/{$id}/mqdefault.jpg" : null;
     }

@@ -24,17 +24,18 @@
         <ul class="divide-y divide-gray-100">
             @foreach($group->members as $member)
                 <li x-show="'{{ strtolower(addslashes($member->fullname ?: $member->username)) }}'.includes(search.toLowerCase())" class="flex justify-between items-center px-6 py-4 hover:bg-gray-50 transition-colors">
-                    <div class="flex items-center gap-4">
-                        <img src="{{ asset('img/avatar.png') }}" alt="{{ $member->fullname ?: $member->username }}" class="w-12 h-12 rounded-full object-cover bg-gray-100 border border-gray-200">
+                    <a href="{{ route('profile.show', $member->username) }}" class="flex items-center gap-4 group/member">
+                        <img src="{{ $member->avatar_url }}" alt="{{ $member->fullname ?: $member->username }}" class="w-12 h-12 rounded-full object-cover bg-gray-100 border border-gray-200 group-hover/member:opacity-85 transition-opacity" onerror="this.onerror=null; this.src='{{ asset('assets/img/default.png') }}';">
                         <div>
-                            <span class="text-gray-900 font-bold block">{{ $member->fullname ?: $member->username }}</span>
+                            <span class="text-gray-900 font-bold block group-hover/member:text-red-700 transition-colors">{{ $member->fullname ?: $member->username }}</span>
+                            <span class="text-xs text-gray-400 block">{{ '@' . $member->username }}</span>
                             @if($member->id === $group->uid)
                                 <span class="inline-block mt-1 text-[10px] uppercase tracking-wider font-semibold bg-blue-100 text-blue-700 px-2 py-0.5 rounded">Creator</span>
                             @else
                                 <span class="inline-block mt-1 text-xs text-gray-500">Member</span>
                             @endif
                         </div>
-                    </div>
+                    </a>
                     
                     @if(Auth::id() === $group->uid && $member->id !== Auth::id())
                         <form action="{{ route('groups.members.kick', [$group->id, $member->id]) }}" method="POST">

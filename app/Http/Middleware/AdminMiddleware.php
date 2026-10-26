@@ -23,12 +23,7 @@ class AdminMiddleware
         }
 
         // 2. Cek apakah user adalah Admin
-        // Di database Jcow legacy (jcow_accounts), role disimpan di kolom 'roles'
-        // Secara umum, admin diset dengan value '1' atau 'admin' atau 'Administrator'
-        $role = Auth::user()->roles;
-        $roleLower = strtolower($role);
-        
-        if ($role != 1 && !in_array($roleLower, ['admin', 'administrator'])) {
+        if (!Auth::user()->isAdmin()) {
             // Tolak akses jika bukan admin
             abort(403, 'Akses Ditolak. Halaman ini khusus untuk Administrator.');
         }

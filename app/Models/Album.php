@@ -15,6 +15,21 @@ class Album extends Model
     // Tabel ini tidak memiliki kolom created_at / updated_at standar Laravel
     public $timestamps = false;
 
+    /**
+     * Global scope: hanya tampilkan album dari pemilik yang akunnya masih aktif.
+     */
+    protected static function booted(): void
+    {
+        static::addGlobalScope('valid_owner', function ($query) {
+            $query->where('jcow_story_categories.gid', '>', 0)
+                  ->whereExists(function ($sub) {
+                      $sub->select(\Illuminate\Support\Facades\DB::raw(1))
+                          ->from('jcow_accounts')
+                          ->whereColumn('jcow_accounts.id', 'jcow_story_categories.gid');
+                  });
+        });
+    }
+
     protected $fillable = [
         'name',
         'description',

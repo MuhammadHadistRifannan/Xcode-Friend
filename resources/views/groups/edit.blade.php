@@ -28,7 +28,9 @@
                     <label class="block text-sm font-bold text-gray-700 mb-4">Ubah Logo</label>
                     
                     <div class="flex items-center gap-6 mb-4">
-                        <img src="{{ $group->logo ? asset('storage/'.$group->logo) : asset('img/default-group.png') }}" class="w-20 h-20 rounded-full object-cover border border-gray-200 bg-gray-100" alt="Current Logo">
+                        <img src="{{ $group->logo_url ?: asset('assets/img/default.png') }}"
+                             onerror="this.onerror=null; this.src='{{ asset('assets/img/default.png') }}';"
+                             class="w-20 h-20 rounded-full object-cover border border-gray-200 bg-gray-100" alt="Current Logo">
                         <input type="file" name="logo" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" accept="image/*">
                     </div>
                 </div>
@@ -37,8 +39,8 @@
                     <label class="block text-sm font-bold text-gray-700 mb-4">Ubah Banner (Background)</label>
                     
                     <div class="flex flex-col gap-4 mb-4">
-                        @if($group->background)
-                            <img src="{{ asset('storage/'.$group->background) }}" class="w-full h-32 rounded-xl object-cover border border-gray-200 bg-gray-100" alt="Current Banner">
+                        @if($group->background_url)
+                            <img src="{{ $group->background_url }}" class="w-full h-32 rounded-xl object-cover border border-gray-200 bg-gray-100" alt="Current Banner">
                         @else
                             <div class="w-full h-32 rounded-xl border border-dashed border-gray-300 bg-gray-50 flex items-center justify-center text-gray-400">
                                 Belum ada banner

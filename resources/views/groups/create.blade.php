@@ -39,7 +39,7 @@
                 </div>
 
                 <div class="flex justify-end gap-3 pt-6 mt-6 border-t border-gray-100">
-                    <a href="{{ route('groups.browse') }}" class="px-5 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors">Batal</a>
+                    <a href="{{ route('groups.mine') }}" class="px-5 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors">Batal</a>
                     <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-medium shadow-sm transition-colors">Simpan Grup</button>
                 </div>
             </form>

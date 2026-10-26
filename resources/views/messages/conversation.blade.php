@@ -88,8 +88,8 @@
                 <a href="{{ route('messages.index') }}" class="text-gray-500 hover:text-gray-700 transition">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                 </a>
-                <div class="w-10 h-10 rounded-full bg-[#f4dada] flex items-center justify-center text-[#b71c1c] font-bold">
-                    {{ substr($otherUser->fullname ?? 'U', 0, 1) }}
+                <div class="w-10 h-10 rounded-full bg-[#f4dada] flex items-center justify-center overflow-hidden shrink-0">
+                    <img src="{{ \App\Models\User::avatarUrl($otherUser->avatar ?? null) }}" alt="{{ $otherUser->fullname ?? 'User' }}" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='{{ asset('assets/img/default.png') }}';">
                 </div>
                 <div>
                     @php
@@ -130,23 +130,24 @@
                                 data-from="{{ $msg->from_id }}"
                                 data-message="{{ $msg->message }}"
                                 data-attachment="{{ $msg->attachment ?? '' }}"
-                                data-attachment-url="{{ !empty($msg->attachment) ? asset('storage/' . $msg->attachment) : '' }}"
+                                data-attachment-url="{{ !empty($msg->attachment) ? \Illuminate\Support\Facades\Storage::disk('public')->url($msg->attachment) : '' }}"
                                 onclick="showContextMenu(event, this)">
 
-                                @if($msg->reply_to && $msg->replied_message)
-                                    <div class="mb-2 {{ $isMine ? 'bg-white/15' : 'bg-gray-50' }} rounded-lg px-3 py-2 border-l-[3px] {{ $isMine ? 'border-white/40' : 'border-[#b71c1c]' }}">
+                                @if($msg->reply_to && ($msg->replied_message || $msg->replied_attachment))
+                                    <div class="mb-2 {{ $isMine ? 'bg-white/15' : 'bg-gray-50' }} rounded-lg px-3 py-2 border-l-[3px] {{ $isMine ? 'border-white/40' : 'border-[#b71c1c]' }} hover:opacity-80 transition cursor-pointer"
+                                         onclick="scrollToMessage(event, '{{ $msg->reply_to }}')">
                                         <p class="text-[10px] font-bold {{ $isMine ? 'text-white/90' : 'text-[#b71c1c]' }}">{{ $msg->replied_sender_name }}</p>
-                                        <p class="text-[10px] {{ $isMine ? 'text-white/70' : 'text-gray-500' }} truncate">{{ Str::limit($msg->replied_message, 80) }}</p>
+                                        <p class="text-[10px] {{ $isMine ? 'text-white/70' : 'text-gray-500' }} truncate">{{ $msg->replied_message ? Str::limit($msg->replied_message, 80) : '📷 Foto' }}</p>
                                     </div>
                                 @endif
 
                                 @if(!empty($msg->attachment))
                                     <div class="mb-2 overflow-hidden rounded-lg">
-                                        <img src="{{ '/storage/' . $msg->attachment }}" 
+                                        <img src="{{ asset('uploads/' . $msg->attachment) }}" 
                                              alt="Foto lampiran" 
                                              class="max-w-full max-h-64 object-cover rounded-lg hover:opacity-95 transition cursor-zoom-in"
                                              loading="lazy"
-                                             onclick="openLightbox(event, '{{ '/storage/' . $msg->attachment }}')">
+                                             onclick="openLightbox(event, '{{ asset('uploads/' . $msg->attachment) }}')">
                                     </div>
                                 @endif
 
@@ -335,6 +336,23 @@
         container.scrollTop = container.scrollHeight;
     }
 
+    function scrollToMessage(e, id) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        var targetBubble = document.querySelector('.chat-bubble[data-id="' + id + '"]');
+        if (targetBubble) {
+            targetBubble.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            targetBubble.classList.add('ring-4', 'ring-[#b71c1c]', 'ring-opacity-50', 'transition-all', 'duration-300');
+            setTimeout(function() {
+                targetBubble.classList.remove('ring-4', 'ring-[#b71c1c]', 'ring-opacity-50');
+            }, 1500);
+        } else {
+            Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: 'Pesan tidak ditemukan.', showConfirmButton: false, timer: 3000 });
+        }
+    }
+
     function escapeHtml(text) {
         var div = document.createElement('div');
         div.appendChild(document.createTextNode(text));
@@ -357,7 +375,11 @@
         var timeAlign = isMine ? 'justify-end' : 'justify-start';
         var time = formatTime(message.created);
 
-        var imgUrl = message.attachment_url || (message.attachment ? (window.AppBase || window.location.origin) + '/storage/' + message.attachment : null);
+        var imgUrl = message.attachment_url;
+        if (message.attachment && (!imgUrl || !imgUrl.startsWith('blob:'))) {
+            var basePath = window.AppBase || window.location.origin;
+            imgUrl = basePath.replace(/\/$/, '') + '/uploads/' + message.attachment;
+        }
         var imgHtml = '';
         if (imgUrl) {
             imgHtml = '<div class="mb-2 overflow-hidden rounded-lg">'
@@ -371,14 +393,15 @@
         }
 
         var replyHtml = '';
-        if (message.reply_to && message.replied_message) {
+        if (message.reply_to && (message.replied_message || message.replied_attachment)) {
             var replySenderClass = isMine ? 'text-white/90' : 'text-[#b71c1c]';
             var replyTextClass = isMine ? 'text-white/70' : 'text-gray-500';
             var replyBgClass = isMine ? 'bg-white/15' : 'bg-gray-50';
             var replyBorderClass = isMine ? 'border-white/40' : 'border-[#b71c1c]';
-            replyHtml = '<div class="mb-2 ' + replyBgClass + ' rounded-lg px-3 py-2 border-l-[3px] ' + replyBorderClass + '">'
+            var replyTextContent = message.replied_message ? (message.replied_message.length > 80 ? message.replied_message.substring(0, 80) + '...' : message.replied_message) : '📷 Foto';
+            replyHtml = '<div class="mb-2 ' + replyBgClass + ' rounded-lg px-3 py-2 border-l-[3px] ' + replyBorderClass + ' hover:opacity-80 transition cursor-pointer" onclick="scrollToMessage(event, \'' + message.reply_to + '\')">'
                 + '<p class="text-[10px] font-bold ' + replySenderClass + '">' + escapeHtml(message.replied_sender_name || '') + '</p>'
-                + '<p class="text-[10px] ' + replyTextClass + ' truncate">' + escapeHtml(message.replied_message.length > 80 ? message.replied_message.substring(0, 80) + '...' : message.replied_message) + '</p>'
+                + '<p class="text-[10px] ' + replyTextClass + ' truncate">' + escapeHtml(replyTextContent) + '</p>'
                 + '</div>';
         }
 
@@ -621,14 +644,34 @@
                     'Accept': 'application/json'
                 }
             })
-            .then(function(res) { return res.json(); })
+            .then(async function(res) {
+                var data = await res.json();
+                if (!res.ok) {
+                    throw data;
+                }
+                return data;
+            })
             .then(function(data) {
-                if (data.status !== 'success') {
-                    Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: data.message || 'Gagal mengirim pesan.', showConfirmButton: false, timer: 3000 });
+                if (data.status === 'success') {
+                    var tempBubble = document.querySelector('.chat-bubble[data-id="' + tempMsg.id + '"]');
+                    if (tempBubble) {
+                        tempBubble.dataset.id = data.message.id;
+                    }
+                } else {
+                    throw data;
                 }
             })
             .catch(function(err) {
-                console.error(err);
+                var tempBubble = document.querySelector('.chat-bubble[data-id="' + tempMsg.id + '"]');
+                if (tempBubble) {
+                    tempBubble.closest('.flex').remove();
+                }
+                var errorMsg = err.message || 'Gagal mengirim pesan.';
+                if (err.errors) {
+                    var firstError = Object.values(err.errors)[0];
+                    if (Array.isArray(firstError)) errorMsg = firstError[0];
+                }
+                Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: errorMsg, showConfirmButton: false, timer: 3000 });
             });
         });
     }
@@ -679,7 +722,14 @@
         contextMenu.classList.add('hidden');
         var senderName = selectedMsg.from == currentUserId ? 'Kamu' : '{{ $otherUser->fullname }}';
         replySender.textContent = senderName;
-        replyText.textContent = selectedMsg.message;
+        var replyBody = selectedMsg.message;
+        if (!replyBody || replyBody.trim() === '') {
+            var el = document.querySelector('.chat-bubble[data-id="' + selectedMsg.id + '"]');
+            if (el && (el.dataset.attachment || el.dataset.attachmentUrl)) {
+                replyBody = '📷 Foto';
+            }
+        }
+        replyText.textContent = replyBody;
         replyToInput.value = selectedMsg.id;
         replyPreview.classList.remove('hidden');
         messageInput.value = '';

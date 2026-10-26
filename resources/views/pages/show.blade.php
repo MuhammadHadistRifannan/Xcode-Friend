@@ -2,6 +2,17 @@
 
 @section('content')
 <div class="max-w-[95%] lg:max-w-5xl mx-auto w-full py-6">
+    
+    {{-- Tombol Kembali ke Daftar Pages --}}
+    <div class="mb-5">
+        <a href="{{ route('pages.index') }}" class="inline-flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-red-700 bg-white border border-gray-200 hover:border-gray-300 px-4 py-2 rounded-xl shadow-sm hover:shadow transition-all group">
+            <svg class="w-4 h-4 text-gray-500 group-hover:text-red-700 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            <span>Kembali ke Daftar Pages</span>
+        </a>
+    </div>
+
     <div class="flex flex-col lg:flex-row gap-6">
         
         
@@ -30,258 +41,16 @@
             @endif
 
             <!-- Feed Postingan / Empty State -->
-            <div id="feed-stream-container" class="max-h-[600px] overflow-y-auto pr-2 pb-4 space-y-5 scrollbar-thin scrollbar-thumb-gray-200">
+            <div id="feed-stream-container" class="max-h-[600px] overflow-y-auto pr-2 pb-4 space-y-5 scrollbar-thin scrollbar-thumb-gray-200" data-page-id="{{ $page->id }}">
                 @forelse($page->streams as $post)
-                    <div id="post-{{ $post->id }}" class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-                    <!-- Post Header: Avatar + Nama + Waktu -->
-                    <div class="flex items-start justify-between mb-3 relative" x-data="{ openOptions: false }">
-                        <div class="flex items-start gap-3">
-                            <img src="{{ $post->user->avatar_url }}"
-                                 class="w-10 h-10 rounded-full object-cover border border-gray-200 shrink-0" alt="Avatar">
-                            <div>
-                                <span class="font-bold text-gray-900 text-sm">{{ $post->user?->fullname ?? $post->user?->username ?? 'Unknown User' }}</span>
-                                <p class="text-xs text-gray-400 mt-0.5">{{ \Carbon\Carbon::createFromTimestamp($post->created)->diffForHumans() }}</p>
-                            </div>
-                        </div>
-
-                        <!-- Tombol Opsi Postingan (Hanya untuk Admin Grup atau Pemilik Postingan) -->
-                        <!-- Tombol Opsi Postingan -->
-                        <div>
-                            <button @click="openOptions = !openOptions" @click.away="openOptions = false" type="button" class="text-gray-400 hover:text-gray-600 transition p-1 rounded-full hover:bg-gray-100 focus:outline-none" title="Opsi Postingan">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
-                            </button>
-
-                            <!-- Dropdown Menu -->
-                            <div x-show="openOptions" style="display: none;"
-                                 x-transition:enter="transition ease-out duration-100"
-                                 x-transition:enter-start="transform opacity-0 scale-95"
-                                 x-transition:enter-end="transform opacity-100 scale-100"
-                                 x-transition:leave="transition ease-in duration-75"
-                                 x-transition:leave-start="transform opacity-100 scale-100"
-                                 x-transition:leave-end="transform opacity-0 scale-95"
-                                 class="absolute right-0 top-8 mt-1 w-36 bg-white border border-gray-200 rounded-md shadow-lg z-10 py-1">
-                                
-                                @if(Auth::id() === $page->uid || Auth::id() === $post->uid)
-                                    @if(Auth::id() === $post->uid)
-                                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 w-full text-left">Edit</a>
-                                    @endif
-                                    <form action="{{ route('stream.destroy', $post->id) }}" method="POST">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" onclick="return confirm('Hapus postingan ini?')" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 w-full text-left">
-                                            Hapus
-                                        </button>
-                                    </form>
-                                @endif
-                                
-                                <button type="button" onclick="openReportModal('{{ url('groups/' . $page->id . '#post-' . $post->id) }}')" class="block px-4 py-2 text-sm text-yellow-600 hover:bg-yellow-50 w-full text-left">
-                                    Laporkan
-                                </button>
-                            </div>
-                        </div>
+                    <x-single-stream :stream="$post" />
+                @empty
+                    <div id="feed-empty-state" class="bg-white rounded-xl shadow-sm border border-gray-200 py-20 px-4 flex flex-col items-center justify-center text-center">
+                        <svg class="w-16 h-16 text-gray-200 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
+                        <p class="text-gray-500 font-bold">Belum ada postingan</p>
+                        <p class="text-sm text-gray-400 mt-1">Jadilah yang pertama memulai percakapan di halaman ini!</p>
                     </div>
-
-                    <!-- Isi Postingan -->
-                    @if($post->message)
-                        <p class="text-gray-700 text-sm leading-relaxed mb-3">{{ $post->message }}</p>
-                    @endif
-
-                    @if($post->app === 'music' && $post->attachment)
-                        <div class="mb-4 bg-gray-50 rounded-xl border border-gray-200 p-4 flex items-center gap-4 shadow-sm">
-                            <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center text-red-600 flex-shrink-0">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <h5 class="text-sm font-bold text-gray-800 truncate mb-2">{{ $post->message ?: 'Lagu tanpa judul' }}</h5>
-                                <audio controls class="w-full h-8 outline-none" preload="none">
-                                    <source src="{{ asset('storage/music/' . $post->attachment) }}" type="audio/mpeg">
-                                    Browser Anda tidak mendukung elemen audio.
-                                </audio>
-                            </div>
-                        </div>
-                    @endif
-
-                    <!-- Attachment (Foto atau YouTube Embed) -->
-                    @if($post->attachment)
-                        @if($post->type == 2)
-                            @php $att = json_decode($post->attachment, true); @endphp
-                            @if(is_array($att) && isset($att['photos']))
-                                @php 
-                                    $ptCount = count($att['photos']); 
-                                    $photoUrls = array_map(fn($p) => asset('storage/posts/' . $p), $att['photos']);
-                                    $jsonPhotos = json_encode($photoUrls);
-                                @endphp
-                                <div class="mt-3 rounded-xl overflow-hidden border border-neutral-200">
-                                    @if($ptCount == 1)
-                                        <img src="{{ $photoUrls[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' class="w-full h-auto max-h-[500px] object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
-                                    @elseif($ptCount == 2)
-                                        <div class="grid grid-cols-2 gap-1 h-64 sm:h-80">
-                                            <img src="{{ $photoUrls[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
-                                            <img src="{{ $photoUrls[1] }}" onclick='openLightbox({!! $jsonPhotos !!}, 1)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
-                                        </div>
-                                    @elseif($ptCount == 3)
-                                        <div class="grid grid-cols-2 gap-1 h-64 sm:h-80">
-                                            <img src="{{ $photoUrls[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
-                                            <div class="grid grid-rows-2 gap-1 h-full">
-                                                <img src="{{ $photoUrls[1] }}" onclick='openLightbox({!! $jsonPhotos !!}, 1)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
-                                                <img src="{{ $photoUrls[2] }}" onclick='openLightbox({!! $jsonPhotos !!}, 2)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
-                                            </div>
-                                        </div>
-                                    @elseif($ptCount >= 4)
-                                        <div class="grid grid-cols-2 grid-rows-2 gap-1 h-72 sm:h-96">
-                                            <img src="{{ $photoUrls[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
-                                            <img src="{{ $photoUrls[1] }}" onclick='openLightbox({!! $jsonPhotos !!}, 1)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
-                                            <img src="{{ $photoUrls[2] }}" onclick='openLightbox({!! $jsonPhotos !!}, 2)' class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
-                                            <div class="relative w-full h-full" onclick='openLightbox({!! $jsonPhotos !!}, 3)'>
-                                                <img src="{{ $photoUrls[3] }}" class="w-full h-full object-cover cursor-pointer" alt="Post Photo">
-                                                @if($ptCount > 4)
-                                                    <div class="absolute inset-0 bg-black/60 flex items-center justify-center cursor-pointer hover:bg-black/50 transition">
-                                                        <span class="text-white text-3xl font-bold">+{{ $ptCount - 4 }}</span>
-                                                    </div>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    @endif
-                                </div>
-                            @elseif(is_array($att) && isset($att['photo']))
-                                @php $singlePhoto = json_encode([asset('storage/posts/' . $att['photo'])]); @endphp
-                                <div class="mt-3 rounded-xl overflow-hidden border border-neutral-200">
-                                    <img src="{{ asset('storage/posts/' . $att['photo']) }}" onclick='openLightbox({!! $singlePhoto !!}, 0)' class="w-full h-auto cursor-pointer hover:opacity-95 transition" alt="Post Photo">
-                                </div>
-                            @else
-                                <!-- Legacy Single Image -->
-                                <img src="{{ asset('storage/'.$post->attachment) }}" class="w-full rounded-xl max-h-96 object-contain bg-gray-50 border border-gray-100 mt-2" alt="Attachment">
-                            @endif
-                        @elseif($post->type == 3)
-                            @php $att = json_decode($post->attachment, true); @endphp
-                            @if(is_array($att) && isset($att['video_url']))
-                                @php
-                                    $videoUrl = $att['video_url'];
-                                    $embedUrl = '';
-                                    if (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i', $videoUrl, $matches)) {
-                                        $embedUrl = 'https://www.youtube.com/embed/' . $matches[1];
-                                    }
-                                @endphp
-                                <div class="mt-3 rounded-xl overflow-hidden border border-neutral-200">
-                                    @if($embedUrl)
-                                        <iframe src="{{ $embedUrl }}" class="w-full h-[300px]" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                                    @else
-                                        <a href="{{ $videoUrl }}" target="_blank" class="text-blue-600 hover:underline flex items-center p-3 bg-neutral-50"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Tonton Video</a>
-                                    @endif
-                                </div>
-                            @elseif(str_starts_with($post->attachment, 'youtube:'))
-                                <!-- Legacy YouTube -->
-                                @php $ytId = str_replace('youtube:', '', $post->attachment); @endphp
-                                <div class="rounded-xl overflow-hidden mt-2 bg-black aspect-video">
-                                    <iframe class="w-full h-full" src="https://www.youtube.com/embed/{{ $ytId }}" title="YouTube video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                                </div>
-                            @endif
-                        @endif
-                    @endif
-
-                    <!-- Aksi Post (Like & Comment) -->
-                    <div class="flex items-center gap-4 border-t border-gray-100 pt-3 mt-3 text-xs font-bold text-gray-500">
-                        @php
-                            $isLiked = $post->likedBy->where('uid', Auth::id())->count() > 0;
-                        @endphp
-                        <form action="{{ route('stream.like', $post->id) }}" method="POST">
-                            @csrf
-                            <button type="submit" class="flex items-center gap-1.5 transition-colors {{ $isLiked ? 'text-red-600' : 'hover:text-red-600' }}">
-                                <svg class="w-4 h-4 {{ $isLiked ? 'fill-current' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
-                                {{ $post->likedBy->count() }} Suka
-                            </button>
-                        </form>
-                        <div class="flex items-center gap-1.5">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
-                            {{ $post->comments->count() }} Komentar
-                        </div>
-                    </div>
-
-                    <!-- List Komentar -->
-                    @if($post->comments->count() > 0)
-                        <div class="bg-gray-50 rounded-lg p-4 mt-3 space-y-3 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200">
-                            @foreach($post->comments as $comment)
-                                <div class="flex gap-2" id="comment-{{ $comment->id }}">
-                                    <img src="{{ $comment->user->avatar_url }}"
-                                         class="w-8 h-8 rounded-full object-cover shrink-0 border border-gray-200" alt="Avatar">
-                                    <div x-data="{ editing: false, openCommentOptions: false }">
-                                        <div class="flex items-center gap-2 group">
-                                            <!-- Tampilan Komentar Biasa -->
-                                            <div x-show="!editing" class="bg-white px-3 py-2 rounded-2xl border border-gray-100 shadow-sm text-sm">
-                                                <span class="font-bold text-gray-900">{{ $comment->user?->fullname ?? $comment->user?->username ?? 'Unknown' }}</span>
-                                                <span class="text-gray-700 ml-1">{{ $comment->message }}</span>
-                                            </div>
-
-                                            <!-- Form Edit Komentar -->
-                                            <form x-show="editing" style="display: none;" action="{{ route('comment.update', $comment->id) }}" method="POST" class="flex gap-2 w-full max-w-sm">
-                                                @csrf
-                                                @method('PUT')
-                                                <input type="text" name="message" value="{{ $comment->message }}" class="flex-1 rounded-full bg-white border border-red-300 focus:ring-2 focus:ring-red-100 text-sm px-3 py-1 outline-none" required>
-                                                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white rounded-full px-3 py-1 text-xs font-bold transition-colors">Simpan</button>
-                                                <button type="button" @click="editing = false" class="bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full px-3 py-1 text-xs font-bold transition-colors">Batal</button>
-                                            </form>
-
-                                            <div class="relative" x-show="!editing">
-                                                <button @click="openCommentOptions = !openCommentOptions" @click.away="openCommentOptions = false" type="button" class="text-gray-400 hover:text-gray-600 transition p-1 rounded-full hover:bg-gray-200 focus:outline-none" title="Opsi Komentar">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
-                                                </button>
-                                                
-                                                <div x-show="openCommentOptions" style="display: none;"
-                                                     x-transition:enter="transition ease-out duration-100"
-                                                     x-transition:enter-start="transform opacity-0 scale-95"
-                                                     x-transition:enter-end="transform opacity-100 scale-100"
-                                                     x-transition:leave="transition ease-in duration-75"
-                                                     x-transition:leave-start="transform opacity-100 scale-100"
-                                                     x-transition:leave-end="transform opacity-0 scale-95"
-                                                     class="absolute left-0 top-6 mt-1 w-24 bg-white border border-gray-200 rounded-md shadow-lg z-20 py-1">
-                                                    
-                                                    @if(Auth::id() === $comment->uid)
-                                                    <button type="button" @click="editing = true; openCommentOptions = false" class="block px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 hover:text-gray-900 w-full text-left">Edit</button>
-                                                    @endif
-                                                    
-                                                    @if(Auth::id() === $comment->uid || Auth::id() === $page->uid)
-                                                    <form action="{{ route('comment.destroy', $comment->id) }}" method="POST">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit" onclick="return confirm('Hapus komentar ini?')" class="block px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 w-full text-left">
-                                                            Hapus
-                                                        </button>
-                                                    </form>
-                                                    @endif
-
-                                                    <button type="button" onclick="openReportModal('{{ url('groups/' . $page->id . '#comment-' . $comment->id) }}')" class="block px-3 py-1.5 text-xs text-yellow-600 hover:bg-yellow-50 w-full text-left">
-                                                        Laporkan
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center gap-3 mt-1 ml-2">
-                                            <p class="text-[10px] text-gray-400">{{ $comment->createdAt->diffForHumans() }}</p>
-                                            <button type="button" onclick="const inp = document.getElementById('comment-input-{{ $post->id }}'); if(inp) { inp.value = '@' + '{{ addslashes($comment->user?->fullname ?? $comment->user?->username ?? 'Unknown') }}' + ' '; inp.focus(); }" class="text-[10px] text-gray-500 font-semibold hover:text-red-600 transition-colors">Balas</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    @endif
-
-                    <!-- Form Komentar -->
-                    <form action="{{ route('stream.comment', $post->id) }}" method="POST" class="mt-3 flex gap-2">
-                        @csrf
-                        <input type="text" name="message" id="comment-input-{{ $post->id }}" placeholder="Tulis komentar..." required
-                               class="flex-1 rounded-full bg-gray-50 border border-gray-200 focus:bg-white focus:border-red-300 focus:ring-2 focus:ring-red-100 text-sm px-4 py-2 transition-all outline-none">
-                        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white rounded-full p-2 shrink-0 transition-colors flex items-center justify-center w-10 h-10 shadow-sm">
-                            <svg class="w-4 h-4 transform rotate-45 -mt-0.5 -ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
-                        </button>
-                    </form>
-                </div>
-            @empty
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 py-20 px-4 flex flex-col items-center justify-center text-center">
-                    <svg class="w-16 h-16 text-gray-200 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
-                    <p class="text-gray-500 font-bold">Belum ada postingan</p>
-                    <p class="text-sm text-gray-400 mt-1">Jadilah yang pertama memulai percakapan di halaman ini!</p>
-                </div>
-            @endforelse
+                @endforelse
             </div>
         </div>
 
@@ -328,27 +97,10 @@
                         <div class="grid grid-cols-3 gap-2 mb-4">
                             @php $renderedPhotosCount = 0; @endphp
                             @foreach($recentPhotos as $photoStream)
-                                @php
-                                    $photosArray = [];
-                                    if ($photoStream->type == 2) {
-                                        $att = json_decode($photoStream->attachment, true);
-                                        if (is_array($att)) {
-                                            if (isset($att['photos'])) {
-                                                foreach($att['photos'] as $p) $photosArray[] = 'posts/' . $p;
-                                            } elseif (isset($att['photo'])) {
-                                                $photosArray[] = 'posts/' . $att['photo'];
-                                            }
-                                        } else {
-                                            $photosArray[] = $photoStream->attachment;
-                                        }
-                                    } else {
-                                        $photosArray[] = $photoStream->attachment;
-                                    }
-                                @endphp
-                                @foreach($photosArray as $photoFile)
+                                @foreach($photoStream->photo_urls as $photoUrl)
                                     @if($renderedPhotosCount < 6)
-                                    <div @click="openPhoto('{{ asset('storage/'.$photoFile) }}', '{{ $photoStream->user?->fullname ?? $photoStream->user?->username ?? 'Unknown' }}', '{{ $photoStream->user?->avatar_url }}')" class="aspect-square bg-gray-100 rounded-md overflow-hidden block group relative cursor-pointer">
-                                        <img src="{{ asset('storage/'.$photoFile) }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                                    <div @click="openPhoto('{{ $photoUrl }}', '{{ addslashes($photoStream->user?->fullname ?? $photoStream->user?->username ?? 'Unknown') }}', '{{ $photoStream->user?->avatar_url }}')" class="aspect-square bg-gray-100 rounded-md overflow-hidden block group relative cursor-pointer">
+                                        <img src="{{ $photoUrl }}" onerror="this.onerror=null; this.closest('.group')?.remove();" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
                                     </div>
                                     @php $renderedPhotosCount++; @endphp
                                     @endif

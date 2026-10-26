@@ -19,7 +19,7 @@ interface MessageRepositoryInterface
     public function countUnreadBetween(int $userId, int $otherId): int;
 
     public function getLastMessagesForFriends(int $userId, array $friendIds): array;
-
+    public function getActiveConversationUserIds(int $userId): array;
     public function countUnreadBetweenMultiple(int $userId, array $friendIds): array;
 
     public function deleteForSelf(int $messageId, int $userId): bool;

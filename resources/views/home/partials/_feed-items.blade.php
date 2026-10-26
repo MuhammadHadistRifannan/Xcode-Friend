@@ -4,7 +4,7 @@
  <div class="flex justify-between items-start mb-2">
  <div class="flex items-center space-x-3">
  <a href="/{{ '@' . ($stream->user->username ?? '') }}" class="w-10 h-10 rounded-full bg-neutral-100 overflow-hidden flex-shrink-0 border border-neutral-200 hover:ring-2 hover:ring-red-700 transition">
- <img src="{{ $stream->user->avatar_url }}" class="w-full h-full object-cover">
+ <img src="{{ $stream->user?->avatar_url ?? asset('assets/img/default.png') }}" class="w-full h-full object-cover">
  </a>
  <div>
  <h4 class="text-sm font-bold text-neutral-900">
@@ -45,17 +45,24 @@
  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z"></path></svg>
  </button>
  <div x-show="openOptions" style="display: none;" class="absolute right-0 mt-2 w-36 bg-white rounded-md shadow-lg border border-neutral-100 z-50 overflow-hidden">
- @if(auth()->check() && (auth()->id() === $stream->uid))
+ @php
+     $isAuthor = auth()->check() && ((int) auth()->id() === (int) $stream->uid);
+     $isAdmin = auth()->check() && (auth()->user()->isAdmin());
+     $isGroupOwner = auth()->check() && (($stream->app === 'group' && $stream->targetPage && (int) $stream->targetPage->uid === (int) auth()->id()) || ($stream->targetGroup && (int) $stream->targetGroup->uid === (int) auth()->id()));
+     $isPageOwner = auth()->check() && $stream->app === 'page' && $stream->targetPage && (int) $stream->targetPage->uid === (int) auth()->id();
+     $canDelete = $isAuthor || $isAdmin || $isGroupOwner || $isPageOwner;
+ @endphp
+ @if($isAuthor)
  <button @click="openOptions = false; editingStream = true" class="block w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition">Edit</button>
+ @endif
+ @if($canDelete)
  <form action="{{ route('stream.destroy', $stream->id) }}" method="POST" class="block w-full m-0" onsubmit="return confirm('Apakah Anda yakin ingin menghapus postingan ini?');">
  @csrf
  @method('DELETE')
  <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition">Hapus</button>
  </form>
- <button type="button" @click="openOptions = false; openReportModal('{{ url('/stream/'.$stream->id) }}')" class="block w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition border-t border-neutral-100">Lapor</button>
- @else
- <button type="button" @click="openOptions = false; openReportModal('{{ url('/stream/'.$stream->id) }}')" class="block w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition">Lapor</button>
  @endif
+ <button type="button" @click="openOptions = false; openReportModal('{{ url('/stream/'.$stream->id) }}')" class="block w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition {{ $canDelete ? 'border-t border-neutral-100' : '' }}">Lapor</button>
  </div>
  </div>
  </div>
@@ -105,13 +112,13 @@
  @endif
 
  @if($stream->type == 2 && $stream->attachment)
- @php $att = json_decode($stream->attachment, true); @endphp
- @if(isset($att['photos']) && is_array($att['photos']))
  @php 
- $ptCount = count($att['photos']); 
- $photoUrls = array_map(fn($p) => asset('storage/posts/' . $p), $att['photos']);
- $jsonPhotos = json_encode($photoUrls);
+     $att = $stream->parsed_attachment;
+     $photoUrls = $stream->photo_urls;
+     $ptCount = count($photoUrls); 
+     $jsonPhotos = json_encode($photoUrls);
  @endphp
+ @if($ptCount > 0)
  <div class="mb-4 rounded-xl overflow-hidden border border-neutral-200">
  @if($ptCount == 1)
  <img src="{{ $photoUrls[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' class="w-full h-auto max-h-[500px] object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
@@ -190,22 +197,22 @@
  @foreach($stream->comments as $comment)
  <div class="flex gap-2" id="comment-{{ $comment->id }}">
  <div class="w-8 h-8 rounded-full bg-neutral-200 overflow-hidden flex-shrink-0 border border-neutral-200">
- <img src="{{ $comment->user->avatar_url }}" class="w-full h-full object-cover">
+ <img src="{{ $comment->user?->avatar_url ?? asset('assets/img/default.png') }}" class="w-full h-full object-cover">
  </div>
  <div x-data="{ editing: false, openCommentOptions: false }" class="flex-1">
  <div class="flex items-start gap-2 group">
  <!-- Comment Bubble -->
  <div x-show="!editing" class="bg-white px-3 py-2 rounded-2xl border border-neutral-100 shadow-sm text-sm break-words max-w-[85%]">
- <span class="font-bold text-neutral-900 mr-1">{{ $comment->user->fullname ?? 'Unknown' }}</span>
+ <span class="font-bold text-neutral-900 mr-1">{{ $comment->user?->fullname ?? 'Unknown' }}</span>
  @php 
  $parsedMessage = htmlspecialchars($comment->message);
  $parsedMessage = preg_replace('/@([a-zA-Z0-9_]+)/', '<a href="/@$1" class="text-blue-600 hover:underline">@$1</a>', $parsedMessage);
  @endphp
- <span class="text-neutral-700 break-words break-all sm:break-words">{!! $parsedMessage !!}</span>
+ <span class="text-neutral-700 break-words break-all sm:break-words comment-text" id="comment-text-{{ $comment->id }}">{!! $parsedMessage !!}</span>
  </div>
 
- <!-- Form Edit Komentar (Placeholder for future or logic) -->
- <form x-show="editing" style="display: none;" action="{{ route('comment.update', $comment->id) }}" method="POST" class="flex gap-2 w-full max-w-sm">
+ <!-- Form Edit Komentar -->
+ <form x-show="editing" style="display: none;" action="{{ route('comment.update', $comment->id) }}" method="POST" class="flex gap-2 w-full max-w-sm form-comment-edit" data-comment-id="{{ $comment->id }}">
  @csrf
  @method('PUT')
  <input type="text" name="message" value="{{ $comment->message }}" class="flex-1 rounded-full bg-white border border-red-300 focus:ring-2 focus:ring-red-100 text-sm px-3 py-1 outline-none" required>
@@ -222,12 +229,17 @@
  <div x-show="openCommentOptions" style="display: none;"
  class="absolute left-0 top-6 mt-1 w-24 bg-white border border-neutral-200 rounded-md shadow-lg z-20 py-1">
  
- @if(auth()->check() && auth()->id() === $comment->uid)
+ @php
+     $isCommentAuthor = auth()->check() && ((int) auth()->id() === (int) $comment->uid);
+     $isStreamAuthor = auth()->check() && ((int) auth()->id() === (int) $stream->uid);
+     $canDeleteComment = $isCommentAuthor || $isStreamAuthor || ($isAdmin ?? (auth()->check() && auth()->user()->isAdmin()));
+ @endphp
+ @if($isCommentAuthor)
  <button type="button" @click="editing = true; openCommentOptions = false" class="block px-3 py-1.5 text-xs text-neutral-700 hover:bg-neutral-50 hover:text-neutral-900 w-full text-left">Edit</button>
  @endif
  
- @if(auth()->check() && (auth()->id() === $comment->uid))
- <form action="{{ route('comment.destroy', $comment->id) }}" method="POST">
+ @if($canDeleteComment)
+ <form action="{{ route('comment.destroy', $comment->id) }}" method="POST" class="form-comment-delete" data-comment-id="{{ $comment->id }}" data-stream-id="{{ $stream->id }}">
  @csrf
  @method('DELETE')
  <button type="submit" onclick="return confirm('Hapus komentar ini?')" class="block px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 w-full text-left">
@@ -236,7 +248,7 @@
  </form>
  @endif
 
- <button type="button" onclick="openReportModal('{{ url('/beranda#' . $comment->id) }}')" class="block px-3 py-1.5 text-xs text-yellow-600 hover:bg-yellow-50 w-full text-left">
+ <button type="button" onclick="openReportModal('{{ route('stream.show', $stream->id) }}#comment-{{ $comment->id }}')" class="block px-3 py-1.5 text-xs text-yellow-600 hover:bg-yellow-50 w-full text-left">
  Laporkan
  </button>
  </div>
@@ -246,7 +258,7 @@
  <div class="flex items-center gap-3 mt-1 ml-2">
  <p class="text-[10px] text-neutral-400">{{ $comment->created_at ? $comment->created_at->diffForHumans() : 'Baru saja' }}</p>
  @if(auth()->check())
- <button type="button" onclick="replyTo('{{ $stream->id }}', '{{ addslashes($comment->user->fullname ?? $comment->user->username ?? 'user') }}')" class="text-[10px] text-neutral-500 font-semibold hover:text-red-700 transition-colors uppercase tracking-wider">Balas</button>
+ <button type="button" onclick="replyTo('{{ $stream->id }}', '{{ addslashes($comment->user?->username ?? 'user') }}')" class="text-[10px] text-neutral-500 font-semibold hover:text-red-700 transition-colors uppercase tracking-wider">Balas</button>
  @endif
  </div>
  </div>

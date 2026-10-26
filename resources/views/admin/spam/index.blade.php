@@ -99,20 +99,18 @@
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-3">
                                         @php
-                                            $avatarSrc = $log->avatar
-                                                ? (str_starts_with($log->avatar, 'http') ? $log->avatar : asset('storage/' . $log->avatar))
-                                                : asset('assets/img/default-avatar.png');
+                                            $avatarSrc = \App\Models\User::avatarUrl($log->avatar ?? null);
                                         @endphp
                                         <img src="{{ $avatarSrc }}" alt="avatar"
                                              class="w-8 h-8 rounded-full border border-gray-200 object-cover bg-gray-100 shrink-0"
-                                             onerror="this.src='{{ asset('assets/img/default-avatar.png') }}'">
+                                             onerror="this.onerror=null; this.src='{{ asset('assets/img/default.png') }}';">
                                         <div>
                                             @if($log->username)
                                                 <a href="{{ route('profile.show', $log->username) }}" target="_blank"
                                                    class="font-semibold text-gray-900 hover:text-red-600 transition text-sm">
                                                     {{ $log->fullname ?: $log->username }}
                                                 </a>
-                                                <div class="text-xs text-gray-400">@{{ $log->username }}</div>
+                                                <div class="text-xs text-gray-400">{{ '@' . $log->username }}</div>
                                             @else
                                                 <span class="font-semibold text-gray-500 text-sm">User #{{ $log->user_id }}</span>
                                                 <div class="text-xs text-gray-400">Akun telah dihapus</div>

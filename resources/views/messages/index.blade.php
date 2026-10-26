@@ -70,9 +70,9 @@
                                 <input type="checkbox" class="chat-checkbox w-4 h-4 text-[#b71c1c] rounded focus:ring-[#b71c1c]" value="{{ $friend->id }}">
                                 
                                 <!-- Avatar -->
-                                <div class="relative">
-                                    <div class="w-12 h-12 rounded-full bg-[#f4dada] flex items-center justify-center text-[#b71c1c] font-bold text-lg">
-                                        {{ substr($friend->fullname ?? 'U', 0, 1) }}
+                                <div class="relative shrink-0">
+                                    <div class="w-12 h-12 rounded-full bg-[#f4dada] flex items-center justify-center overflow-hidden">
+                                        <img src="{{ \App\Models\User::avatarUrl($friend->avatar ?? null) }}" alt="{{ $friend->fullname ?? 'User' }}" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='{{ asset('assets/img/default.png') }}';">
                                     </div>
                                 </div>
                                 

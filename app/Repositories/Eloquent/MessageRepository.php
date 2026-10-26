@@ -38,6 +38,7 @@ class MessageRepository implements MessageRepositoryInterface
                 'receiver.fullname as receiver_name',
                 'receiver.username as receiver_username',
                 'replied.message as replied_message',
+                'replied.attachment as replied_attachment',
                 'replied_sender.fullname as replied_sender_name'
             )
             ->orderBy('jcow_messages.created', 'asc')
@@ -49,7 +50,10 @@ class MessageRepository implements MessageRepositoryInterface
         $message = DB::table('jcow_messages')
             ->join('jcow_accounts', 'jcow_accounts.id', '=', 'jcow_messages.from_id')
             ->where('jcow_messages.id', $id)
-            ->where('jcow_messages.to_id', $userId)
+            ->where(function ($q) use ($userId) {
+                $q->where('jcow_messages.to_id', $userId)
+                  ->orWhere('jcow_messages.from_id', $userId);
+            })
             ->whereNull('jcow_messages.deleted_at')
             ->select(
                 'jcow_messages.*',
@@ -146,6 +150,23 @@ class MessageRepository implements MessageRepositoryInterface
         }
 
         return $lastMessages;
+    }
+
+    public function getActiveConversationUserIds(int $userId): array
+    {
+        $sentIds = DB::table('jcow_messages')
+            ->where('from_id', $userId)
+            ->whereNull('deleted_at')
+            ->pluck('to_id')
+            ->toArray();
+            
+        $receivedIds = DB::table('jcow_messages')
+            ->where('to_id', $userId)
+            ->whereNull('deleted_at')
+            ->pluck('from_id')
+            ->toArray();
+            
+        return array_unique(array_merge($sentIds, $receivedIds));
     }
 
     public function countUnreadBetweenMultiple(int $userId, array $friendIds): array

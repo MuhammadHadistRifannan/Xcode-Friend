@@ -90,13 +90,10 @@
         </div>
 
         <!-- Form Actions -->
-        <div class="flex items-center justify-between pb-12">
+        <div class="pb-12">
             <button class="bg-red-700 hover:bg-red-800 text-white text-xs font-bold px-6 py-2.5 rounded shadow-sm transition-colors">
                 UPDATE MODULES
             </button>
-            <a href="#" class="text-xs font-bold text-red-600 hover:text-red-800 uppercase tracking-wide transition-colors">
-                + BROWSE MORE MODULES...
-            </a>
         </div>
 
     </div>

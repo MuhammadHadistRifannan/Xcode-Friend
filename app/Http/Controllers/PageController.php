@@ -3,6 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Page;
+use App\Models\Album;
+use App\Models\Photo;
+use App\Models\Video;
+use App\Models\AlbumVideo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -54,6 +58,10 @@ class PageController extends Controller
 
     public function create()
     {
+        if (Auth::check() && (int) Auth::user()->disabled === 1) {
+            return redirect()->route('pages.index')->with('error', 'Akun Anda masih berstatus pending verifikasi. Pembuatan halaman baru hanya dapat dilakukan setelah akun disetujui penuh oleh Administrator.');
+        }
+
         return view('pages.create');
     }
 
@@ -63,6 +71,9 @@ class PageController extends Controller
 
     public function store(Request $request)
     {
+        if (Auth::check() && (int) Auth::user()->disabled === 1) {
+            return redirect()->route('pages.index')->with('error', 'Akun Anda masih berstatus pending verifikasi. Pembuatan halaman baru hanya dapat dilakukan setelah akun disetujui penuh oleh Administrator.');
+        }
         $validated = $request->validate([
             'uri' => [
                 'required',
@@ -117,7 +128,9 @@ class PageController extends Controller
 
     public function show($id)
     {
-        $page = Page::findOrFail($id);
+        $page = is_numeric($id)
+            ? Page::findOrFail($id)
+            : Page::where('uri', $id)->firstOrFail();
         $filter = request()->query('filter');
 
         $page->load([
@@ -129,7 +142,7 @@ class PageController extends Controller
                 } elseif ($filter === 'video') {
                     $query->where('attachment', 'like', 'youtube:%');
                 }
-                $query->with('user');
+                $query->with(['user', 'comments.user', 'targetPage', 'targetWallUser']);
                 $query->orderBy('created', 'desc');
             }
         ]);
@@ -165,17 +178,32 @@ class PageController extends Controller
             'networkLinks' => [],
         ];
 
-        $recentPhotos = \App\Models\Stream::where('wall_id', $page->id)
+        $recentPhotosQuery = \App\Models\Stream::where('wall_id', $page->id)
             ->where('app', 'page')
             ->where('attachment', '!=', '')
-            ->where('attachment', 'not like', 'youtube:%')
+            ->where(function($q) {
+                $q->where('type', 2)
+                  ->orWhere(function($sq) {
+                      $sq->where('type', '!=', 3)->where('attachment', 'not like', 'youtube:%');
+                  });
+            })
+            ->with('user')
             ->orderBy('created', 'desc')
-            ->take(9)
+            ->take(30)
             ->get();
+
+        $recentPhotos = $recentPhotosQuery->filter(function($stream) {
+            return count($stream->photo_urls) > 0;
+        })->take(9);
 
         $recentVideos = \App\Models\Stream::where('wall_id', $page->id)
             ->where('app', 'page')
-            ->where('attachment', 'like', 'youtube:%')
+            ->where('attachment', '!=', '')
+            ->where(function($q) {
+                $q->where('type', 3)
+                  ->orWhere('attachment', 'like', 'youtube:%');
+            })
+            ->with('user')
             ->orderBy('created', 'desc')
             ->take(9)
             ->get();
@@ -190,8 +218,9 @@ class PageController extends Controller
     public function edit($id)
     {
         $page = Page::findOrFail($id);
+        $isAdmin = auth()->check() && auth()->user()->isAdmin();
 
-        abort_if($page->uid !== Auth::id(), 403, 'Anda tidak memiliki izin untuk mengedit halaman ini.');
+        abort_if((int) $page->uid !== (int) Auth::id() && !$isAdmin, 403, 'Anda tidak memiliki izin untuk mengedit halaman ini.');
 
         return view('pages.edit', compact('page'));
     }
@@ -203,8 +232,9 @@ class PageController extends Controller
     public function update(Request $request, $id)
     {
         $page = Page::findOrFail($id);
+        $isAdmin = auth()->check() && auth()->user()->isAdmin();
 
-        abort_if($page->uid !== Auth::id(), 403, 'Anda tidak memiliki izin untuk mengedit halaman ini.');
+        abort_if((int) $page->uid !== (int) Auth::id() && !$isAdmin, 403, 'Anda tidak memiliki izin untuk mengedit halaman ini.');
 
         $validated = $request->validate([
             'name'        => ['required', 'string', 'max:100'],
@@ -338,21 +368,49 @@ class PageController extends Controller
         ]);
 
         if (empty($request->message) && !$request->hasFile('photos') && empty($request->video_url)) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Postingan tidak boleh kosong.'
+                ], 422);
+            }
             return back()->withErrors(['message' => 'Postingan tidak boleh kosong.']);
         }
 
         $attachment = '';
         $type = 1; // 1 = teks
-        $albumId = $request->input('album_id', 0);
-        $videoAlbumId = $request->input('video_album_id', 0);
+        $albumId = (int) $request->input('album_id', 0);
+        $videoAlbumId = (int) $request->input('video_album_id', 0);
 
         if ($request->hasFile('photos')) {
+            if ($albumId > 0) {
+                $exists = Album::where('id', $albumId)->exists();
+                if (!$exists) {
+                    $albumId = 0;
+                }
+            }
+            if ($albumId === 0) {
+                $defaultAlbum = Album::firstOrCreate(
+                    ['gid' => $userId, 'app' => 'photos', 'name' => 'Unggahan Halaman ' . $page->name],
+                    ['description' => 'Foto yang diunggah di halaman ' . $page->name, 'weight' => 0, 'var1' => 'public', 'uri' => '', 'var2' => '', 'var3' => '', 'var4' => '', 'var5' => '']
+                );
+                $albumId = $defaultAlbum->id;
+            }
+
             $files = $request->file('photos');
             $savedPhotos = [];
             foreach($files as $index => $file) {
-                $filename = 'POST-' . auth()->id() . '-' . time() . '-' . $index . '.' . $file->getClientOriginalExtension();
+                $filename = 'POST-' . $userId . '-' . time() . '-' . $index . '.' . $file->getClientOriginalExtension();
                 $file->storeAs('posts', $filename, 'public');
                 $savedPhotos[] = $filename;
+
+                Photo::create([
+                    'sid'   => $albumId,
+                    'uri'   => 'posts/' . $filename,
+                    'des'   => $request->message ?? '',
+                    'thumb' => 'posts/' . $filename,
+                    'size'  => $file->getSize(),
+                ]);
             }
             $attachment = json_encode([
                 'photos' => $savedPhotos,
@@ -360,6 +418,20 @@ class PageController extends Controller
             ]);
             $type = 2; // 2 = gambar
         } elseif (!empty($request->video_url)) {
+            if ($videoAlbumId > 0) {
+                $exists = AlbumVideo::where('id', $videoAlbumId)->exists();
+                if (!$exists) {
+                    $videoAlbumId = 0;
+                }
+            }
+            if ($videoAlbumId === 0) {
+                $defaultAlbum = AlbumVideo::firstOrCreate(
+                    ['gid' => $userId, 'app' => 'video', 'name' => 'Unggahan Halaman ' . $page->name],
+                    ['description' => 'Video yang diunggah di halaman ' . $page->name, 'weight' => 0, 'var1' => 'public', 'uri' => '', 'var2' => '', 'var3' => '', 'var4' => '', 'var5' => '']
+                );
+                $videoAlbumId = $defaultAlbum->id;
+            }
+
             $attachment = json_encode([
                 'video_url' => $request->video_url,
                 'album_id' => $videoAlbumId,
@@ -367,9 +439,44 @@ class PageController extends Controller
                 'desc' => $request->video_desc ?? ''
             ]);
             $type = 3; // 3 = video
+
+            Video::create([
+                'title'   => $request->video_title ?? 'Video Halaman',
+                'content' => $request->video_desc ?? ($request->message ?? ''),
+                'var1'    => $request->video_url,
+                'tags'    => $request->video_tags ?? '',
+                'cid'     => $videoAlbumId,
+                'uid'     => $userId,
+                'app'     => 'video',
+                'created' => time(),
+                'updated' => time(),
+                'views'   => 0,
+                'featured'=> 0,
+                'sticky'  => 0,
+                'closed'  => 0,
+                'digg'    => 0,
+                'dugg'    => 0,
+                'photos'  => 0,
+                'rating'  => 0,
+                'blob1'   => '',
+                'thumbnail' => '',
+                'lastreply' => 0,
+                'lastreplyuname' => '',
+                'lastreplyuid' => 0,
+                'comments' => 0,
+                'stream_id' => 0,
+                'var2' => '',
+                'var3' => '',
+                'var4' => '',
+                'var5' => '',
+                'text1' => '',
+                'text2' => '',
+                'page_id' => $page->id,
+                'page_type' => 'page',
+            ]);
         }
 
-        \App\Models\Stream::create([
+        $stream = \App\Models\Stream::create([
             'message'    => $request->message ?? '',
             'wall_id'    => $id,
             'uid'        => $userId,
@@ -380,7 +487,26 @@ class PageController extends Controller
             'aid'        => $id,
             'hide'       => 0,
             'likes'      => 0,
+            'privacy'    => $request->input('privacy', 'public'),
         ]);
+
+        $stream->loadMissing(['user', 'comments.user', 'targetPage', 'targetWallUser']);
+        $html = view('components.single-stream', ['stream' => $stream])->render();
+
+        try {
+            \App\Events\StreamCreated::dispatch($stream, $html);
+        } catch (\Throwable $e) {
+            \Log::warning('Gagal broadcast StreamCreated: ' . $e->getMessage());
+        }
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Postingan berhasil diunggah!',
+                'stream_id' => $stream->id,
+                'html' => $html
+            ]);
+        }
 
         return redirect()->route('pages.show', $id)->with('success', 'Postingan berhasil diunggah!');
     }
@@ -390,25 +516,41 @@ class PageController extends Controller
         $query = \App\Models\Stream::where('wall_id', $page->id)->where('app', 'page')->where('attachment', '!=', '');
 
         if ($type === 'photo') {
-            $query->where(function($q) {
-                $q->where('type', 2)
-                  ->orWhere(function($sq) {
-                      $sq->where('type', '!=', 3)->where('attachment', 'not like', 'youtube:%');
-                  });
-            });
+            $rawList = \App\Models\Stream::where('wall_id', $page->id)
+                ->where('app', 'page')
+                ->where('attachment', '!=', '')
+                ->where(function($q) {
+                    $q->where('type', 2)
+                      ->orWhere(function($sq) {
+                          $sq->where('type', '!=', 3)->where('attachment', 'not like', 'youtube:%');
+                      });
+                })
+                ->with('user')
+                ->orderBy('created', 'desc')
+                ->get()
+                ->filter(function($stream) {
+                    return count($stream->photo_urls) > 0;
+                });
+
+            $currentPage = \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPage();
+            $perPage = 12;
+            $currentItems = $rawList->slice(($currentPage - 1) * $perPage, $perPage)->all();
+            $mediaList = new \Illuminate\Pagination\LengthAwarePaginator($currentItems, $rawList->count(), $perPage, $currentPage, [
+                'path' => \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPath()
+            ]);
             $title = 'Foto Halaman';
         } elseif ($type === 'video') {
+            $query = \App\Models\Stream::where('wall_id', $page->id)->where('app', 'page')->where('attachment', '!=', '');
             $query->where(function($q) {
                 $q->where('type', 3)
                   ->orWhere('attachment', 'like', 'youtube:%');
             });
+            $mediaList = $query->with('user')->orderBy('created', 'desc')->paginate(12);
             $title = 'Vidio Halaman';
         } else {
             abort(404);
         }
 
-        $mediaList = $query->orderBy('created', 'desc')->paginate(12);
-        
         return view('pages.media', compact('page', 'type', 'mediaList', 'title'));
     }
 

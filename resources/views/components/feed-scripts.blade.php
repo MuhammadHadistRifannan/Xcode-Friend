@@ -163,40 +163,220 @@ document.addEventListener('DOMContentLoaded', function() {
     switchTab('status');
 });
 
-function previewPhotoHome(event) {
-    const input = event.target;
+// Array global penyimpan file foto yang dipilih
+window.selectedPhotos = [];
+
+function syncFileInput() {
+    const input = document.getElementById('photo-input-home');
+    if (!input) return;
+
+    try {
+        const dt = new DataTransfer();
+        (window.selectedPhotos || []).forEach(file => dt.items.add(file));
+        input.files = dt.files;
+    } catch (e) {
+        console.warn('DataTransfer sync warning:', e);
+    }
+}
+window.syncFileInput = syncFileInput;
+
+function renderPhotoPreviews() {
     const container = document.getElementById('photo-preview-container-home');
     const clearBtn = document.getElementById('btn-clear-photo');
-    if(container) container.innerHTML = '';
-    
-    if (input.files && input.files.length > 0) {
-        if(container) container.classList.remove('hidden');
-        if(clearBtn) clearBtn.classList.remove('hidden');
-        
-        Array.from(input.files).forEach(file => {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = document.createElement('img');
-                img.src = e.target.result;
-                img.className = 'w-full h-24 object-cover rounded-xl border border-neutral-200 shadow-sm';
-                if(container) container.appendChild(img);
-            }
-            reader.readAsDataURL(file);
-        });
+    const countBadge = document.getElementById('photo-count-badge');
+    if (!container) return;
+
+    container.innerHTML = '';
+    const photos = window.selectedPhotos || [];
+
+    if (photos.length === 0) {
+        container.classList.add('hidden');
+        if (clearBtn) clearBtn.classList.add('hidden');
+        if (countBadge) countBadge.classList.add('hidden');
+        return;
     }
+
+    container.classList.remove('hidden');
+    if (clearBtn) clearBtn.classList.remove('hidden');
+    if (countBadge) {
+        countBadge.classList.remove('hidden');
+        countBadge.textContent = `${photos.length}/10 foto`;
+    }
+
+    photos.forEach((file, index) => {
+        if (!file._previewUrl) {
+            file._previewUrl = URL.createObjectURL(file);
+        }
+
+        const card = document.createElement('div');
+        card.className = 'relative group rounded-xl overflow-hidden border border-neutral-200 bg-neutral-100 shadow-sm aspect-square transition hover:shadow-md select-none';
+
+        // Image thumbnail
+        const img = document.createElement('img');
+        img.src = file._previewUrl;
+        img.alt = file.name;
+        img.className = 'w-full h-full object-cover transition duration-200 group-hover:scale-105';
+        card.appendChild(img);
+
+        // Subtle gradient overlay on hover
+        const overlay = document.createElement('div');
+        overlay.className = 'absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 opacity-0 group-hover:opacity-100 transition duration-200 pointer-events-none';
+        card.appendChild(overlay);
+
+        // Info / file name tooltip (bottom)
+        const info = document.createElement('div');
+        info.className = 'absolute bottom-1.5 left-1.5 right-1.5 flex items-center justify-between pointer-events-none opacity-0 group-hover:opacity-100 transition duration-200';
+        info.innerHTML = `
+            <span class="text-[10px] text-white font-medium truncate max-w-[70%] drop-shadow bg-black/50 px-1.5 py-0.5 rounded">
+                ${file.name}
+            </span>
+            <span class="text-[9px] text-white/90 drop-shadow bg-black/50 px-1 py-0.5 rounded">
+                #${index + 1}
+            </span>
+        `;
+        card.appendChild(info);
+
+        // Tombol Silang (X) untuk menghapus foto tertentu
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.title = 'Hapus foto ini';
+        removeBtn.className = 'absolute top-1.5 right-1.5 w-6 h-6 bg-neutral-900/80 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition shadow-md hover:scale-110 active:scale-95 focus:outline-none';
+        removeBtn.innerHTML = `
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        `;
+        removeBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            removePhotoHome(index);
+        });
+        card.appendChild(removeBtn);
+
+        container.appendChild(card);
+    });
+}
+window.renderPhotoPreviews = renderPhotoPreviews;
+
+function previewPhotoHome(event) {
+    const input = event.target;
+    if (!input || !input.files || input.files.length === 0) {
+        syncFileInput();
+        return;
+    }
+
+    const newFiles = Array.from(input.files);
+    let maxReached = false;
+
+    newFiles.forEach(file => {
+        if (!file.type || !file.type.startsWith('image/')) return;
+
+        // Cek duplikasi file berdasarkan nama, ukuran, dan waktu modifikasi
+        const isDuplicate = window.selectedPhotos.some(existing => 
+            existing.name === file.name && existing.size === file.size && existing.lastModified === file.lastModified
+        );
+
+        if (isDuplicate) return;
+
+        if (window.selectedPhotos.length >= 10) {
+            maxReached = true;
+            return;
+        }
+
+        file._previewUrl = URL.createObjectURL(file);
+        window.selectedPhotos.push(file);
+    });
+
+    if (maxReached) {
+        if (window.Swal) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Batas Maksimal Foto',
+                text: 'Maksimal 10 foto yang dapat diunggah dalam satu postingan.',
+                confirmButtonColor: '#990000'
+            });
+        } else {
+            alert('Maksimal 10 foto yang dapat diunggah dalam satu postingan.');
+        }
+    }
+
+    syncFileInput();
+    renderPhotoPreviews();
 }
 window.previewPhotoHome = previewPhotoHome;
 
-function clearPhotoHome() {
-    const input = document.getElementById('photo-input-home');
-    if(input) input.value = '';
-    const container = document.getElementById('photo-preview-container-home');
-    if(container) {
-        container.innerHTML = '';
-        container.classList.add('hidden');
+function removePhotoHome(index) {
+    if (!window.selectedPhotos || index < 0 || index >= window.selectedPhotos.length) return;
+
+    const removed = window.selectedPhotos.splice(index, 1);
+    if (removed[0] && removed[0]._previewUrl) {
+        try {
+            URL.revokeObjectURL(removed[0]._previewUrl);
+        } catch (e) {}
     }
-    const clearBtn = document.getElementById('btn-clear-photo');
-    if(clearBtn) clearBtn.classList.add('hidden');
+
+    syncFileInput();
+    renderPhotoPreviews();
+}
+window.removePhotoHome = removePhotoHome;
+
+function preparePhotoInput() {
+    const input = document.getElementById('photo-input-home');
+    if (input) {
+        input.value = '';
+        const onFocus = () => {
+            window.removeEventListener('focus', onFocus);
+            setTimeout(() => {
+                if (!input.files || input.files.length === 0) {
+                    syncFileInput();
+                }
+            }, 300);
+        };
+        window.addEventListener('focus', onFocus);
+    }
+}
+window.preparePhotoInput = preparePhotoInput;
+
+function triggerAddMorePhotos() {
+    const input = document.getElementById('photo-input-home');
+    if (!input) return;
+
+    if ((window.selectedPhotos || []).length >= 10) {
+        if (window.Swal) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Batas Maksimal Foto',
+                text: 'Maksimal 10 foto yang dapat diunggah dalam satu postingan.',
+                confirmButtonColor: '#990000'
+            });
+        } else {
+            alert('Maksimal 10 foto yang dapat diunggah dalam satu postingan.');
+        }
+        return;
+    }
+
+    preparePhotoInput();
+    input.click();
+}
+window.triggerAddMorePhotos = triggerAddMorePhotos;
+
+function clearPhotoHome() {
+    if (window.selectedPhotos && window.selectedPhotos.length > 0) {
+        window.selectedPhotos.forEach(file => {
+            if (file && file._previewUrl) {
+                try {
+                    URL.revokeObjectURL(file._previewUrl);
+                } catch (e) {}
+            }
+        });
+        window.selectedPhotos = [];
+    }
+
+    const input = document.getElementById('photo-input-home');
+    if (input) input.value = '';
+
+    syncFileInput();
+    renderPhotoPreviews();
 }
 window.clearPhotoHome = clearPhotoHome;
 
@@ -219,7 +399,7 @@ function previewMusic(event) {
 }
 // Function to handle Reply
 function replyTo(streamId, username) {
-    const input = document.querySelector('#comment-form-' + streamId + ' input[name="message"]');
+    const input = document.getElementById('comment-input-' + streamId);
     if (input) {
         input.value = '@' + username + ' ';
         input.focus();
@@ -230,6 +410,88 @@ function replyTo(streamId, username) {
 // AUTO-LOADER: AJAX LIKES, COMMENTS, BAGI CEPAT & INFINITE SCROLL
 // ==========================================
 document.addEventListener('DOMContentLoaded', function() {
+    
+    const currentUserId = {{ auth()->id() ?? 'null' }};
+    const isCurrentAdmin = {{ auth()->check() && auth()->user()->isAdmin() ? 'true' : 'false' }};
+
+    function buildCommentHtml(commentData, streamId, isAuthor, canDelete) {
+        const rawMessage = commentData.message || '';
+        let parsedMessage = rawMessage.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        parsedMessage = parsedMessage.replace(/@([a-zA-Z0-9_]+)/g, '<a href="/@$1" class="text-blue-600 hover:underline">@$1</a>');
+        const safeMessageVal = rawMessage.replace(/"/g, '&quot;');
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+        const userAvatar = commentData.user?.avatar || '{{ asset("assets/img/default.png") }}';
+        const userFullname = commentData.user?.fullname || 'Pengguna';
+        const userUsername = commentData.user?.username || 'user';
+        const createdHuman = commentData.created_human || 'Baru saja';
+
+        let editBtnHtml = '';
+        if (isAuthor) {
+            editBtnHtml = `<button type="button" @click="editing = true; openCommentOptions = false" class="block px-3 py-1.5 text-xs text-neutral-700 hover:bg-neutral-50 hover:text-neutral-900 w-full text-left">Edit</button>`;
+        }
+
+        let deleteBtnHtml = '';
+        if (canDelete) {
+            deleteBtnHtml = `
+                <form action="/comment/${commentData.id}" method="POST" class="form-comment-delete" data-comment-id="${commentData.id}" data-stream-id="${streamId}">
+                    <input type="hidden" name="_token" value="${csrfToken}">
+                    <input type="hidden" name="_method" value="DELETE">
+                    <button type="submit" onclick="return confirm('Hapus komentar ini?')" class="block px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 w-full text-left">
+                        Hapus
+                    </button>
+                </form>
+            `;
+        }
+
+        const reportUrl = `/stream/${streamId}#comment-${commentData.id}`;
+        const reportBtnHtml = `
+            <button type="button" onclick="openReportModal('${reportUrl}')" class="block px-3 py-1.5 text-xs text-yellow-600 hover:bg-yellow-50 w-full text-left">
+                Laporkan
+            </button>
+        `;
+
+        return `
+            <div class="flex gap-2" id="comment-${commentData.id}">
+                <div class="w-8 h-8 rounded-full bg-neutral-200 overflow-hidden flex-shrink-0 border border-neutral-200">
+                    <img src="${userAvatar}" class="w-full h-full object-cover">
+                </div>
+                <div x-data="{ editing: false, openCommentOptions: false }" class="flex-1">
+                    <div class="flex items-start gap-2 group">
+                        <div x-show="!editing" class="bg-white px-3 py-2 rounded-2xl border border-neutral-100 shadow-sm text-sm break-words max-w-[85%]">
+                            <span class="font-bold text-neutral-900 mr-1">${userFullname}</span>
+                            <span class="text-neutral-700 comment-text" id="comment-text-${commentData.id}">${parsedMessage}</span>
+                        </div>
+
+                        <!-- Form Edit Komentar -->
+                        <form x-show="editing" style="display: none;" action="/comment/${commentData.id}" method="POST" class="flex gap-2 w-full max-w-sm form-comment-edit" data-comment-id="${commentData.id}">
+                            <input type="hidden" name="_token" value="${csrfToken}">
+                            <input type="hidden" name="_method" value="PUT">
+                            <input type="text" name="message" value="${safeMessageVal}" class="flex-1 rounded-full bg-white border border-red-300 focus:ring-2 focus:ring-red-100 text-sm px-3 py-1 outline-none" required>
+                            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white rounded-full px-3 py-1 text-xs font-bold transition-colors">Simpan</button>
+                            <button type="button" @click="editing = false" class="bg-neutral-100 hover:bg-neutral-200 text-neutral-600 rounded-full px-3 py-1 text-xs font-bold transition-colors">Batal</button>
+                        </form>
+
+                        <!-- Options Dropdown -->
+                        <div class="relative mt-1" x-show="!editing">
+                            <button @click="openCommentOptions = !openCommentOptions" @click.away="openCommentOptions = false" type="button" class="text-neutral-400 hover:text-neutral-600 transition p-1 rounded-full hover:bg-neutral-200 focus:outline-none" title="Opsi Komentar">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                            </button>
+                            
+                            <div x-show="openCommentOptions" style="display: none;" class="absolute left-0 top-6 mt-1 w-24 bg-white border border-neutral-200 rounded-md shadow-lg z-20 py-1">
+                                ${editBtnHtml}
+                                ${deleteBtnHtml}
+                                ${reportBtnHtml}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 mt-1 ml-2">
+                        <p class="text-[10px] text-neutral-400">${createdHuman}</p>
+                        <button type="button" onclick="replyTo('${streamId}', '${userUsername}')" class="text-[10px] text-neutral-500 font-semibold hover:text-red-700 transition-colors uppercase tracking-wider">Balas</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
     
     // 1. AJAX for Likes with Elastic Pop Animation (Event Delegation)
     document.addEventListener('submit', function(e) {
@@ -340,29 +602,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // Jika elemen komentar belum disisipkan oleh WebSocket
                 if (!document.getElementById('comment-' + data.comment.id)) {
-                    const commentHtml = `
-                        <div class="flex gap-2" id="comment-${data.comment.id}">
-                            <div class="w-8 h-8 rounded-full bg-neutral-200 overflow-hidden flex-shrink-0 border border-neutral-200">
-                                <img src="${data.comment.user.avatar}" class="w-full h-full object-cover">
-                            </div>
-                            <div class="flex-1" x-data="{ openCommentOptions: false }">
-                                <div class="flex items-start gap-2 group">
-                                    <div class="bg-white px-3 py-2 rounded-2xl border border-neutral-100 shadow-sm text-sm break-words max-w-[85%]">
-                                        <span class="font-bold text-neutral-900 mr-1">${data.comment.user.fullname}</span>
-                                        <span class="text-neutral-700">${parsedMessage}</span>
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-3 mt-1 ml-2">
-                                    <p class="text-[10px] text-neutral-400">Baru saja</p>
-                                    <button type="button" onclick="replyTo('${streamId}', '${data.comment.user.username}')" class="text-[10px] text-neutral-500 font-semibold hover:text-red-700 transition-colors uppercase tracking-wider">Balas</button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
+                    const commentHtml = buildCommentHtml(data.comment, streamId, true, true);
                     const listEl = document.getElementById('comments-list-' + streamId);
                     if(listEl) {
                         listEl.insertAdjacentHTML('beforeend', commentHtml);
                         listEl.scrollTop = listEl.scrollHeight;
+                        const newCommentEl = document.getElementById('comment-' + data.comment.id);
+                        if (newCommentEl && window.Alpine) {
+                            window.Alpine.initTree(newCommentEl);
+                        }
                     }
                 }
                 
@@ -371,11 +619,103 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // 2a. AJAX for Comment Edit (Event Delegation)
+    document.addEventListener('submit', function(e) {
+        const form = e.target.closest('.form-comment-edit');
+        if (!form) return;
+
+        e.preventDefault();
+        const url = form.action;
+        const formData = new FormData(form);
+        const commentId = form.dataset.commentId;
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn) submitBtn.disabled = true;
+
+        fetch(url, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const textEl = document.getElementById('comment-text-' + commentId);
+                if (textEl && data.parsed_message) {
+                    textEl.innerHTML = data.parsed_message;
+                }
+                const cancelBtn = form.querySelector('button[type="button"]');
+                if (cancelBtn) cancelBtn.click();
+                if (window.Swal) {
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Komentar berhasil diedit.', showConfirmButton: false, timer: 2000 });
+                }
+            } else {
+                alert(data.message || 'Gagal mengedit komentar.');
+            }
+        })
+        .catch(err => {
+            console.error('Gagal mengedit komentar:', err);
+            alert('Gagal mengedit komentar.');
+        })
+        .finally(() => {
+            if (submitBtn) submitBtn.disabled = false;
+        });
+    });
+
+    // 2b. AJAX for Comment Delete (Event Delegation)
+    document.addEventListener('submit', function(e) {
+        const form = e.target.closest('.form-comment-delete');
+        if (!form) return;
+
+        e.preventDefault();
+        const commentId = form.dataset.commentId;
+        const streamId = form.dataset.streamId;
+
+        const url = form.action;
+        const formData = new FormData(form);
+
+        fetch(url, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const commentEl = document.getElementById('comment-' + commentId);
+                if (commentEl) commentEl.remove();
+                
+                const countEl = document.getElementById('comments-count-' + streamId);
+                if (countEl && typeof data.comments_count !== 'undefined') {
+                    countEl.textContent = data.comments_count;
+                }
+                if (window.Swal) {
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Komentar berhasil dihapus.', showConfirmButton: false, timer: 2000 });
+                }
+            } else {
+                alert(data.message || 'Gagal menghapus komentar.');
+            }
+        })
+        .catch(err => {
+            console.error('Gagal menghapus komentar:', err);
+            alert('Gagal menghapus komentar.');
+        });
+    });
+
     // 3. AJAX for Bagi Cepat (Unggah Postingan Tanpa Refresh)
     const feedUploadForm = document.getElementById('form-feed-upload');
     if (feedUploadForm) {
+        let isFeedSubmitting = false;
+
         feedUploadForm.addEventListener('submit', function(e) {
             e.preventDefault();
+            if (isFeedSubmitting) return;
+
             const submitBtn = this.querySelector('button[type="submit"]');
             const originalBtnHtml = submitBtn ? submitBtn.innerHTML : 'Bagikan';
             if (submitBtn) {
@@ -388,7 +728,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 `;
             }
 
+            isFeedSubmitting = true;
+            if (typeof syncFileInput === 'function') {
+                syncFileInput();
+            }
             const formData = new FormData(this);
+
+            // Jika tab unggah foto aktif, pastikan seluruh file di selectedPhotos terlampir
+            const activeUnggahTab = document.getElementById('tab-content-unggah');
+            if (activeUnggahTab && !activeUnggahTab.classList.contains('hidden') && window.selectedPhotos && window.selectedPhotos.length > 0) {
+                formData.delete('photos[]');
+                window.selectedPhotos.forEach(file => {
+                    formData.append('photos[]', file);
+                });
+            }
+
             fetch(this.action, {
                 method: 'POST',
                 body: formData,
@@ -397,7 +751,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     'Accept': 'application/json'
                 }
             })
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok && res.status !== 422) {
+                    throw new Error('Terjadi kesalahan pada server (Status ' + res.status + ')');
+                }
+                return res.json();
+            })
             .then(data => {
                 if (data.status === 'success') {
                     // Sisipkan postingan langsung ke paling atas feed jika belum ada
@@ -412,6 +771,9 @@ document.addEventListener('DOMContentLoaded', function() {
                             const newCard = tempDiv.firstElementChild;
                             newCard.classList.add('feed-entry-animate', 'feed-glow-highlight');
                             container.insertBefore(newCard, container.firstChild);
+                            if (window.Alpine) {
+                                window.Alpine.initTree(newCard);
+                            }
                             setTimeout(() => {
                                 newCard.classList.remove('feed-glow-highlight');
                             }, 2500);
@@ -420,23 +782,32 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     // Reset form & preview
                     feedUploadForm.reset();
-                    const photoPreview = document.getElementById('photo-preview-container-home');
-                    if (photoPreview) photoPreview.innerHTML = '';
+                    if (typeof clearPhotoHome === 'function') {
+                        clearPhotoHome();
+                    }
                     const videoPreview = document.getElementById('video-preview-home');
                     if (videoPreview) videoPreview.classList.add('hidden');
                     
                     if (window.switchTab) switchTab('status');
                     if (window.lucide) window.lucide.createIcons();
                 } else {
-                    Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: data.message || 'Gagal membagikan status.', showConfirmButton: false, timer: 3000 });
+                    if (window.Swal) {
+                        Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: data.message || 'Gagal membagikan status.', showConfirmButton: false, timer: 3000 });
+                    } else {
+                        alert(data.message || 'Gagal membagikan status.');
+                    }
                 }
             })
             .catch(err => {
-                console.error(err);
-                // Fallback: submit biasa jika fetch gagal
-                feedUploadForm.submit();
+                console.error('Gagal membagikan postingan:', err);
+                if (window.Swal) {
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: 'Gagal membagikan postingan.', showConfirmButton: false, timer: 3000 });
+                } else {
+                    alert('Gagal membagikan postingan.');
+                }
             })
             .finally(() => {
+                isFeedSubmitting = false;
                 if (submitBtn) {
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = originalBtnHtml;
@@ -473,6 +844,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         const container = document.getElementById('feed-stream-container');
                         if (container && data.html) {
                             container.insertAdjacentHTML('beforeend', data.html);
+                            if (window.Alpine) {
+                                window.Alpine.initTree(container);
+                            }
                         }
 
                         sentinel.setAttribute('data-has-more', data.hasMorePages ? '1' : '0');
@@ -512,6 +886,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (wallUid && e.user_id != wallUid && e.wall_id != wallUid) {
                         return;
                     }
+                    const groupId = container.getAttribute('data-group-id');
+                    if (groupId && e.wall_id != groupId) {
+                        return;
+                    }
+                    const pageId = container.getAttribute('data-page-id');
+                    if (pageId && e.wall_id != pageId) {
+                        return;
+                    }
                     const emptyState = document.getElementById('feed-empty-state');
                     if (emptyState) emptyState.remove();
 
@@ -521,6 +903,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     const newCard = tempDiv.firstElementChild;
                     newCard.classList.add('feed-entry-animate', 'feed-glow-highlight');
                     container.insertBefore(newCard, container.firstChild);
+                    if (window.Alpine) {
+                        window.Alpine.initTree(newCard);
+                    }
 
                     setTimeout(() => {
                         newCard.classList.remove('feed-glow-highlight');
@@ -537,32 +922,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Jangan render ulang jika sudah ada
                 if (document.getElementById('comment-' + e.comment.id)) return;
 
-                let parsedMessage = e.comment.message.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                parsedMessage = parsedMessage.replace(/@([a-zA-Z0-9_]+)/g, '<a href="/@$1" class="text-blue-600 hover:underline">@$1</a>');
+                const commentUser = e.comment.user || {};
+                const isAuthor = currentUserId && (parseInt(currentUserId) === parseInt(commentUser.id));
+                const canDelete = isAuthor || isCurrentAdmin;
 
-                const commentHtml = `
-                    <div class="flex gap-2" id="comment-${e.comment.id}">
-                        <div class="w-8 h-8 rounded-full bg-neutral-200 overflow-hidden flex-shrink-0 border border-neutral-200">
-                            <img src="${e.comment.user.avatar}" class="w-full h-full object-cover">
-                        </div>
-                        <div class="flex-1" x-data="{ openCommentOptions: false }">
-                            <div class="flex items-start gap-2 group">
-                                <div class="bg-white px-3 py-2 rounded-2xl border border-neutral-100 shadow-sm text-sm break-words max-w-[85%]">
-                                    <span class="font-bold text-neutral-900 mr-1">${e.comment.user.fullname}</span>
-                                    <span class="text-neutral-700">${parsedMessage}</span>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-3 mt-1 ml-2">
-                                <p class="text-[10px] text-neutral-400">${e.comment.created_human || 'Baru saja'}</p>
-                                <button type="button" onclick="replyTo('${e.stream_id}', '${e.comment.user.username}')" class="text-[10px] text-neutral-500 font-semibold hover:text-red-700 transition-colors uppercase tracking-wider">Balas</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
+                const commentHtml = buildCommentHtml(e.comment, e.stream_id, isAuthor, canDelete);
                 const listEl = document.getElementById('comments-list-' + e.stream_id);
                 if (listEl) {
                     listEl.insertAdjacentHTML('beforeend', commentHtml);
                     listEl.scrollTop = listEl.scrollHeight;
+                    const newCommentEl = document.getElementById('comment-' + e.comment.id);
+                    if (newCommentEl && window.Alpine) {
+                        window.Alpine.initTree(newCommentEl);
+                    }
                 }
             })
             .listen('.stream.liked', function(e) {

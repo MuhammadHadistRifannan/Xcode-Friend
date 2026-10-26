@@ -206,7 +206,7 @@
                                     <div class="w-full h-40 rounded-xl border border-neutral-300 p-1 mb-4">
                                         <div class="w-full h-full rounded-lg overflow-hidden bg-neutral-100 relative">
                                             @if($user->profile && $user->profile->background)
-                                                <img src="{{ asset('storage/backgrounds/' . $user->profile->background) }}" class="w-full h-full object-cover">
+                                                <img src="{{ asset('uploads/backgrounds/' . $user->profile->background) }}" class="w-full h-full object-cover">
                                             @else
                                                 <div class="w-full h-full bg-neutral-100 flex items-center justify-center">
                                                     <span class="text-neutral-500 text-sm font-bold opacity-50">Belum ada banner</span>
@@ -371,12 +371,7 @@
                             <div class="blocked-item flex items-center justify-between p-4 border border-neutral-100 bg-neutral-50 rounded-lg hover:bg-neutral-100 transition" data-name="{{ strtolower($blocked->fullname) }}" data-username="{{ strtolower($blocked->username) }}">
                                 <div class="flex items-center gap-4">
                                     <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-700 font-bold text-sm shrink-0">
-                                        @if(!empty($blocked->avatar))
-                                            <img src="{{ asset('uploads/avatars/' . $blocked->avatar) }}" alt="{{ $blocked->fullname }}" class="w-full h-full rounded-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                            <span style="display:none;">{{ strtoupper(substr($blocked->fullname, 0, 1)) }}</span>
-                                        @else
-                                            <span>{{ strtoupper(substr($blocked->fullname, 0, 1)) }}</span>
-                                        @endif
+                                        <img src="{{ \App\Models\User::avatarUrl($blocked->avatar ?? null) }}" alt="{{ $blocked->fullname }}" class="w-full h-full rounded-full object-cover" onerror="this.onerror=null; this.src='{{ asset('assets/img/default.png') }}';">
                                     </div>
                                     <div>
                                         <h4 class="text-sm font-bold text-neutral-800">{{ $blocked->fullname }}</h4>
@@ -504,13 +499,7 @@
                 @endif
             </div>
 
-            <!-- Pesan Edit Block dari Design 1 -->
-            @if($tab === 'informasi')
-                <div class="bg-white border border-neutral-200 rounded-lg p-4 flex items-center text-xs text-neutral-600 shadow-sm">
-                    <svg class="w-4 h-4 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    Go to "Admin CP" - "Themes" - "Manage Blocks" to edit this message.
-                </div>
-            @endif
+
 
         </div>
 

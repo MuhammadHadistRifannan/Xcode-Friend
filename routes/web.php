@@ -147,10 +147,12 @@ Route::prefix('admin')->group(function () {
         // Members Management
         Route::get('/members', [\App\Http\Controllers\AdminMemberController::class, 'index'])->name('admin.members');
         Route::get('/members/{id}', [\App\Http\Controllers\AdminMemberController::class, 'show'])->name('admin.members.show');
+        Route::post('/members/{id}/approve', [\App\Http\Controllers\AdminMemberController::class, 'approveMember'])->name('admin.members.approve');
         Route::put('/members/{id}/role', [\App\Http\Controllers\AdminMemberController::class, 'updateRole'])->name('admin.members.role');
         Route::patch('/members/{id}/status', [\App\Http\Controllers\AdminMemberController::class, 'updateStatus'])->name('admin.members.status');
         Route::delete('/members/{id}/ban', [\App\Http\Controllers\AdminMemberController::class, 'banMember'])->name('admin.members.ban');
         Route::delete('/members/{id}', [\App\Http\Controllers\AdminMemberController::class, 'destroy'])->name('admin.members.destroy');
+        Route::post('/members/cleanup-orphans', [\App\Http\Controllers\AdminMemberController::class, 'cleanupOrphans'])->name('admin.members.cleanup-orphans');
         
         // Site Configuration
         Route::get('/site-configuration', [\App\Http\Controllers\AdminSettingsController::class, 'index'])->name('admin.site-config');
@@ -167,6 +169,8 @@ Route::prefix('admin')->group(function () {
         Route::post('/themes/update', [\App\Http\Controllers\AdminThemeController::class, 'update'])->name('admin.themes.update');
         Route::get('/themes/blocks', [\App\Http\Controllers\AdminBlockController::class, 'index'])->name('admin.themes.blocks');
         Route::post('/themes/blocks', [\App\Http\Controllers\AdminBlockController::class, 'update'])->name('admin.themes.blocks.update');
+        Route::post('/themes/blocks/upload', [\App\Http\Controllers\AdminBlockController::class, 'uploadImage'])->name('admin.themes.blocks.upload');
+        Route::post('/themes/blocks/delete-image', [\App\Http\Controllers\AdminBlockController::class, 'deleteImage'])->name('admin.themes.blocks.delete-image');
 
         Route::get('/user-roles', [\App\Http\Controllers\AdminController::class, 'userRoles'])->name('admin.user-roles');
         Route::post('/user-roles', [\App\Http\Controllers\AdminController::class, 'storeRole'])->name('admin.roles.store');
@@ -191,9 +195,6 @@ Route::prefix('admin')->group(function () {
 // 4. PAGES ROUTES
 // ==========================================
 Route::get('/pages', [PageController::class, 'index'])->name('pages.index');
-Route::get('/pages/{id}', [PageController::class, 'show'])->name('pages.show');
-Route::get('/pages/{page}/media/{type}', [PageController::class, 'media'])->name('pages.media');
-Route::get('/pages/{id}/followers', [PageController::class, 'followers'])->name('pages.followers');
 
 Route::middleware('auth')->group(function () {
     Route::get('/pages/create', [PageController::class, 'create'])->name('pages.create');
@@ -207,6 +208,10 @@ Route::middleware('auth')->group(function () {
     Route::delete('/pages/{id}/unlike', [PageController::class, 'unlike'])->name('pages.unlike');
     Route::post('/pages/{id}/stream', [PageController::class, 'postStream'])->name('pages.stream');
 });
+
+Route::get('/pages/{id}', [PageController::class, 'show'])->name('pages.show');
+Route::get('/pages/{page}/media/{type}', [PageController::class, 'media'])->name('pages.media');
+Route::get('/pages/{id}/followers', [PageController::class, 'followers'])->name('pages.followers');
 
 // ==========================================
 // 5. VIDEOS ROUTES
@@ -286,6 +291,7 @@ Route::middleware('auth')->group(function () {
     // Reports
     Route::post('/report', [\App\Http\Controllers\ReportController::class, 'store'])->name('reports.store');
     
+    Route::get('/stream/{id}', [\App\Http\Controllers\StreamController::class, 'show'])->name('stream.show');
     Route::post('/stream/{id}/like', [LikeController::class, 'toggle'])->name('stream.like');
     Route::post('/stream/{id}/comment', [CommentController::class, 'store'])->name('stream.comment');
     Route::put('/stream/{id}', [\App\Http\Controllers\StreamController::class, 'update'])->name('stream.update');
@@ -304,6 +310,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/desain-profil', [ProfileDesignController::class, 'index'])->name('desain-profil.index');
     Route::post('/desain-profil', [ProfileDesignController::class, 'save'])->name('desain-profil.save');
     Route::delete('/desain-profil/background', [ProfileDesignController::class, 'destroyBackground'])->name('desain-profil.destroy-bg');
+    Route::delete('/desain-profil/music', [ProfileDesignController::class, 'destroyMusic'])->name('desain-profil.destroy-music');
 });
 
 // ==========================================
@@ -330,5 +337,7 @@ if (app()->environment('local')) {
         }
         return 'Akun ID 2 tidak ada di database! Coba ganti angka find(2) menjadi find(3).';
     });
+
+
 }
 

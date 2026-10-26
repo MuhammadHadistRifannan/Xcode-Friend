@@ -3,11 +3,11 @@
 @section('title', 'Telusur')
 
 @section('content')
-<div class="pb-6 bg-[#fafafa]">
-    <div class="w-full px-4 lg:px-20 mx-auto flex flex-col lg:flex-row gap-6 lg:gap-12">
+<div class="pb-6">
+    <div class="w-full max-w-[1600px] px-4 sm:px-6 lg:px-8 mx-auto flex flex-col lg:flex-row gap-6">
 
         <!-- KONTEN KIRI: Telusur -->
-        <div class="w-full lg:w-[80%] flex flex-col">
+        <div class="flex-1 min-w-0 flex flex-col">
 
             <!-- Header -->
             <div class="mb-6">
@@ -15,20 +15,20 @@
             </div>
 
             <!-- Filter Members -->
-            <div class="bg-white rounded-[14px] p-6 shadow-sm mb-6 border border-gray-200">
+            <div class="bg-white rounded-[14px] p-5 lg:p-6 shadow-sm mb-6 border border-gray-200">
                 <div class="flex items-center gap-2 mb-4">
                     <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
                     </svg>
-                    <h2 class="text-sm font-bold text-gray-900">Filter Members</h2>
+                    <h2 class="text-sm font-bold text-gray-900 uppercase tracking-wide">Filter Members</h2>
                 </div>
 
                 <form method="GET" action="{{ route('telusur.index') }}" id="filterForm">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5">
                         <!-- Jenis Kelamin -->
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-1">JENIS KELAMIN</label>
-                            <select name="gender" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-white focus:ring-[#b71c1c] outline-none">
+                            <select name="gender" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:ring-1 focus:ring-[#b71c1c] focus:border-[#b71c1c] outline-none transition">
                                 <option value="all" {{ ($filters['gender'] ?? '') == 'all' || !isset($filters['gender']) ? 'selected' : '' }}>Keduanya</option>
                                 <option value="1" {{ ($filters['gender'] ?? '') == '1' ? 'selected' : '' }}>Cowok</option>
                                 <option value="0" {{ ($filters['gender'] ?? '') == '0' ? 'selected' : '' }}>Cewek</option>
@@ -38,17 +38,17 @@
                         <!-- Umur -->
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-1">UMUR</label>
-                            <div class="flex items-center gap-2">
-                                <input type="number" name="umur_min" value="{{ $filters['umur_min'] ?? '' }}" placeholder="Min" min="0" max="120" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-white focus:ring-[#b71c1c] outline-none">
-                                <span class="text-gray-400 text-sm">s/d</span>
-                                <input type="number" name="umur_max" value="{{ $filters['umur_max'] ?? '' }}" placeholder="Max" min="0" max="120" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-white focus:ring-[#b71c1c] outline-none">
+                            <div class="flex items-center gap-1.5">
+                                <input type="number" name="umur_min" value="{{ $filters['umur_min'] ?? '' }}" placeholder="Min" min="0" max="120" class="w-full min-w-0 border border-gray-200 rounded-xl px-2.5 py-2.5 text-sm bg-white focus:ring-1 focus:ring-[#b71c1c] focus:border-[#b71c1c] outline-none text-center transition">
+                                <span class="text-gray-400 text-xs shrink-0">-</span>
+                                <input type="number" name="umur_max" value="{{ $filters['umur_max'] ?? '' }}" placeholder="Max" min="0" max="120" class="w-full min-w-0 border border-gray-200 rounded-xl px-2.5 py-2.5 text-sm bg-white focus:ring-1 focus:ring-[#b71c1c] focus:border-[#b71c1c] outline-none text-center transition">
                             </div>
                         </div>
 
                         <!-- Status -->
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-1">STATUS</label>
-                            <select name="status" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-white focus:ring-[#b71c1c] outline-none">
+                            <select name="status" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:ring-1 focus:ring-[#b71c1c] focus:border-[#b71c1c] outline-none transition">
                                 <option value="all" {{ ($filters['status'] ?? '') == 'all' || !isset($filters['status']) ? 'selected' : '' }}>Semua Status</option>
                                 <option value="Jomblo" {{ ($filters['status'] ?? '') == 'Jomblo' ? 'selected' : '' }}>Jomblo</option>
                                 <option value="TTM" {{ ($filters['status'] ?? '') == 'TTM' ? 'selected' : '' }}>TTM</option>
@@ -57,45 +57,67 @@
                                 <option value="Tunangan" {{ ($filters['status'] ?? '') == 'Tunangan' ? 'selected' : '' }}>Tunangan</option>
                             </select>
                         </div>
-                    </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
                         <!-- Lokasi -->
                         <div class="relative">
                             <label class="block text-xs font-bold text-gray-700 mb-1">LOKASI</label>
                             <div id="lokasiWrapper" class="relative">
-                                <input type="text" id="lokasiInput" readonly value="{{ $filters['lokasi'] ?? '' }}" placeholder="Semua Lokasi" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-white focus:ring-[#b71c1c] focus:border-[#b71c1c] outline-none shadow-sm cursor-pointer pr-10">
+                                <input type="text" id="lokasiInput" readonly value="{{ $filters['lokasi'] ?? '' }}" placeholder="Semua Lokasi" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:ring-1 focus:ring-[#b71c1c] focus:border-[#b71c1c] outline-none shadow-sm cursor-pointer pr-8 truncate transition">
                                 <input type="hidden" name="lokasi" id="lokasiValue" value="{{ $filters['lokasi'] ?? '' }}">
-                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none">
                                     <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                                 </div>
-                                <div id="lokasiDropdown" class="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto hidden">
-                                    <div class="px-4 py-2 border-b border-gray-100 sticky top-0 bg-white">
-                                        <input type="text" id="lokasiSearch" placeholder="Cari lokasi..." class="w-full text-sm outline-none">
+                                <div id="lokasiDropdown" class="absolute z-50 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto hidden">
+                                    <div class="px-3 py-2 border-b border-gray-100 sticky top-0 bg-white">
+                                        <input type="text" id="lokasiSearch" placeholder="Cari lokasi..." class="w-full text-sm outline-none bg-transparent">
                                     </div>
                                     <div id="lokasiList" class="py-1">
+                                        <div class="lokasi-option px-3 py-2 text-sm cursor-pointer hover:bg-[#f4dada] hover:text-[#b71c1c] transition {{ empty($filters['lokasi']) ? 'bg-[#f4dada] text-[#b71c1c] font-bold' : 'text-gray-500' }}" data-value="">Semua Lokasi</div>
                                         @foreach($locations as $loc)
-                                            <div class="lokasi-option px-4 py-2.5 text-sm cursor-pointer hover:bg-[#f4dada] hover:text-[#b71c1c] transition {{ ($filters['lokasi'] ?? '') == $loc ? 'bg-[#f4dada] text-[#b71c1c] font-bold' : 'text-gray-700' }}" data-value="{{ $loc }}">{{ $loc }}</div>
+                                            <div class="lokasi-option px-3 py-2 text-sm cursor-pointer hover:bg-[#f4dada] hover:text-[#b71c1c] transition {{ ($filters['lokasi'] ?? '') == $loc ? 'bg-[#f4dada] text-[#b71c1c] font-bold' : 'text-gray-700' }}" data-value="{{ $loc }}">{{ $loc }}</div>
                                         @endforeach
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Diutur Berdasarkan + Tombol -->
-                        <div class="flex gap-3">
-                            <div class="flex-1">
-                                <label class="block text-xs font-bold text-gray-700 mb-1">DIURUT BERDASARKAN</label>
-                                <select name="sort" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-white focus:ring-[#b71c1c] outline-none">
-                                    <option value="terbaru" {{ ($filters['sort'] ?? 'terbaru') == 'terbaru' ? 'selected' : '' }}>Terbaru</option>
-                                    <option value="last_seen" {{ ($filters['sort'] ?? '') == 'last_seen' ? 'selected' : '' }}>Terakhir Aktif</option>
-                                    <option value="followers" {{ ($filters['sort'] ?? '') == 'followers' ? 'selected' : '' }}>Paling Populer</option>
-                                </select>
-                            </div>
-                            <button type="submit" class="bg-[#b71c1c] hover:bg-red-800 text-white px-8 py-2.5 rounded-[14px] text-sm font-bold transition self-end">
-                                PERBARUI
-                            </button>
+                        <!-- Diurutkan -->
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">URUTKAN</label>
+                            <select name="sort" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:ring-1 focus:ring-[#b71c1c] focus:border-[#b71c1c] outline-none transition">
+                                <option value="terbaru" {{ ($filters['sort'] ?? 'terbaru') == 'terbaru' ? 'selected' : '' }}>Terbaru</option>
+                                <option value="last_seen" {{ ($filters['sort'] ?? '') == 'last_seen' ? 'selected' : '' }}>Terakhir Aktif</option>
+                                <option value="followers" {{ ($filters['sort'] ?? '') == 'followers' ? 'selected' : '' }}>Paling Populer</option>
+                            </select>
                         </div>
+                    </div>
+
+                    <!-- Action Bar: Reset & Submit -->
+                    <div class="mt-4 pt-3.5 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+                        @php
+                            $hasActiveFilter = (!empty($filters['gender']) && $filters['gender'] !== 'all')
+                                || !empty($filters['umur_min'])
+                                || !empty($filters['umur_max'])
+                                || (!empty($filters['status']) && $filters['status'] !== 'all')
+                                || !empty($filters['lokasi'])
+                                || (!empty($filters['sort']) && $filters['sort'] !== 'terbaru');
+                        @endphp
+                        <div>
+                            @if($hasActiveFilter)
+                                <a href="{{ route('telusur.index') }}" class="inline-flex items-center gap-1.5 text-xs text-red-600 hover:text-red-700 font-semibold transition">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    Reset Filter
+                                </a>
+                            @else
+                                <span class="text-xs text-gray-400">Atur kriteria di atas untuk memfilter member</span>
+                            @endif
+                        </div>
+                        <button type="submit" class="w-full sm:w-auto bg-[#b71c1c] hover:bg-red-800 text-white font-bold px-6 py-2.5 rounded-xl text-sm transition shadow-sm hover:shadow flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                            <span>Terapkan Filter</span>
+                        </button>
                     </div>
                 </form>
             </div>
@@ -103,36 +125,33 @@
             <!-- Members Grid -->
             <div class="flex-grow">
                 @if($members->count() > 0)
-                    <div class="flex flex-wrap gap-4" id="members-grid">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4" id="members-grid">
                         @foreach($members as $member)
                             @include('telusur.partials._member-card', ['member' => $member])
                         @endforeach
                     </div>
 
-                    <!-- Sentinel Infinite Scroll -->
-                    <div id="telusur-sentinel" class="py-6" style="display: {{ $members->hasMorePages() ? 'block' : 'none' }};">
-                        <!-- Skeleton shimmer cards -->
-                        <div class="flex flex-wrap gap-5 justify-center" id="telusur-skeleton">
-                            @for($sk = 0; $sk < 4; $sk++)
-                            <div class="bg-white rounded-[14px] p-6 shadow-sm flex flex-col items-center border border-gray-200 w-[175px]">
-                                <div class="skeleton-shimmer w-16 h-16 rounded-full mb-3"></div>
-                                <div class="skeleton-shimmer h-3 w-20 rounded mb-2"></div>
-                                <div class="skeleton-shimmer h-2.5 w-14 rounded"></div>
-                            </div>
-                            @endfor
+                    <!-- Pagination -->
+                    @if($members->hasPages())
+                        <div class="mt-8 mb-6 bg-white p-4 rounded-[14px] shadow-sm border border-gray-200 flex justify-center">
+                            {{ $members->links() }}
                         </div>
-                    </div>
+                    @endif
                 @else
-                    <div class="bg-white rounded-[14px] shadow-sm p-20 text-center">
-                        <p class="text-gray-400 text-sm">Tidak ada member yang ditemukan.</p>
+                    <div class="bg-white rounded-[14px] shadow-sm p-16 text-center border border-gray-200">
+                        <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                        <p class="text-gray-500 font-medium text-sm">Tidak ada member yang ditemukan.</p>
+                        <p class="text-gray-400 text-xs mt-1">Coba sesuaikan filter pencarian Anda.</p>
                     </div>
                 @endif
             </div>
         </div>
 
         <!-- KONTEN KANAN: Sidebar -->
-        <div class="w-full lg:w-[15%] space-y-6">
-            <div class="bg-white p-8 rounded-[24px] shadow-sm flex flex-col items-center border border-gray-200">
+        <div class="w-full lg:w-72 xl:w-80 shrink-0 space-y-6">
+            <div class="bg-white p-6 rounded-[20px] shadow-sm flex flex-col items-center border border-gray-200">
                 <p class="text-[13px] font-bold text-gray-900 mb-2">Google Reviews</p>
                 <div class="flex text-[#ffc107] mb-2 gap-1">
                     @for($i=0; $i<5; $i++)
@@ -143,12 +162,12 @@
                 <p class="text-xs text-blue-600 font-medium">532 Reviews</p>
             </div>
 
-            <div class="bg-white p-8 rounded-[24px] shadow-sm border border-gray-200">
+            <div class="bg-white p-6 rounded-[20px] shadow-sm border border-gray-200">
                 <h3 class="text-[15px] font-bold text-gray-900 mb-4">Network Links</h3>
                 <ul class="space-y-3">
                     <li>
                         <a href="#" class="flex items-center justify-between p-2 hover:bg-gray-50 rounded-[12px] transition group">
-                            <div class="flex items-center gap-4">
+                            <div class="flex items-center gap-3">
                                 <div class="bg-[#f0f5fa] p-2.5 rounded-[10px] text-[#3b82f6]">
                                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
                                 </div>
@@ -159,7 +178,7 @@
                     </li>
                     <li>
                         <a href="#" class="flex items-center justify-between p-2 hover:bg-gray-50 rounded-[12px] transition group">
-                            <div class="flex items-center gap-4">
+                            <div class="flex items-center gap-3">
                                 <div class="bg-[#f0f5fa] p-2.5 rounded-[10px] text-[#3b82f6]">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
                                 </div>
@@ -170,7 +189,7 @@
                     </li>
                     <li>
                         <a href="#" class="flex items-center justify-between p-2 hover:bg-gray-50 rounded-[12px] transition group">
-                            <div class="flex items-center gap-4">
+                            <div class="flex items-center gap-3">
                                 <div class="bg-[#f0f5fa] p-2.5 rounded-[10px] text-[#3b82f6]">
                                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M22.675 0h-21.35c-.732 0-1.325.593-1.325 1.325v21.351c0 .731.593 1.324 1.325 1.324h11.495v-9.294h-3.128v-3.622h3.128v-2.671c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.312h3.587l-.467 3.622h-3.12v9.293h6.116c.73 0 1.323-.593 1.323-1.325v-21.35c0-.732-.593-1.325-1.325-1.325z"/></svg>
                                 </div>
@@ -231,7 +250,7 @@
         opt.addEventListener('click', function() {
             const val = this.getAttribute('data-value');
             lokasiValue.value = val;
-            lokasiInput.value = val;
+            lokasiInput.value = val ? val : '';
             lokasiDropdown.classList.add('hidden');
             // Highlight selected
             allOptions.forEach(o => {
@@ -249,56 +268,5 @@
             lokasiDropdown.classList.add('hidden');
         }
     });
-
-    // Infinite Scroll
-    let telusurPage = 1;
-    let telusurHasMore = {{ $members->hasMorePages() ? 'true' : 'false' }};
-    let telusurLoading = false;
-    const membersGrid = document.getElementById('members-grid');
-    const telusurSentinel = document.getElementById('telusur-sentinel');
-
-    if (telusurSentinel && 'IntersectionObserver' in window) {
-        const observer = new IntersectionObserver((entries) => {
-            if (entries[0].isIntersecting && telusurHasMore && !telusurLoading) {
-                loadMoreMembers();
-            }
-        }, { rootMargin: '250px' });
-        observer.observe(telusurSentinel);
-    }
-
-    async function loadMoreMembers() {
-        if (telusurLoading || !telusurHasMore) return;
-        telusurLoading = true;
-        telusurPage++;
-
-        try {
-            const currentUrl = new URL(window.location.href);
-            currentUrl.searchParams.set('page', telusurPage);
-
-            const res = await fetch(currentUrl.toString(), {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
-                }
-            });
-            if (!res.ok) throw new Error('Network error');
-            const data = await res.json();
-
-            if (data.html && data.html.trim().length > 0) {
-                membersGrid.insertAdjacentHTML('beforeend', data.html);
-            }
-
-            telusurHasMore = data.hasMore;
-            if (!telusurHasMore && telusurSentinel) {
-                telusurSentinel.style.display = 'none';
-            }
-        } catch (err) {
-            console.error('Gagal memuat member:', err);
-            telusurHasMore = false;
-            if (telusurSentinel) telusurSentinel.style.display = 'none';
-        } finally {
-            telusurLoading = false;
-        }
-    }
 </script>
 @endpush

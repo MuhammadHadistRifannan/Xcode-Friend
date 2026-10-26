@@ -6,15 +6,62 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6">
 
         {{-- ===== BREADCRUMB / BACK BUTTON ===== --}}
-        <div class="flex items-center gap-3 mb-6">
-            <a href="{{ url()->previous() != url()->current() ? url()->previous() : route('videos.public') }}"
-               class="flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-gray-900 bg-white border border-gray-200 px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-all">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
-                     stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                Kembali ke Video
-            </a>
+        @php
+            $isAdmin = auth()->check() && auth()->user()->isAdmin();
+            $fromStreamMonitor = $isAdmin && (request('ref') === 'stream-monitor' || str_contains(url()->previous(), 'stream-monitor'));
+
+            // Tentukan URL dan teks kembali
+            if ($album) {
+                $albumUrl = (auth()->check() && (int)$album->gid === (int)auth()->id())
+                    ? route('video.index')
+                    : route('videos.public');
+                $backUrl = $albumUrl;
+                $backText = 'Kembali ke Album';
+            } else {
+                $prev = url()->previous();
+                $isWatchUrl = $prev && (str_contains($prev, '/watch') || str_contains($prev, '/videos/'));
+                if ($prev && $prev != url()->current() && !$isWatchUrl && !str_contains($prev, 'stream-monitor') && !str_contains($prev, '/admin')) {
+                    $backUrl = $prev;
+                } else {
+                    $backUrl = auth()->check() ? route('video.index') : route('videos.public');
+                }
+                $backText = 'Kembali ke Video';
+            }
+        @endphp
+        <div class="flex items-center gap-3 mb-6 flex-wrap">
+            @if($isAdmin && $fromStreamMonitor)
+                <a href="{{ route('admin.stream-monitor') }}"
+                   class="inline-flex items-center gap-2 text-sm font-bold text-gray-800 hover:text-red-700 bg-white border border-gray-200 hover:border-red-300 px-4 py-2 rounded-lg shadow-sm hover:shadow transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Kembali ke Stream Monitor
+                </a>
+                <a href="{{ $backUrl }}"
+                   class="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-gray-800 bg-white border border-gray-200 px-3 py-2 rounded-lg shadow-sm hover:shadow transition">
+                    {{ $album ? 'Ke Album' : 'Ke Daftar Video' }}
+                </a>
+            @else
+                <a href="{{ $backUrl }}"
+                   class="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-gray-900 bg-white border border-gray-200 px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                         stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    {{ $backText }}
+                </a>
+            @endif
+
+            @if($isAdmin && !$fromStreamMonitor)
+                <a href="{{ route('admin.stream-monitor') }}"
+                   class="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-red-700 bg-white border border-gray-200 px-3 py-2 rounded-lg shadow-sm hover:shadow transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    Stream Monitor
+                </a>
+            @endif
+
             @if ($album)
                 <span class="text-gray-400 text-sm">/</span>
                 <span class="text-sm font-medium text-gray-500 truncate max-w-xs">{{ $album->name }}</span>
@@ -94,7 +141,7 @@
                             </span>
                         @endif
                         @if ($album)
-                            <a href="{{ route('video.index') }}"
+                            <a href="{{ $albumUrl }}"
                                class="flex items-center gap-1.5 text-sm text-red-600 hover:text-red-700 font-medium">
                                 <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round"

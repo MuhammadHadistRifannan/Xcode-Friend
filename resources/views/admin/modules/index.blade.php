@@ -21,12 +21,12 @@
                 <i data-lucide="triangle-alert" class="w-6 h-6 text-red-600 shrink-0"></i>
                 <p class="text-xs font-bold text-gray-600 tracking-wide uppercase">IF YOU MODIFIED SOME MODULE FILES, YOU NEED TO CLICK THE 'UPDATE MODULES' TO MAKE THEM EFFECTIVE.</p>
             </div>
-            <button class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold py-2.5 px-6 rounded-md transition-colors shrink-0 border border-gray-200 text-center leading-tight">
+            <button type="submit" form="admin-modules-form" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold py-2.5 px-6 rounded-md transition-colors shrink-0 border border-gray-200 text-center leading-tight cursor-pointer">
                 Update<br>modules
             </button>
         </div>
 
-        <form action="{{ route('admin.modules.toggle') }}" method="POST">
+        <form action="{{ route('admin.modules.toggle') }}" method="POST" id="admin-modules-form">
             @csrf
             
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -111,13 +111,10 @@
             </div>
 
             <!-- Footer Actions -->
-            <div class="flex items-center justify-between mt-8">
+            <div class="mt-8">
                 <button type="submit" class="bg-[#b90000] hover:bg-red-700 text-white text-xs font-bold py-3 px-6 rounded transition-colors">
                     UPDATE MODULES
                 </button>
-                <a href="#" class="text-xs font-bold text-[#b90000] hover:text-red-700 transition-colors uppercase">
-                    + Browse More Modules...
-                </a>
             </div>
 
         </form>

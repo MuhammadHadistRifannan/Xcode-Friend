@@ -14,38 +14,52 @@ class AuthController extends Controller
     // =====================================
     public function authenticate(Request $request)
     {
-        $credentials = $request->validate([
+        $request->validate([
             'login' => ['required', 'string'],
             'password' => ['required', 'string'],
         ]);
 
-        // Cek apakah user mencentang tombol "Remember me"
+        $loginInput = trim($request->login);
+        $passwordInput = $request->password;
         $remember = $request->has('remember');
 
-        // Tentukan apakah input 'login' itu berupa email atau username
-        $fieldType = filter_var($request->login, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+        // Cari akun berdasarkan username ATAU email (case-insensitive di MySQL)
+        $user = User::where('username', $loginInput)
+            ->orWhere('email', $loginInput)
+            ->first();
 
-        if (Auth::attempt([
-            $fieldType => $request->login,
-            'password' => $request->password,
-            'disabled' => 0,
-        ], $remember)) {
+        if (!$user) {
+            return back()->withErrors([
+                'login' => 'Email/Username atau Password salah.',
+            ])->onlyInput('login');
+        }
+
+        // Cek status disabled pada akun (2 = Suspend)
+        // Catatan: Status 1 (Pending) tetap diizinkan login dengan akses fitur terbatas dan peringatan di halaman
+        if ((int) $user->disabled === 2) {
+            return back()->withErrors([
+                'login' => 'Akun Anda sedang disuspend.',
+            ])->onlyInput('login');
+        }
+
+        // Verifikasi password (mendukung Bcrypt maupun MD5 legacy via Md5BcryptHasher)
+        if (Hash::check($passwordInput, $user->password)) {
+            Auth::login($user, $remember);
             $request->session()->regenerate();
 
-            $user = Auth::user();
-            
-            // Update waktu login terakhir
-            if ($user) {
-                $user->update([
-                    'lastlogin' => time()
-                ]);
+            $updates = [
+                'lastlogin' => time(),
+            ];
+
+            // Jika password masih format MD5 legacy, otomatis upgrade ke Bcrypt
+            if (Hash::needsRehash($user->password)) {
+                $updates['password'] = Hash::make($passwordInput);
             }
 
+            $user->update($updates);
+
             // Cek apakah user adalah admin
-            $role = Auth::user()->roles;
-            $roleLower = strtolower($role);
-            if ($role == 1 || in_array($roleLower, ['admin', 'administrator'])) {
-                // Jika Admin, alihkan ke Dashboard Admin
+            if ($user->isAdmin()) {
                 return redirect()->intended('/admin/dashboard');
             }
 
@@ -53,7 +67,7 @@ class AuthController extends Controller
             return redirect()->intended('/beranda');
         }
 
-        // Jika gagal login (sandi/email salah)
+        // Jika password tidak cocok
         return back()->withErrors([
             'login' => 'Email/Username atau Password salah.',
         ])->onlyInput('login');
@@ -107,7 +121,7 @@ class AuthController extends Controller
         $disabledStatus = ($accVerify == '2') ? 1 : 0;
 
         // Simpan data User ke database
-        User::create([
+        $newUser = User::create([
             'email'      => $validated['email'],
             'username'   => $validated['username'],
             'password'   => Hash::make($validated['password']),
@@ -137,14 +151,39 @@ class AuthController extends Controller
         if ($request->filled('ref')) {
             $referrer = User::where('username', $request->ref)->first();
             if ($referrer) {
-                \App\Models\Invite::where('uid', $referrer->id)
+                $invite = \App\Models\Invite::where('uid', $referrer->id)
                     ->where('email', $validated['email'])
-                    ->update(['status' => 1]);
+                    ->first();
+
+                if ($invite) {
+                    $invite->update(['status' => 1]);
+                } else {
+                    // Jika tidak ada di DB (daftar pakai link sembarangan tanpa via email Tab 2),
+                    // buatkan record baru agar pengundang tetap dapat kredit!
+                    \App\Models\Invite::create([
+                        'uid'     => $referrer->id,
+                        'email'   => $validated['email'],
+                        'status'  => 1, // Langsung dianggap Diterima
+                        'created' => time(),
+                    ]);
+                }
+
+                // --- Auto Friend/Follow Feature ---
+                // Karena mereka saling mengundang, otomatis buat mereka berteman
+                try {
+                    $friendService = app(\App\Services\FriendService::class);
+                    // Kirim permohonan dari referrer ke pendaftar baru
+                    $friendService->sendRequest($referrer->id, $newUser->id, 'Bergabung melalui undangan.');
+                    // Langsung setujui oleh pendaftar baru
+                    $friendService->acceptRequest($newUser->id, $referrer->id);
+                } catch (\Exception $e) {
+                    // Abaikan jika terjadi kegagalan (misalnya karena batasan sistem)
+                }
             }
         }
 
         if ($disabledStatus === 1) {
-            return redirect('/login')->with('success', 'Registrasi berhasil! Akun Anda sedang menunggu persetujuan verifikasi dari administrator sebelum dapat digunakan.');
+            return redirect('/login')->with('success', 'Registrasi berhasil! Akun Anda sedang menunggu persetujuan verifikasi dari administrator. Anda dapat masuk dengan akses fitur terbatas.');
         }
 
         return redirect('/login')->with('success', 'Registrasi berhasil! Silakan masuk menggunakan akun baru Anda.');
@@ -155,6 +194,12 @@ class AuthController extends Controller
     // =====================================
     public function logout(Request $request)
     {
+        if (Auth::check()) {
+            $user = Auth::user();
+            $user->last_seen = 0;
+            $user->save();
+        }
+
         Auth::logout();
         
         $request->session()->invalidate();

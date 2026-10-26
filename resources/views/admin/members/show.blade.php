@@ -29,7 +29,7 @@
                                  class="w-20 h-20 rounded-full border-4 border-white shadow-md object-cover bg-gray-100">
                         </div>
                         <h2 class="text-xl font-black text-gray-900">{{ $member->fullname ?: $member->username }}</h2>
-                        <p class="text-sm text-gray-500 mb-1">@{{ $member->username }}</p>
+                        <p class="text-sm text-gray-500 mb-1">{{ '@' . $member->username }}</p>
                         <p class="text-xs text-gray-400 mb-4">{{ $member->email }}</p>
 
                         {{-- Status Badge --}}
@@ -42,7 +42,7 @@
                                 <i data-lucide="{{ $member->disabled == 0 ? 'check-circle' : ($member->disabled == 1 ? 'clock' : 'slash') }}" class="w-3 h-3"></i>
                                 {{ $statusLabel }}
                             </span>
-                            @if($member->level == 1 || in_array(strtolower($member->roles ?? ''), ['admin','administrator']))
+                            @if($member->isAdmin())
                                 <span class="inline-flex items-center gap-1 bg-red-100 text-red-700 text-xs font-bold px-3 py-1 rounded-full">
                                     <i data-lucide="shield" class="w-3 h-3"></i> Admin
                                 </span>
@@ -72,7 +72,7 @@
                         </div>
                         <div class="bg-gray-50 rounded-lg p-3">
                             <div class="text-2xl font-black text-{{ $reportCount > 0 ? 'red' : 'gray' }}-{{ $reportCount > 0 ? '600' : '900' }}">{{ $reportCount }}</div>
-                            <div class="text-[10px] text-gray-500 uppercase">Laporan</div>
+                            <div class="text-[10px] text-gray-500 uppercase" title="Berapa kali akun atau konten milik pengguna ini dilaporkan">Dilaporkan</div>
                         </div>
                     </div>
                 </div>
@@ -127,13 +127,7 @@
                         <div class="flex items-center gap-3">
                             <select name="roles" class="flex-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 p-2.5">
                                 @foreach($roles as $r)
-                                    @php
-                                        $isSelected = strtolower($member->roles ?? '') === strtolower($r->name);
-                                        // Legacy logic support
-                                        if (empty($member->roles) && $member->level != 1 && strtolower($r->name) == 'member') $isSelected = true;
-                                        if ($member->level == 1 && strtolower($r->name) == 'administrator') $isSelected = true;
-                                    @endphp
-                                    <option value="{{ $r->name }}" {{ $isSelected ? 'selected' : '' }}>
+                                    <option value="{{ $r->name }}" {{ $member->hasRole($r->name) ? 'selected' : '' }}>
                                         {{ $r->name }}
                                     </option>
                                 @endforeach

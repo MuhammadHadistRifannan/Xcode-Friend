@@ -8,18 +8,17 @@ use Illuminate\Support\Facades\Schema;
 
 class AdminSettingsController extends Controller
 {
-    // Tabel yang akan digunakan. Coba jcow_settings, jika tidak ada fallback ke jcow_gvars
-    private $table = 'jcow_settings';
-    private $keyColumn = 'key';
-    private $valueColumn = 'value';
+    // Tabel yang akan digunakan. Default ke jcow_gvars, jika jcow_settings ada gunakan itu
+    private $table = 'jcow_gvars';
+    private $keyColumn = 'gkey';
+    private $valueColumn = 'gvalue';
 
     public function __construct()
     {
-        // Cek jika tabel jcow_settings tidak ada, tapi jcow_gvars ada, kita asumsikan user maksudnya jcow_gvars
-        if (!Schema::hasTable('jcow_settings') && Schema::hasTable('jcow_gvars')) {
-            $this->table = 'jcow_gvars';
-            $this->keyColumn = 'gkey';
-            $this->valueColumn = 'gvalue';
+        if (Schema::hasTable('jcow_settings')) {
+            $this->table = 'jcow_settings';
+            $this->keyColumn = 'key';
+            $this->valueColumn = 'value';
         }
     }
 
@@ -71,36 +70,48 @@ class AdminSettingsController extends Controller
 
         // Handle locations array -> json
         if (isset($inputs['locations']) && is_array($inputs['locations'])) {
-            $inputs['locations'] = json_encode($inputs['locations']);
+            $inputs['locations'] = json_encode(array_values($inputs['locations']));
         } else {
             $inputs['locations'] = json_encode([]);
         }
 
-        // Separate texts to save in jcow_texts
+        // Separate texts to save in jcow_texts (use array_key_exists so null values are caught)
         $textKeys = ['footermsg', 'locations', 'words_filter', 'rules_conditions'];
         $texts = [];
         foreach ($textKeys as $key) {
-            if (isset($inputs[$key])) {
-                $texts[$key] = $inputs[$key];
+            if (array_key_exists($key, $inputs)) {
+                $texts[$key] = $inputs[$key] ?? '';
                 unset($inputs[$key]);
             }
         }
 
-        // Loop dan update atau insert ke tabel setting
-        foreach ($inputs as $key => $value) {
-            DB::table($this->table)->updateOrInsert(
-                [$this->keyColumn => $key],
-                [$this->valueColumn => $value]
-            );
-        }
+        DB::transaction(function () use ($inputs, $texts) {
+            // Loop dan update atau insert ke tabel setting (jcow_gvars / jcow_settings)
+            foreach ($inputs as $key => $value) {
+                if (is_array($value)) {
+                    $value = json_encode($value);
+                }
+                $val = $value !== null ? (string) $value : '';
 
-        // Loop dan update texts
-        foreach ($texts as $key => $value) {
-            DB::table('jcow_texts')->updateOrInsert(
-                ['tkey' => $key],
-                ['tvalue' => $value]
-            );
-        }
+                DB::table($this->table)->updateOrInsert(
+                    [$this->keyColumn => $key],
+                    [$this->valueColumn => $val]
+                );
+            }
+
+            // Loop dan update texts
+            foreach ($texts as $key => $value) {
+                if (is_array($value)) {
+                    $value = json_encode($value);
+                }
+                $val = $value !== null ? (string) $value : '';
+
+                DB::table('jcow_texts')->updateOrInsert(
+                    ['tkey' => $key],
+                    ['tvalue' => $val]
+                );
+            }
+        });
 
         // Clear the settings cache
         \App\Helpers\SettingHelper::clearCache();

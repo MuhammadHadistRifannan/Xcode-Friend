@@ -27,7 +27,15 @@ class ModuleHelper
                     return $default;
                 }
                 
-                $module = DB::table('jcow_modules')->where('name', $moduleName)->first();
+                $module = DB::table('jcow_modules')
+                    ->whereRaw('UPPER(name) = ?', [$moduleName])
+                    ->first();
+
+                if (!$module && $moduleName === 'EVENTS') {
+                    $module = DB::table('jcow_modules')
+                        ->whereRaw('UPPER(name) = ?', ['EVENTS2005'])
+                        ->first();
+                }
                 
                 if ($module) {
                     return (bool) $module->actived;

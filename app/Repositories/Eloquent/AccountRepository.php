@@ -52,7 +52,13 @@ class AccountRepository implements AccountRepositoryInterface
                 ->pluck('fid'))
             ->toArray();
 
-        $excludeIds = array_merge($friendIds, $pendingIds, [$userId]);
+        $blockedIds = DB::table('jcow_blacks')
+            ->where('uid', $userId)
+            ->pluck('bid')
+            ->merge(DB::table('jcow_blacks')->where('bid', $userId)->pluck('uid'))
+            ->toArray();
+
+        $excludeIds = array_merge($friendIds, $pendingIds, $blockedIds, [$userId]);
 
         return DB::table('jcow_accounts')
             ->whereNotIn('id', $excludeIds)
@@ -89,7 +95,22 @@ class AccountRepository implements AccountRepositoryInterface
         }
 
         if (!empty($filters['lokasi']) && $filters['lokasi'] !== 'all') {
-            $query->where('location', trim($filters['lokasi']));
+            $loc = trim($filters['lokasi']);
+            $locAliases = [
+                'DI Yogyakarta' => ['DI Yogyakarta', 'Daerah Istimewa Yogyakarta'],
+                'Daerah Istimewa Yogyakarta' => ['DI Yogyakarta', 'Daerah Istimewa Yogyakarta'],
+                'DKI Jakarta' => ['DKI Jakarta', 'Daerah Khusus Ibukota Jakarta'],
+                'Daerah Khusus Ibukota Jakarta' => ['DKI Jakarta', 'Daerah Khusus Ibukota Jakarta'],
+                'Aceh' => ['Aceh', 'Nanggroe Aceh Darussalam'],
+                'Nanggroe Aceh Darussalam' => ['Aceh', 'Nanggroe Aceh Darussalam'],
+                'Jawa Barat' => ['Jawa Barat', 'Jawa Selatan'],
+            ];
+
+            if (isset($locAliases[$loc])) {
+                $query->whereIn('location', $locAliases[$loc]);
+            } else {
+                $query->where('location', $loc);
+            }
         }
 
         switch ($sort) {
@@ -104,7 +125,7 @@ class AccountRepository implements AccountRepositoryInterface
                 break;
         }
 
-        return $query->select('id', 'username', 'fullname', 'avatar', 'gender', 'birthyear', 'location', 'var1')
+        return $query->select('id', 'username', 'fullname', 'avatar', 'gender', 'birthyear', 'location', 'var1', 'about_me')
             ->paginate(config('pagination.telusur'))
             ->withQueryString();
     }
@@ -117,6 +138,7 @@ class AccountRepository implements AccountRepositoryInterface
             ->where('id', '!=', $userId)
             ->whereNotNull('location')
             ->where('location', '!=', '')
+            ->where('location', '!=', 'Jawa Selatan')
             ->distinct()
             ->pluck('location')
             ->toArray();

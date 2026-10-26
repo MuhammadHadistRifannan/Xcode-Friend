@@ -19,6 +19,18 @@
             </a>
         </div>
 
+        {{-- ===== TAB FILTER ===== --}}
+        <div class="flex items-center gap-2 mb-6 border-b border-gray-200 pb-3">
+            <a href="{{ route('foto.index') }}" class="px-4 py-1.5 text-xs font-bold rounded-lg transition-colors {{ ($filter ?? 'all') !== 'mine' ? 'bg-red-700 text-white' : 'text-gray-600 hover:bg-gray-100' }}">
+                Semua Album
+            </a>
+            @auth
+            <a href="{{ route('foto.index', ['filter' => 'mine']) }}" class="px-4 py-1.5 text-xs font-bold rounded-lg transition-colors {{ ($filter ?? 'all') === 'mine' ? 'bg-red-700 text-white' : 'text-gray-600 hover:bg-gray-100' }}">
+                Album Saya
+            </a>
+            @endauth
+        </div>
+
         {{-- ===== PESAN SUKSES ===== --}}
         
 
@@ -47,7 +59,7 @@
                             <div class="aspect-square overflow-hidden bg-gray-100 relative">
                                 @if ($album->latestPhoto)
                                     <img
-                                        src="{{ asset('storage/' . $album->latestPhoto->uri) }}"
+                                        src="{{ $album->latestPhoto->photo_url }}"
                                         alt="{{ $album->name }}"
                                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                         onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center bg-gray-100\'><span class=\'text-xs text-gray-400 font-medium\'>No Image</span></div>'"
@@ -77,6 +89,7 @@
                                 @endif
                             </a>
 
+                            @if(auth()->check() && $album->gid == auth()->id())
                             {{-- Tombol Titik Tiga --}}
                             <div class="relative shrink-0">
                                 <button
@@ -130,11 +143,18 @@
                                     </form>
                                 </div>
                             </div>
+                            @endif
                         </div>
 
                     </div>
                 @endforeach
             </div>
+
+            @if ($albums->hasPages())
+                <div class="mt-8">
+                    {{ $albums->links() }}
+                </div>
+            @endif
         @endif
 
         </div>

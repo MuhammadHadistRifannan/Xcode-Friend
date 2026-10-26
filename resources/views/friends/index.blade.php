@@ -38,8 +38,8 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         @foreach($friends as $friend)
                             <div class="bg-white rounded-[14px] p-4 flex items-center gap-4 shadow-sm hover:shadow-md transition">
-                                <div class="w-12 h-12 rounded-full bg-[#f4dada] flex items-center justify-center text-[#b71c1c] font-bold text-lg">
-                                    {{ substr($friend->fullname, 0, 1) }}
+                                <div class="w-12 h-12 rounded-full bg-[#f4dada] flex items-center justify-center overflow-hidden shrink-0">
+                                    <img src="{{ \App\Models\User::avatarUrl($friend->avatar ?? null) }}" alt="{{ $friend->fullname }}" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='{{ asset('assets/img/default.png') }}';">
                                 </div>
                                 <div class="flex-grow min-w-0">
                                     <p class="text-sm font-bold text-gray-900 truncate">{{ $friend->fullname }}</p>
@@ -74,8 +74,8 @@
                     <ul class="space-y-4">
                         @foreach($suggestions as $suggestion)
                             <li class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-[#f4dada] flex items-center justify-center text-[#b71c1c] font-bold text-sm">
-                                    {{ substr($suggestion->fullname, 0, 1) }}
+                                <div class="w-10 h-10 rounded-full bg-[#f4dada] flex items-center justify-center overflow-hidden shrink-0">
+                                    <img src="{{ \App\Models\User::avatarUrl($suggestion->avatar ?? null) }}" alt="{{ $suggestion->fullname }}" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='{{ asset('assets/img/default.png') }}';">
                                 </div>
                                 <div class="flex-grow min-w-0">
                                     <p class="text-xs font-bold text-gray-900 truncate">{{ $suggestion->fullname }}</p>

@@ -13,73 +13,166 @@ class ProfileController extends Controller
         // Cari user berdasarkan username di URL
         $profileUser = User::where('username', $username)->firstOrFail();
         
+        $viewer = auth()->user();
+        $isMe = $viewer && (int) $viewer->id === (int) $profileUser->id;
+        $blockedByMe = false;
+        $blockedMe = false;
+
+        if ($viewer && !$isMe) {
+            $friendRepo = app(\App\Repositories\Contracts\FriendRepositoryInterface::class);
+            $authId = (int) $viewer->id;
+            $blockedByMe = $friendRepo->hasBlocked($authId, (int) $profileUser->id);
+            $blockedMe = $friendRepo->isBlockedBy($authId, (int) $profileUser->id);
+        }
+
+        // Jika profileUser memblokir viewer saat ini, akses profil diblokir sepenuhnya
+        if ($blockedMe) {
+            if ($request->ajax()) {
+                return response()->json(['status' => 'error', 'message' => 'Profil tidak tersedia.'], 403);
+            }
+            return view('profile.blocked', compact('profileUser'));
+        }
+
         $tab = $request->query('tab', 'dinding');
         $streams = null;
         $photos = null;
         $videos = null;
 
-        if ($tab === 'dinding') {
-            // Ambil postingan (feed) milik user ini saja, atau postingan di dindingnya
-            $streams = Stream::with(['user', 'comments.user', 'targetPage'])
-                        ->where(function($query) use ($profileUser) {
-                            $query->where('uid', $profileUser->id)
-                                  ->orWhere('wall_id', $profileUser->id);
-                        })
-                        ->visibleTo(auth()->user())
-                        ->orderBy('created', 'desc')
-                        ->paginate(10);
-        } elseif ($tab === 'menyukai') {
-            // Ambil postingan yang di-like oleh user ini
-            $streams = Stream::with(['user', 'comments.user', 'targetPage'])
-                        ->whereHas('likedBy', function($q) use ($profileUser) {
-                            $q->where('uid', $profileUser->id);
-                        })
-                        ->visibleTo(auth()->user())
-                        ->orderBy('created', 'desc')
-                        ->paginate(10);
-        } elseif ($tab === 'foto') {
-            $photos = Stream::where('uid', $profileUser->id)
-                        ->where('attachment', '!=', '')
-                        ->visibleTo(auth()->user())
-                        ->where(function($q) {
-                            $q->where('type', 2)
-                              ->orWhere(function($q2) {
-                                  $q2->whereIn('app', ['group', 'page'])
-                                     ->where('attachment', 'not like', 'youtube:%');
-                              });
-                        })
-                        ->orderBy('created', 'desc')
-                        ->paginate(12);
-        } elseif ($tab === 'video') {
-            $videos = Stream::where('uid', $profileUser->id)
-                        ->where('attachment', '!=', '')
-                        ->visibleTo(auth()->user())
-                        ->where(function($q) {
-                            $q->where('type', 3)
-                              ->orWhere(function($q2) {
-                                  $q2->whereIn('app', ['group', 'page'])
-                                     ->where('attachment', 'like', 'youtube:%');
-                              });
-                        })
-                        ->orderBy('created', 'desc')
-                        ->paginate(12);
-        }
-
         $isFollowing = false;
         $isFriend = false;
         $hasPendingRequest = false;
         $hasSentRequest = false;
-        $isBlocked = false;
+        $isBlocked = $blockedByMe;
 
-        if (auth()->check() && auth()->user()->id !== $profileUser->id) {
-            $friendRepo = app(\App\Repositories\Contracts\FriendRepositoryInterface::class);
-            $authId = auth()->user()->id;
-            
-            $isFollowing = $friendRepo->isFollowing($authId, $profileUser->id);
-            $isFriend = $friendRepo->areFriends($authId, $profileUser->id);
-            $hasPendingRequest = $friendRepo->hasPendingRequest($authId, $profileUser->id);
-            $hasSentRequest = $friendRepo->hasPendingRequest($profileUser->id, $authId);
-            $isBlocked = $friendRepo->isBlocked($authId, $profileUser->id);
+        // Jika viewer memblokir profileUser, tidak perlu mengambil data dinding/foto/video
+        if (!$blockedByMe) {
+            if ($viewer && !$isMe) {
+                $friendRepo = app(\App\Repositories\Contracts\FriendRepositoryInterface::class);
+                $authId = (int) $viewer->id;
+                $isFollowing = $friendRepo->isFollowing($authId, $profileUser->id);
+                $isFriend = $friendRepo->areFriends($authId, $profileUser->id);
+                $hasPendingRequest = $friendRepo->hasPendingRequest($authId, $profileUser->id);
+                $hasSentRequest = $friendRepo->hasPendingRequest($profileUser->id, $authId);
+            }
+
+            if ($tab === 'dinding') {
+                // Ambil postingan (feed) milik user profil ini saja
+                $streams = Stream::with(['user', 'comments.user', 'targetPage'])
+                            ->where('uid', $profileUser->id)
+                            ->where('hide', 0)
+                            ->visibleTo(auth()->user())
+                            ->orderBy('created', 'desc')
+                            ->paginate(10);
+            } elseif ($tab === 'menyukai') {
+                // Ambil postingan yang di-like oleh user ini
+                $streams = Stream::with(['user', 'comments.user', 'targetPage'])
+                            ->whereHas('likedBy', function($q) use ($profileUser) {
+                                $q->where('uid', $profileUser->id);
+                            })
+                            ->where('hide', 0)
+                            ->visibleTo(auth()->user())
+                            ->orderBy('created', 'desc')
+                            ->paginate(10);
+            } elseif ($tab === 'foto') {
+                // Sinkronisasikan foto album milik pengguna yang belum memiliki record di jcow_streams
+                $userAlbumIds = \App\Models\Album::where('gid', $profileUser->id)->pluck('id');
+                if ($userAlbumIds->isNotEmpty()) {
+                    $unsyncedPhotos = \App\Models\Photo::whereIn('sid', $userAlbumIds)->get();
+                    foreach ($unsyncedPhotos as $pItem) {
+                        if (!$pItem->fileExists()) {
+                            $pItem->delete();
+                            continue;
+                        }
+                        $hasStream = Stream::where('uid', $profileUser->id)
+                            ->where(function($q) use ($pItem) {
+                                $q->where('attachment', 'like', '%' . $pItem->uri . '%')
+                                  ->orWhere('attachment', 'like', '%' . basename($pItem->uri) . '%')
+                                  ->orWhere(function($q2) use ($pItem) {
+                                      $q2->where('aid', $pItem->id)->whereIn('app', ['photo', 'photos']);
+                                  });
+                            })->exists();
+
+                        if (!$hasStream) {
+                            $album = \App\Models\Album::find($pItem->sid);
+                            Stream::create([
+                                'message'    => $pItem->des ?: ('Mengunggah foto ke album ' . ($album ? $album->name : 'Foto')),
+                                'uid'        => $profileUser->id,
+                                'created'    => time(),
+                                'type'       => 2,
+                                'app'        => 'photos',
+                                'wall_id'    => 0,
+                                'attachment' => json_encode([
+                                    'photos'   => [$pItem->uri],
+                                    'album_id' => $pItem->sid,
+                                ]),
+                                'aid'        => $pItem->sid,
+                                'hide'       => 0,
+                                'likes'      => 0,
+                                'privacy'    => 'public',
+                            ]);
+                        }
+                    }
+                }
+
+                $photos = Stream::where('uid', $profileUser->id)
+                            ->where('attachment', '!=', '')
+                            ->where('hide', 0)
+                            ->visibleTo(auth()->user())
+                            ->where(function($q) {
+                                $q->where('type', 2)
+                                  ->orWhereIn('app', ['photo', 'photos'])
+                                  ->orWhere(function($q2) {
+                                      $q2->whereIn('app', ['group', 'page'])
+                                         ->where('attachment', 'not like', 'youtube:%');
+                                  });
+                            })
+                            ->orderBy('created', 'desc')
+                            ->paginate(12);
+            } elseif ($tab === 'video') {
+                // Sinkronisasikan video milik pengguna di jcow_stories yang belum ada di jcow_streams
+                $unsyncedVideos = \App\Models\Video::where('uid', $profileUser->id)->where('app', 'video')->get();
+                foreach ($unsyncedVideos as $vItem) {
+                    $hasStream = Stream::where('uid', $profileUser->id)
+                        ->where(function($q) use ($vItem) {
+                            $q->where('attachment', 'like', '%' . $vItem->var1 . '%')
+                              ->orWhere('aid', $vItem->id);
+                        })->exists();
+
+                    if (!$hasStream) {
+                        Stream::create([
+                            'message'    => $vItem->title,
+                            'uid'        => $profileUser->id,
+                            'created'    => $vItem->created ?: time(),
+                            'type'       => 3,
+                            'app'        => 'video',
+                            'wall_id'    => 0,
+                            'attachment' => json_encode([
+                                'video_url' => $vItem->var1,
+                                'album_id'  => $vItem->cid,
+                                'title'     => $vItem->title,
+                                'desc'      => $vItem->content ?? '',
+                            ]),
+                            'aid'        => $vItem->cid ?: 0,
+                            'hide'       => 0,
+                            'likes'      => 0,
+                            'privacy'    => 'public',
+                        ]);
+                    }
+                }
+
+                $videos = Stream::where('uid', $profileUser->id)
+                            ->where('attachment', '!=', '')
+                            ->visibleTo(auth()->user())
+                            ->where(function($q) {
+                                $q->where('type', 3)
+                                  ->orWhere(function($q2) {
+                                      $q2->whereIn('app', ['group', 'page'])
+                                         ->where('attachment', 'like', 'youtube:%');
+                                  });
+                            })
+                            ->orderBy('created', 'desc')
+                            ->paginate(12);
+            }
         }
 
         $profileRaw = $profileUser->profile;
@@ -87,7 +180,7 @@ class ProfileController extends Controller
         $musicplayer = $theme['musicplayer'] ?? false;
         $likedMusics = collect();
 
-        if ($musicplayer) {
+        if ($musicplayer && !$blockedByMe) {
             $likedMusics = Stream::where('app', 'music')
                 ->whereHas('likedBy', function($q) use ($profileUser) {
                     $q->where('uid', $profileUser->id);
@@ -104,6 +197,13 @@ class ProfileController extends Controller
         }
 
         if ($request->ajax()) {
+            if ($blockedByMe) {
+                return response()->json([
+                    'html' => '',
+                    'hasMorePages' => false,
+                    'nextPageUrl' => null,
+                ]);
+            }
             if (($tab === 'dinding' || $tab === 'menyukai') && $streams) {
                 $html = '';
                 foreach ($streams as $stream) {
@@ -119,7 +219,7 @@ class ProfileController extends Controller
 
         return view('profile.dinding', compact(
             'profileUser', 'streams', 'photos', 'videos', 'tab',
-            'isFollowing', 'isFriend', 'hasPendingRequest', 'hasSentRequest', 'isBlocked', 'likedMusics', 'customFields'
+            'isFollowing', 'isFriend', 'hasPendingRequest', 'hasSentRequest', 'isBlocked', 'blockedByMe', 'likedMusics', 'customFields'
         ));
     }
 

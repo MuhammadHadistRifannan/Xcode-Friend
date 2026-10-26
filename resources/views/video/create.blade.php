@@ -6,14 +6,25 @@
 
         {{-- ===== HEADER ===== --}}
         <div class="flex items-center gap-4 mb-8">
-            <a href="{{ route('video.index') }}"
-               class="flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-gray-900 bg-white border border-gray-200 px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-all">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
-                     stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                Kembali
-            </a>
+            @if(request('from') === 'profile' && auth()->check())
+                <a href="{{ route('profile.show', [auth()->user()->username, 'tab' => 'video']) }}"
+                   class="flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-gray-900 bg-white border border-gray-200 px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                         stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Kembali ke Profil
+                </a>
+            @else
+                <a href="{{ route('video.index') }}"
+                   class="flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-gray-900 bg-white border border-gray-200 px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                         stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Kembali ke Album
+                </a>
+            @endif
             <div>
                 <div class="text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-0.5">MY APPS &gt; VIDEO &gt; TAMBAH VIDEO</div>
                 <h1 class="text-2xl font-black text-gray-900 uppercase">Tambah Video</h1>
@@ -50,6 +61,7 @@
                     <div class="p-5">
                         <form action="{{ route('videos.store') }}" method="POST">
                             @csrf
+                            <input type="hidden" name="from" value="{{ request('from') }}">
                             
                             {{-- Judul Video --}}
                             <div class="mb-4">
@@ -151,7 +163,16 @@
                             </div>
                             
                             <!-- Bottom Actions -->
-                            <div class="flex justify-end items-center mt-2 border-t border-gray-100 pt-4">
+                            <div class="flex justify-end items-center gap-3 mt-2 border-t border-gray-100 pt-4">
+                                @if(request('from') === 'profile' && auth()->check())
+                                    <a href="{{ route('profile.show', [auth()->user()->username, 'tab' => 'video']) }}" class="text-sm font-bold text-gray-500 hover:text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors">
+                                        Batal
+                                    </a>
+                                @else
+                                    <a href="{{ route('video.index') }}" class="text-sm font-bold text-gray-500 hover:text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors">
+                                        Batal
+                                    </a>
+                                @endif
                                 <button type="submit" class="bg-red-700 hover:bg-red-800 text-white text-sm font-bold px-6 py-2.5 rounded flex items-center gap-2 shadow-sm transition-colors">
                                     SIMPAN VIDEO
                                     <svg class="w-4 h-4 transform rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>

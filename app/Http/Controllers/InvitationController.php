@@ -62,12 +62,14 @@ class InvitationController extends Controller
             // Validasi format tiap email
             if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 
-                // Gunakan Mail::raw atau Mail::send (di sini pakai raw untuk kesederhanaan)
                 // Pastikan Mailer dikonfigurasi di .env
                 try {
-                    Mail::raw("Halo! Anda telah diundang oleh {$user->username} untuk bergabung. Klik link berikut untuk mendaftar: {$inviteUrl}", function ($message) use ($email) {
+                    Mail::send('emails.invite', [
+                        'inviterName' => $user->fullname ?? $user->username,
+                        'inviteUrl'   => $inviteUrl
+                    ], function ($message) use ($email) {
                         $message->to($email)
-                                ->subject('Undangan Bergabung ke Platform');
+                                ->subject('Undangan Bergabung ke Xcode Friends');
                     });
                     
                     // Simpan riwayat pengiriman ke database (jcow_invites)
@@ -80,7 +82,7 @@ class InvitationController extends Controller
                     
                     $sentCount++;
                 } catch (\Exception $e) {
-                    // Abaikan jika gagal mengirim satu email tertentu
+                    \Illuminate\Support\Facades\Log::error('Gagal mengirim undangan email ke ' . $email . ': ' . $e->getMessage());
                 }
             }
         }

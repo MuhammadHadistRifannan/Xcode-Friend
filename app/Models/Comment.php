@@ -17,9 +17,18 @@ class Comment extends Model
         'stream_id'
     ];
 
+    protected $casts = [
+        'uid' => 'integer',
+        'stream_id' => 'integer',
+    ];
+
     public function user()
     {
-        return $this->belongsTo(User::class, 'uid', 'id');
+        return $this->belongsTo(User::class, 'uid', 'id')->withDefault([
+            'fullname' => 'Pengguna',
+            'username' => 'user',
+            'avatar'   => '',
+        ]);
     }
 
     public function getCreatedAtAttribute()

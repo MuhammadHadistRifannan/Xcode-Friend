@@ -45,33 +45,16 @@
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 @foreach($mediaList as $media)
                 @if($type === 'photo')
-                    @php
-                        $photosArray = [];
-                        if ($media->type == 2) {
-                            $att = json_decode($media->attachment, true);
-                            if (is_array($att)) {
-                                if (isset($att['photos'])) {
-                                    foreach($att['photos'] as $p) $photosArray[] = 'posts/' . $p;
-                                } elseif (isset($att['photo'])) {
-                                    $photosArray[] = 'posts/' . $att['photo'];
-                                }
-                            } else {
-                                $photosArray[] = $media->attachment;
-                            }
-                        } else {
-                            $photosArray[] = $media->attachment;
-                        }
-                    @endphp
-                    @foreach($photosArray as $photoFile)
+                    @foreach($media->photo_urls as $photoUrl)
                     <!-- Photo Card -->
-                    <div @click="openPhoto('{{ asset('storage/'.$photoFile) }}', '{{ $media->user?->fullname ?? $media->user?->username ?? 'Unknown' }}', '{{ $media->user?->avatar_url }}')" class="group aspect-square bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden relative block cursor-pointer">
-                        <img src="{{ asset('storage/'.$photoFile) }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                    <div @click="openPhoto('{{ $photoUrl }}', '{{ addslashes($media->user?->fullname ?? $media->user?->username ?? 'Unknown') }}', '{{ $media->user?->avatar_url }}')" class="group aspect-square bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden relative block cursor-pointer">
+                        <img src="{{ $photoUrl }}" onerror="this.onerror=null; this.closest('.group')?.remove();" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                         <!-- Overlay -->
                         <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         <!-- Author Info (Bottom) -->
                         <div class="absolute bottom-0 left-0 right-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
                             <div class="flex items-center gap-2">
-                                <img src="{{ $media->user->avatar_url }}" class="w-5 h-5 rounded-full border border-white shrink-0">
+                                <img src="{{ $media->user?->avatar_url ?? asset('assets/img/default.png') }}" class="w-5 h-5 rounded-full border border-white shrink-0" onerror="this.onerror=null; this.src='{{ asset('assets/img/default.png') }}';">
                                 <span class="text-white text-xs font-medium truncate drop-shadow-md">{{ $media->user?->fullname ?? $media->user?->username ?? 'Unknown' }}</span>
                             </div>
                         </div>
@@ -104,7 +87,7 @@
                         <!-- Author Info (Top) -->
                         <div class="absolute top-0 left-0 right-0 p-3 bg-gradient-to-b from-black/60 to-transparent">
                             <div class="flex items-center gap-2">
-                                <img src="{{ $media->user->avatar_url }}" class="w-5 h-5 rounded-full border border-white shrink-0">
+                                <img src="{{ $media->user?->avatar_url ?? asset('assets/img/default.png') }}" class="w-5 h-5 rounded-full border border-white shrink-0" onerror="this.onerror=null; this.src='{{ asset('assets/img/default.png') }}';">
                                 <span class="text-white text-xs font-medium truncate drop-shadow-md">{{ $media->user?->fullname ?? $media->user?->username ?? 'Unknown' }}</span>
                             </div>
                         </div>

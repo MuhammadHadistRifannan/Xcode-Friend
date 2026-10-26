@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use App\Models\Report;
+use App\Models\Group;
+use App\Models\Page;
 
 class AdminController extends Controller
 {
@@ -31,7 +33,7 @@ class AdminController extends Controller
             $user = \Illuminate\Support\Facades\Auth::user();
 
             // Only admin can login via this route
-            if ($user->level == 1 || in_array(strtolower($user->roles ?? ''), ['admin', 'administrator'])) {
+            if ($user->isAdmin()) {
                 $request->session()->regenerate();
                 return redirect()->route('admin.dashboard');
             }
@@ -54,8 +56,8 @@ class AdminController extends Controller
             'total_comments'   => DB::table('jcow_comments')->count(),
             'total_photos'     => DB::table('jcow_story_photos')->count(),
             'total_videos'     => DB::table('jcow_stories')->where('app', 'video')->count(),
-            'total_groups'     => DB::table('jcow_groups')->count(),
-            'total_pages'      => DB::table('jcow_pages')->count(),
+            'total_groups'     => Group::count(),
+            'total_pages'      => Page::count(),
             'pending_reports'  => DB::table('jcow_reports')->where('hasread', 0)->count(),
         ];
 

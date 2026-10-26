@@ -31,21 +31,42 @@ class MessageController extends Controller
             $search = trim($request->input('search') ?? '');
 
             $friends = $this->friendService->getFriends($userId);
-
             $friendIds = $friends->pluck('id')->toArray();
-            $lastMessages = $this->messageService->getLastMessagesForFriends($userId, $friendIds);
-            $unreadCounts = $this->messageService->countUnreadBetweenMultiple($userId, $friendIds);
+            
+            // Get IDs of everyone we have exchanged messages with
+            $chattedUserIds = $this->messageService->getActiveConversationUserIds($userId);
+            
+            // Combine both lists (friends + non-friends we chatted with)
+            $allParticipantIds = array_unique(array_merge($friendIds, $chattedUserIds));
+            // Remove self just in case
+            $allParticipantIds = array_filter($allParticipantIds, fn($id) => $id != $userId);
+            
+            // Fetch the user models for non-friends
+            $nonFriendIds = array_diff($allParticipantIds, $friendIds);
+            $nonFriends = count($nonFriendIds) > 0 ? \App\Models\User::whereIn('id', $nonFriendIds)->get() : collect([]);
+            
+            $allParticipants = $friends->concat($nonFriends);
+
+            $lastMessages = $this->messageService->getLastMessagesForFriends($userId, $allParticipantIds);
+            $unreadCounts = $this->messageService->countUnreadBetweenMultiple($userId, $allParticipantIds);
 
             $conversations = [];
-            foreach ($friends as $friend) {
-                if ($search && stripos($friend->fullname, $search) === false && stripos($friend->username, $search) === false) {
+            foreach ($allParticipants as $participant) {
+                if ($search && stripos($participant->fullname, $search) === false && stripos($participant->username, $search) === false) {
+                    continue;
+                }
+                
+                $lastMsg = $lastMessages[$participant->id] ?? null;
+                
+                // If they are not a friend, they must have at least one message to be shown
+                if (!in_array($participant->id, $friendIds) && !$lastMsg) {
                     continue;
                 }
 
                 $conversations[] = [
-                    'user' => $friend,
-                    'lastMessage' => $lastMessages[$friend->id] ?? null,
-                    'unreadCount' => $unreadCounts[$friend->id] ?? 0,
+                    'user' => $participant,
+                    'lastMessage' => $lastMsg,
+                    'unreadCount' => $unreadCounts[$participant->id] ?? 0,
                 ];
             }
 
@@ -62,7 +83,7 @@ class MessageController extends Controller
                             'id' => $c['user']->id,
                             'name' => $c['user']->fullname ?? $c['user']->username,
                             'username' => $c['user']->username,
-                            'avatar_url' => $c['user']->avatar_url ?? null,
+                            'avatar_url' => \App\Models\User::avatarUrl($c['user']->avatar ?? null),
                             'initial' => strtoupper(substr($c['user']->fullname ?? $c['user']->username ?? 'U', 0, 1)),
                         ],
                         'last_message' => $c['lastMessage'] ? [
@@ -144,6 +165,7 @@ class MessageController extends Controller
                         'to_id' => (int) $recipientId,
                         'reply_to' => $result->reply_to ?? null,
                         'replied_message' => $result->replied_message ?? null,
+                        'replied_attachment' => $result->replied_attachment ?? null,
                         'replied_sender_name' => $result->replied_sender_name ?? null,
                     ]
                 ]);
@@ -307,7 +329,7 @@ class MessageController extends Controller
             $status = $request->input('status', 'online');
 
             if ($status === 'offline') {
-                $this->accountRepo->updateLastSeen($userId, time() - 600);
+                $this->accountRepo->updateLastSeen($userId, 0);
             } else {
                 $this->accountRepo->updateLastSeen($userId, time());
             }
@@ -384,7 +406,7 @@ class MessageController extends Controller
                 );
             }
 
-            if ($message->from_id !== $userId) {
+            if ((int) $message->from_id !== (int) $userId) {
                 return $this->noCache(
                     back()->with('error', 'Anda hanya bisa menghapus pesan yang dikirim.')
                 );

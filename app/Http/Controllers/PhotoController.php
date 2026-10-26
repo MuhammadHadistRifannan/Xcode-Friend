@@ -13,12 +13,25 @@ class PhotoController extends Controller
      * Halaman index: Menampilkan daftar semua Album foto.
      * Setiap album sudah ter-eager-load dengan foto terbaru (untuk cover).
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Eager load relasi latestPhoto agar tidak terjadi N+1 query
-        $albums = Album::where('app', 'photos')->where('gid', auth()->id())->with('latestPhoto')->get();
+        $filter = $request->query('filter', 'all');
+        $query = Album::whereIn('app', ['photos', 'photo'])->with('latestPhoto');
 
-        return view('photos.index', compact('albums'));
+        if ($filter === 'mine' && auth()->check()) {
+            $query->where('gid', auth()->id());
+        } else {
+            $query->where(function ($q) {
+                $q->has('photos');
+                if (auth()->check()) {
+                    $q->orWhere('gid', auth()->id());
+                }
+            });
+        }
+
+        $albums = $query->orderBy('id', 'desc')->paginate(16)->withQueryString();
+
+        return view('photos.index', compact('albums', 'filter'));
     }
 
     /**
@@ -28,7 +41,7 @@ class PhotoController extends Controller
     public function create()
     {
         // Ambil semua album milik user dari tabel jcow_story_categories
-        $albums = Album::where('app', 'photos')->where('gid', auth()->id())->orderBy('name')->get();
+        $albums = Album::whereIn('app', ['photos', 'photo'])->where('gid', auth()->id())->orderBy('name')->get();
 
         return view('foto.upload', compact('albums'));
     }
@@ -39,6 +52,14 @@ class PhotoController extends Controller
     public function show($id)
     {
         $album = Album::findOrFail($id);
+
+        if (auth()->check() && $album->gid > 0 && (int) $album->gid !== (int) auth()->id()) {
+            $friendRepo = app(\App\Repositories\Contracts\FriendRepositoryInterface::class);
+            if ($friendRepo->areBlocked(auth()->id(), (int) $album->gid)) {
+                abort(404, 'Album tidak ditemukan.');
+            }
+        }
+
         // Paginate 12 foto per halaman, diurutkan dari terbaru
         $photos = $album->photos()->orderBy('id', 'desc')->paginate(12);
 
@@ -104,12 +125,15 @@ class PhotoController extends Controller
                     ->withInput();
             }
 
+            $savedPhotos = [];
+            $allDescs = [];
+
             // 3. Looping dan simpan tiap foto
             if ($request->hasFile('photos')) {
                 foreach ($request->file('photos') as $index => $file) {
                     // Simpan file ke storage/app/public/photos
                     $path = Storage::disk('public')->put('photos', $file);
-                    $deskripsi = $request->deskripsi[$index] ?? '';
+                    $deskripsi = $request->deskripsi[$index] ?? ($request->deskripsi[0] ?? '');
 
                     // 4. Simpan ke tabel jcow_story_photos
                     Photo::create([
@@ -119,7 +143,50 @@ class PhotoController extends Controller
                         'thumb' => $path,
                         'size'  => $file->getSize(),
                     ]);
+
+                    $savedPhotos[] = $path;
+                    if (!empty($deskripsi)) {
+                        $allDescs[] = $deskripsi;
+                    }
                 }
+            }
+
+            // Buat record Stream agar foto muncul di feed beranda dan tab foto profil
+            if (count($savedPhotos) > 0) {
+                $album = Album::find($albumId);
+                $message = !empty($allDescs) ? implode("\n", array_unique($allDescs)) : '';
+                if (empty($message) && $album) {
+                    $message = 'Mengunggah foto ke album ' . $album->name;
+                }
+
+                $stream = \App\Models\Stream::create([
+                    'message'    => $message,
+                    'uid'        => auth()->id(),
+                    'created'    => time(),
+                    'type'       => 2, // 2 = gambar
+                    'app'        => 'photos',
+                    'wall_id'    => 0,
+                    'attachment' => json_encode([
+                        'photos'   => $savedPhotos,
+                        'album_id' => $albumId,
+                    ]),
+                    'aid'        => $albumId,
+                    'hide'       => 0,
+                    'likes'      => 0,
+                    'privacy'    => 'public',
+                ]);
+
+                try {
+                    $stream->loadMissing(['user', 'comments.user', 'targetPage', 'targetWallUser']);
+                    $html = view('components.single-stream', ['stream' => $stream])->render();
+                    \App\Events\StreamCreated::dispatch($stream, $html);
+                } catch (\Throwable $e) {
+                    \Log::warning('Gagal broadcast StreamCreated dari PhotoController: ' . $e->getMessage());
+                }
+            }
+
+            if ($request->input('from') === 'profile' && auth()->check()) {
+                return redirect()->route('profile.show', [auth()->user()->username, 'tab' => 'foto'])->with('success', 'Foto berhasil diunggah!');
             }
 
             // 5. Redirect dengan pesan sukses
@@ -142,6 +209,14 @@ class PhotoController extends Controller
         // Ambil album + cover saat ini
         $album = Album::with('latestPhoto')->findOrFail($id);
         abort_if($album->gid != auth()->id(), 403, 'Anda tidak memiliki izin untuk mengedit album ini.');
+
+        // Hapus otomatis record foto jika file fisiknya sudah terhapus dari disk
+        $orphanedPhotos = $album->photos()->get()->filter(function ($photo) {
+            return !$photo->fileExists();
+        });
+        if ($orphanedPhotos->isNotEmpty()) {
+            Photo::whereIn('id', $orphanedPhotos->pluck('id'))->delete();
+        }
 
         // Paginate foto untuk photo picker (8 per halaman)
         $photos = $album->photos()->orderBy('id', 'desc')->paginate(8, ['*'], 'photo_page');
@@ -227,13 +302,43 @@ class PhotoController extends Controller
 
             // Hapus semua file foto dari storage sebelum hapus record DB
             foreach ($album->photos as $photo) {
-                if (Storage::disk('public')->exists($photo->uri)) {
-                    Storage::disk('public')->delete($photo->uri);
+                $cleanUri = ltrim(trim($photo->uri), '/');
+                $filename = basename($cleanUri);
+                $pathsToDelete = [
+                    $cleanUri,
+                    'posts/' . $cleanUri,
+                    'photos/' . $cleanUri,
+                    'posts/' . $filename,
+                    'photos/' . $filename,
+                    str_replace(['storage/', 'uploads/'], '', $cleanUri),
+                ];
+                if ($photo->thumb) {
+                    $cleanThumb = ltrim(trim($photo->thumb), '/');
+                    $thumbName = basename($cleanThumb);
+                    $pathsToDelete[] = $cleanThumb;
+                    $pathsToDelete[] = 'posts/' . $cleanThumb;
+                    $pathsToDelete[] = 'photos/' . $cleanThumb;
+                    $pathsToDelete[] = 'posts/' . $thumbName;
+                    $pathsToDelete[] = 'photos/' . $thumbName;
+                    str_replace(['storage/', 'uploads/'], '', $cleanThumb);
+                }
+                foreach (array_unique($pathsToDelete) as $p) {
+                    if (!empty($p) && Storage::disk('public')->exists($p)) {
+                        Storage::disk('public')->delete($p);
+                    }
                 }
             }
 
             // Hapus semua record foto di DB (jcow_story_photos)
             $album->photos()->delete();
+
+            // Hapus record postingan stream terkait album ini
+            \App\Models\Stream::where('uid', auth()->id())
+                ->where(function($q) use ($id) {
+                    $q->where('aid', $id)
+                      ->orWhere('attachment', 'LIKE', '%"album_id":' . $id . '%')
+                      ->orWhere('attachment', 'LIKE', '%"album_id":"' . $id . '"%');
+                })->delete();
 
             // Hapus record album di DB (jcow_story_categories)
             $album->delete();
@@ -283,21 +388,64 @@ class PhotoController extends Controller
             abort_if(!$photo->album || $photo->album->gid != auth()->id(), 403, 'Anda tidak memiliki izin untuk menghapus foto ini.');
 
             $albumId = $photo->sid; // Simpan album_id untuk redirect kembali ke halaman detail album
+            $photoUri = $photo->uri;
+            $cleanUri = ltrim(trim($photo->uri), '/');
+            $filename = basename($cleanUri);
 
             // Hapus file dari storage disk public
-            if (Storage::disk('public')->exists($photo->uri)) {
-                Storage::disk('public')->delete($photo->uri);
+            $pathsToDelete = [
+                $cleanUri,
+                'posts/' . $cleanUri,
+                'photos/' . $cleanUri,
+                'posts/' . $filename,
+                'photos/' . $filename,
+                str_replace(['storage/', 'uploads/'], '', $cleanUri),
+            ];
+            if ($photo->thumb) {
+                $cleanThumb = ltrim(trim($photo->thumb), '/');
+                $thumbName = basename($cleanThumb);
+                $pathsToDelete[] = $cleanThumb;
+                $pathsToDelete[] = 'posts/' . $cleanThumb;
+                $pathsToDelete[] = 'photos/' . $cleanThumb;
+                $pathsToDelete[] = 'posts/' . $thumbName;
+                $pathsToDelete[] = 'photos/' . $thumbName;
+                str_replace(['storage/', 'uploads/'], '', $cleanThumb);
             }
 
-            // Hapus juga thumbnail jika berbeda dari uri
-            if ($photo->thumb && $photo->thumb !== $photo->uri) {
-                if (Storage::disk('public')->exists($photo->thumb)) {
-                    Storage::disk('public')->delete($photo->thumb);
+            foreach (array_unique($pathsToDelete) as $p) {
+                if (!empty($p) && Storage::disk('public')->exists($p)) {
+                    Storage::disk('public')->delete($p);
                 }
             }
 
             // Hapus record dari tabel jcow_story_photos
             $photo->delete();
+
+            // Sinkronkan stream yang menggunakan foto ini
+            $relatedStreams = \App\Models\Stream::where('uid', auth()->id())
+                ->where(function($q) use ($photoUri, $filename, $cleanUri) {
+                    $q->where('attachment', 'LIKE', '%' . $photoUri . '%')
+                      ->orWhere('attachment', 'LIKE', '%' . $filename . '%')
+                      ->orWhere('attachment', 'LIKE', '%' . $cleanUri . '%');
+                })->get();
+
+            foreach ($relatedStreams as $relStream) {
+                $att = json_decode($relStream->attachment, true);
+                if (isset($att['photos']) && is_array($att['photos'])) {
+                    $att['photos'] = array_values(array_filter($att['photos'], function($p) use ($photoUri, $filename, $cleanUri) {
+                        return $p !== $photoUri && $p !== $filename && $p !== $cleanUri && basename($p) !== $filename;
+                    }));
+
+                    if (empty($att['photos'])) {
+                        if (empty(trim($relStream->message)) || str_starts_with($relStream->message, 'Mengunggah foto ke album')) {
+                            $relStream->delete();
+                            continue;
+                        }
+                    }
+                    $relStream->attachment = json_encode($att);
+                    $relStream->save();
+                }
+            }
 
             // Redirect kembali ke halaman detail album
             return redirect()->route('foto.show', $albumId)

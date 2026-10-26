@@ -33,6 +33,18 @@ class FriendController extends Controller
 
     public function sendRequest(SendFriendRequestRequest $request): mixed
     {
+        if (Auth::check() && (int) Auth::user()->disabled === 1) {
+            $todayStart = strtotime('today midnight');
+            $reqCount = \Illuminate\Support\Facades\DB::table('jcow_friend_reqs')
+                ->where('uid', Auth::id())
+                ->where('created', '>=', $todayStart)
+                ->count();
+
+            if ($reqCount >= 5) {
+                return redirect()->back()->with('error', 'Akun pending hanya dapat mengirim maksimal 5 permintaan pertemanan per hari. Silakan tunggu akun Anda disetujui penuh oleh Administrator.');
+            }
+        }
+
         try {
             $this->friendService->sendRequest(
                 Auth::id(),

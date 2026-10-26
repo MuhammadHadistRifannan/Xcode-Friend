@@ -7,6 +7,9 @@ use App\Models\Stream;
 use App\Models\Comment;
 use App\Models\Friend;
 use App\Models\Follower;
+use App\Models\Page;
+use App\Models\Group;
+use App\Helpers\ModuleHelper;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -77,6 +80,54 @@ class HomeController extends Controller
             ]);
         }
 
-        return view('home.beranda', compact('user', 'followingCount', 'followerCount', 'streams'));
+        // Ambil Pages Populer
+        $popularPages = collect();
+        if (ModuleHelper::isActive('PAGES')) {
+            $popularPages = Page::withCount('followers')
+                ->orderByDesc('followers_count')
+                ->orderByDesc('views')
+                ->take(4)
+                ->get();
+        }
+
+        // Ambil Grup Populer
+        $popularGroups = collect();
+        if (ModuleHelper::isActive('GROUPS')) {
+            $popularGroups = Group::withCount('members')
+                ->orderByDesc('members_count')
+                ->orderByDesc('views')
+                ->take(4)
+                ->get();
+        }
+
+        // Ambil Member yang sedang online
+        $threshold = time() - 120; // 2 menit terakhir
+        $onlineQuery = User::where('disabled', 0)
+            ->where('last_seen', '>=', $threshold);
+
+        if ($user) {
+            $onlineQuery->whereNotIn('id', function($sub) use ($user) {
+                $sub->select('bid')->from('jcow_blacks')->where('uid', $user->id);
+            })->whereNotIn('id', function($sub) use ($user) {
+                $sub->select('uid')->from('jcow_blacks')->where('bid', $user->id);
+            });
+        }
+
+        $onlineCount = (clone $onlineQuery)->count();
+        $onlineMembers = $onlineQuery
+            ->orderByDesc('last_seen')
+            ->take(100)
+            ->get();
+
+        return view('home.beranda', compact(
+            'user',
+            'followingCount',
+            'followerCount',
+            'streams',
+            'popularPages',
+            'popularGroups',
+            'onlineMembers',
+            'onlineCount'
+        ));
     }
 }

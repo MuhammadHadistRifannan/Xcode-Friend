@@ -30,6 +30,10 @@ interface FriendRepositoryInterface
 
     public function areBlocked(int $userId, int $otherId): bool;
 
+    public function hasBlocked(int $userId, int $targetId): bool;
+
+    public function isBlockedBy(int $userId, int $blockerId): bool;
+
     public function follow(int $userId, int $targetId): void;
 
     public function unfollow(int $userId, int $targetId): void;

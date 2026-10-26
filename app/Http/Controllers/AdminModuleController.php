@@ -38,13 +38,23 @@ class AdminModuleController extends Controller
         // Fetch active statuses from DB
         $dbModules = [];
         if (Schema::hasTable($this->table)) {
-            $dbModules = DB::table($this->table)->pluck('actived', 'name')->toArray();
+            $rows = DB::table($this->table)->select('name', 'actived')->get();
+            foreach ($rows as $row) {
+                $dbModules[strtoupper(trim($row->name))] = (int) $row->actived;
+            }
         }
 
         // Merge DB status with base definitions for Community Modules
         $community_modules = array_map(function ($module) use ($dbModules) {
-            // Default active (1) if not found in DB
-            $module['actived'] = isset($dbModules[$module['name']]) ? $dbModules[$module['name']] : 1;
+            $key = strtoupper($module['name']);
+            if (array_key_exists($key, $dbModules)) {
+                $module['actived'] = (int) $dbModules[$key];
+            } elseif ($key === 'EVENTS' && array_key_exists('EVENTS2005', $dbModules)) {
+                $module['actived'] = (int) $dbModules['EVENTS2005'];
+            } else {
+                // Default active (1) if not found in DB
+                $module['actived'] = 1;
+            }
             return $module;
         }, $community_modules_base);
 
@@ -65,11 +75,34 @@ class AdminModuleController extends Controller
         // Loop through all defined modules and explicitly insert or update their status
         foreach ($allModules as $moduleName) {
             $isActive = isset($checkedModules[$moduleName]) && $checkedModules[$moduleName] == '1' ? 1 : 0;
-            
-            DB::table($this->table)->updateOrInsert(
-                ['name' => $moduleName],
-                ['actived' => $isActive]
-            );
+            $upperName = strtoupper($moduleName);
+            $lowerName = strtolower($moduleName);
+
+            // Update any existing rows matching case-insensitively
+            $affected = DB::table($this->table)
+                ->whereRaw('UPPER(name) = ?', [$upperName])
+                ->update(['actived' => $isActive]);
+
+            if ($upperName === 'EVENTS') {
+                DB::table($this->table)
+                    ->whereRaw('UPPER(name) = ?', ['EVENTS2005'])
+                    ->update(['actived' => $isActive]);
+            }
+
+            if ($affected === 0) {
+                // If 0 affected, check whether row exists with same status or doesn't exist
+                $exists = DB::table($this->table)
+                    ->whereRaw('UPPER(name) = ?', [$upperName])
+                    ->exists();
+
+                if (!$exists) {
+                    DB::table($this->table)->insert([
+                        'name' => $lowerName,
+                        'actived' => $isActive,
+                        'hooking' => 0
+                    ]);
+                }
+            }
         }
 
         // Clear module cache

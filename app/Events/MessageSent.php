@@ -38,11 +38,12 @@ class MessageSent implements ShouldBroadcastNow
                 'to_id' => $this->message->to_id,
                 'message' => $this->message->message,
                 'attachment' => $this->message->attachment ?? null,
-                'attachment_url' => !empty($this->message->attachment) ? '/storage/' . $this->message->attachment : null,
+                'attachment_url' => !empty($this->message->attachment) ? asset('uploads/' . $this->message->attachment) : null,
                 'created' => $this->message->created,
                 'hasread' => $this->message->hasread,
                 'reply_to' => $this->message->reply_to ?? null,
                 'replied_message' => $this->message->replied_message ?? null,
+                'replied_attachment' => $this->message->replied_attachment ?? null,
                 'replied_sender_name' => $this->message->replied_sender_name ?? null,
             ],
             'sender' => [

@@ -1,8 +1,8 @@
 <!-- Request Card -->
 <div class="bg-white rounded-[14px] p-4 shadow-sm">
     <div class="flex items-center gap-4">
-        <div class="w-12 h-12 rounded-full bg-[#f4dada] flex items-center justify-center text-[#b71c1c] font-bold text-lg">
-            {{ substr($req->fullname, 0, 1) }}
+        <div class="w-12 h-12 rounded-full bg-[#f4dada] flex items-center justify-center overflow-hidden shrink-0">
+            <img src="{{ \App\Models\User::avatarUrl($req->avatar ?? null) }}" alt="{{ $req->fullname ?? $req->username }}" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='{{ asset('assets/img/default.png') }}';">
         </div>
         <div class="flex-grow">
                 <p class="text-sm font-bold text-gray-900">{{ $req->username }}</p>

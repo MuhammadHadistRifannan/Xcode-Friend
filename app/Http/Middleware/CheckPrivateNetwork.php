@@ -20,6 +20,7 @@ class CheckPrivateNetwork
         // Pengecualian route untuk autentikasi, admin, asset, dan recovery
         if (
             $request->is('admin*') ||
+            $request->is('site-configuration*') ||
             $request->is('login*') ||
             $request->is('register*') ||
             $request->is('logout*') ||

@@ -23,3 +23,60 @@
     <!-- Counter -->
     <div id="lightbox-counter" class="absolute bottom-6 bg-black/50 px-4 py-1.5 rounded-full text-white text-xs font-semibold tracking-wider"></div>
 </div>
+
+<script>
+if (typeof window.openLightbox === 'undefined') {
+    let lightboxImages = [];
+    let lightboxCurrentIndex = 0;
+
+    window.openLightbox = function(images, index) {
+        lightboxImages = Array.isArray(images) ? images : [images];
+        lightboxCurrentIndex = index || 0;
+        updateLightbox();
+        const modal = document.getElementById('lightbox-modal');
+        if (modal) modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    };
+    window.closeLightbox = function() {
+        const modal = document.getElementById('lightbox-modal');
+        if (modal) modal.classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    };
+    window.prevLightboxImage = function() {
+        lightboxCurrentIndex = (lightboxCurrentIndex > 0) ? lightboxCurrentIndex - 1 : lightboxImages.length - 1;
+        updateLightbox();
+    };
+    window.nextLightboxImage = function() {
+        lightboxCurrentIndex = (lightboxCurrentIndex < lightboxImages.length - 1) ? lightboxCurrentIndex + 1 : 0;
+        updateLightbox();
+    };
+    window.updateLightbox = function() {
+        const img = document.getElementById('lightbox-img');
+        if (!img) return;
+        img.style.opacity = '0';
+        setTimeout(() => {
+            img.src = lightboxImages[lightboxCurrentIndex] || '';
+            img.style.opacity = '1';
+            
+            const counter = document.getElementById('lightbox-counter');
+            if (counter) {
+                if (lightboxImages.length > 1) {
+                    counter.textContent = (lightboxCurrentIndex + 1) + ' / ' + lightboxImages.length;
+                    counter.classList.remove('hidden');
+                } else {
+                    counter.classList.add('hidden');
+                }
+            }
+        }, 150);
+    };
+
+    document.addEventListener('keydown', function(e) {
+        const modal = document.getElementById('lightbox-modal');
+        if (modal && !modal.classList.contains('hidden')) {
+            if (e.key === 'Escape') closeLightbox();
+            if (e.key === 'ArrowLeft') prevLightboxImage();
+            if (e.key === 'ArrowRight') nextLightboxImage();
+        }
+    });
+}
+</script>

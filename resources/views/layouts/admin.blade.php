@@ -1,40 +1,186 @@
+@php
+    $activeTheme = \App\Helpers\SettingHelper::get('theme_color', 'red');
+@endphp
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="{{ $activeTheme === 'dark' ? 'dark' : '' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Admin Panel - XCODE')</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Alpine.js & Anti-Flicker Cloak -->
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    @php
-        $activeTheme = \App\Helpers\SettingHelper::get('theme_color', 'red');
-    @endphp
 
     @if($activeTheme === 'dark')
     <style>
-        body, main, aside { background-color: #121212 !important; color: #e5e5e5 !important; }
-        .bg-white, .bg-\[\#f9f9f9\], .bg-\[\#f5f5f5\] { background-color: #1e1e1e !important; border-color: #333 !important; color: #e5e5e5 !important; }
-        .text-gray-900, .text-neutral-900, .text-gray-800, .text-black, .text-gray-700, .text-gray-600 { color: #f5f5f5 !important; }
-        .text-gray-500, .text-gray-400, .text-neutral-500 { color: #aaa !important; }
-        .border-gray-200, .border-gray-100, .border-\[\#e5e5e5\] { border-color: #333 !important; }
-        .bg-gray-50, .bg-\[\#f8f9fa\], .bg-gray-100, .bg-gray-200 { background-color: #2a2a2a !important; }
-        .hover\:bg-gray-50:hover, .hover\:bg-gray-200:hover { background-color: #333 !important; }
+        :root, html.dark {
+            color-scheme: dark;
+        }
+
+        /* ── Base Layout ── */
+        body, main, aside {
+            background-color: #121212 !important;
+            color: #e5e5e5 !important;
+        }
+        :not(.no-theme).bg-\[\#fafafa\],
+        :not(.no-theme).bg-\[\#FAFAFA\],
+        :not(.no-theme).bg-\[\#f5f5f5\],
+        :not(.no-theme)[class*="bg-[#f5f5f5]"] {
+            background-color: #121212 !important;
+        }
+
+        /* ── Cards & Surfaces ── */
+        :not(.no-theme).bg-white,
+        :not(.no-theme).bg-\[\#f9f9f9\],
+        :not(.no-theme).bg-\[\#fcfcfc\] {
+            background-color: #1e1e1e !important;
+            border-color: #333333 !important;
+            color: #e5e5e5 !important;
+        }
+        :not(.no-theme).bg-gray-50,
+        :not(.no-theme).bg-neutral-50,
+        :not(.no-theme).bg-\[\#f8f9fa\],
+        :not(.no-theme)[class*="bg-[#f8f9fa]"] {
+            background-color: #262626 !important;
+            border-color: #383838 !important;
+        }
+        :not(.no-theme).bg-gray-100,
+        :not(.no-theme).bg-neutral-100 {
+            background-color: #2a2a2a !important;
+            border-color: #383838 !important;
+        }
+        :not(.no-theme).bg-gray-200,
+        :not(.no-theme).bg-neutral-200 {
+            background-color: #333333 !important;
+            border-color: #444444 !important;
+        }
+
+        /* ── Form Controls ── */
+        :not(.no-theme) input:not([type="submit"]):not([type="button"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+        :not(.no-theme) select,
+        :not(.no-theme) textarea {
+            background-color: #252525 !important;
+            border-color: #3f3f3f !important;
+            color: #f5f5f5 !important;
+        }
+        :not(.no-theme) input:not([type="submit"]):not([type="button"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus,
+        :not(.no-theme) select:focus,
+        :not(.no-theme) textarea:focus {
+            background-color: #2b2b2b !important;
+            border-color: #b71c1c !important;
+            color: #ffffff !important;
+        }
+        :not(.no-theme) input::placeholder,
+        :not(.no-theme) textarea::placeholder {
+            color: #737373 !important;
+        }
+        :not(.no-theme) select option {
+            background-color: #252525 !important;
+            color: #f5f5f5 !important;
+        }
+
+        /* ── Text Colors ── */
+        :not(.no-theme).text-black,
+        :not(.no-theme).text-gray-900,
+        :not(.no-theme).text-neutral-900,
+        :not(.no-theme).text-slate-900,
+        :not(.no-theme).text-gray-800,
+        :not(.no-theme).text-neutral-800,
+        :not(.no-theme).text-slate-800,
+        :not(.no-theme).text-gray-700,
+        :not(.no-theme).text-neutral-700,
+        :not(.no-theme).text-slate-700,
+        :not(.no-theme).text-\[\#333333\],
+        :not(.no-theme)[class*="text-[#333333]"] {
+            color: #f5f5f5 !important;
+        }
+        :not(.no-theme).text-gray-600,
+        :not(.no-theme).text-neutral-600,
+        :not(.no-theme).text-slate-600,
+        :not(.no-theme).text-gray-500,
+        :not(.no-theme).text-neutral-500,
+        :not(.no-theme).text-slate-500 {
+            color: #a3a3a3 !important;
+        }
+        :not(.no-theme).text-gray-400,
+        :not(.no-theme).text-neutral-400 {
+            color: #808080 !important;
+        }
+
+        /* ── Borders ── */
+        :not(.no-theme).border-gray-100,
+        :not(.no-theme).border-gray-200,
+        :not(.no-theme).border-gray-300,
+        :not(.no-theme).border-neutral-100,
+        :not(.no-theme).border-neutral-200,
+        :not(.no-theme).border-neutral-300,
+        :not(.no-theme).border-\[\#e5e5e5\],
+        :not(.no-theme)[class*="border-[#e5e5e5]"] {
+            border-color: #333333 !important;
+        }
+        :not(.no-theme).divide-gray-100 > *,
+        :not(.no-theme).divide-gray-200 > *,
+        :not(.no-theme).divide-neutral-100 > * {
+            border-color: #333333 !important;
+        }
+
+        /* ── Hover ── */
+        :not(.no-theme).hover\:bg-gray-50:hover,
+        :not(.no-theme).hover\:bg-neutral-50:hover {
+            background-color: #2a2a2a !important;
+        }
+        :not(.no-theme).hover\:bg-gray-100:hover,
+        :not(.no-theme).hover\:bg-neutral-100:hover {
+            background-color: #333333 !important;
+        }
+        :not(.no-theme).hover\:bg-gray-200:hover,
+        :not(.no-theme).hover\:bg-neutral-200:hover {
+            background-color: #383838 !important;
+        }
+        :not(.no-theme).hover\:text-gray-800:hover,
+        :not(.no-theme).hover\:text-neutral-800:hover {
+            color: #ffffff !important;
+        }
+
+        /* ── SweetAlert2 Dark ── */
+        .swal2-popup {
+            background-color: #1e1e1e !important;
+            color: #f5f5f5 !important;
+            border: 1px solid #333 !important;
+        }
+        .swal2-title, .swal2-html-container {
+            color: #f5f5f5 !important;
+        }
     </style>
     @elseif($activeTheme === 'blue')
     <style>
-        .text-red-600, .text-red-500, .text-red-700, .text-\[\#b90000\], .text-\[\#cc0000\] { color: #2563eb !important; }
-        .bg-red-600, .bg-red-50, .bg-red-100, .bg-\[\#b90000\], .bg-\[\#cc0000\], .bg-\[\#990000\] { background-color: #2563eb !important; color: white !important; }
-        .hover\:bg-red-700:hover, .hover\:bg-\[\#a00000\]:hover, .hover\:bg-red-100:hover { background-color: #1d4ed8 !important; }
-        .hover\:text-red-500:hover, .hover\:text-red-400:hover { color: #60a5fa !important; }
-        .border-red-700, .border-\[\#cc0000\] { border-color: #2563eb !important; }
-        .focus\:border-\[\#cc0000\]:focus, .focus\:ring-\[\#cc0000\]:focus { border-color: #2563eb !important; --tw-ring-color: #2563eb !important; }
+        :not(.no-theme).text-red-600, :not(.no-theme).text-red-500, :not(.no-theme).text-red-700, :not(.no-theme).text-\[\#b90000\], :not(.no-theme).text-\[\#cc0000\] { color: #2563eb !important; }
+        :not(.no-theme).bg-red-600, :not(.no-theme).bg-\[\#b90000\], :not(.no-theme).bg-\[\#cc0000\], :not(.no-theme).bg-\[\#990000\] { background-color: #2563eb !important; color: white !important; }
+        :not(.no-theme).bg-red-50 { background-color: #eff6ff !important; color: #1d4ed8 !important; }
+        :not(.no-theme).bg-red-100 { background-color: #dbeafe !important; color: #1e40af !important; }
+        :not(.no-theme).hover\:bg-red-700:hover, :not(.no-theme).hover\:bg-\[\#a00000\]:hover { background-color: #1d4ed8 !important; }
+        :not(.no-theme).hover\:bg-red-100:hover { background-color: #dbeafe !important; }
+        :not(.no-theme).hover\:bg-red-50:hover { background-color: #eff6ff !important; }
+        :not(.no-theme).hover\:text-red-500:hover, :not(.no-theme).hover\:text-red-400:hover { color: #60a5fa !important; }
+        :not(.no-theme).border-red-700, :not(.no-theme).border-\[\#cc0000\] { border-color: #2563eb !important; }
+        :not(.no-theme).focus\:border-\[\#cc0000\]:focus, :not(.no-theme).focus\:ring-\[\#cc0000\]:focus { border-color: #2563eb !important; --tw-ring-color: #2563eb !important; }
     </style>
     @endif
+    @if($activeTheme !== 'dark')
     <style> body { background-color: #f5f5f5; } </style>
+    @endif
 </head>
 <body class="flex flex-col h-screen overflow-hidden antialiased text-neutral-900">
 

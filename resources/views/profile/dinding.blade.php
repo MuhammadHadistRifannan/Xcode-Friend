@@ -28,7 +28,7 @@
     if ($wallEnabled) {
         if ($bgColor) $bodyBgCss .= "background-color: {$bgColor}; ";
         if ($bgImage) {
-            $bodyBgCss .= "background-image: url('" . asset('storage/backgrounds/' . $bgImage) . "'); ";
+            $bodyBgCss .= "background-image: url('" . asset('uploads/backgrounds/' . $bgImage) . "'); ";
             $bodyBgCss .= "background-position: {$bgPos}; ";
             $bgRepeat = 'no-repeat';
             if ($repeatX && $repeatY) $bgRepeat = 'repeat';
@@ -44,25 +44,42 @@
 @if($wallEnabled || $blockEnabled)
 <style>
     /* === Custom Theme: <?= e($profileUser->username) ?> === */
-    .profile-theme-wrapper {
-        <?php if ($wallEnabled && $bgColor && !$transparent): ?>
-        background-color: <?= e($bgColor) ?>;
+    <?php if ($wallEnabled): ?>
+    body {
+        <?php if ($bgColor && !$transparent): ?>
+        background-color: <?= e($bgColor) ?> !important;
         <?php endif; ?>
+        <?php if ($bgImage): ?>
+        background-image: url('<?= asset('uploads/backgrounds/' . e($bgImage)) ?>') !important;
+        background-position: <?= e($bgPos) ?> !important;
+        background-size: cover !important;
+        background-repeat: <?= ($repeatX && $repeatY) ? 'repeat' : ($repeatX ? 'repeat-x' : ($repeatY ? 'repeat-y' : 'no-repeat')) ?> !important;
+        background-attachment: fixed !important;
+        <?php endif; ?>
+        <?php if ($transparent): ?>
+        background-color: transparent !important;
+        <?php endif; ?>
+    }
+    main {
+        background-color: transparent !important;
+        background-image: none !important;
+    }
+    <?php endif; ?>
+
+    .profile-theme-wrapper {
+        background-color: transparent !important;
+        background-image: none !important;
+        min-height: 100vh;
         <?php if ($fontColor): ?>
         color: <?= e($fontColor) ?>;
         <?php endif; ?>
-        <?php if ($wallEnabled && $bgImage): ?>
-        background-image: url('<?= asset('storage/backgrounds/' . e($bgImage)) ?>');
-        background-position: <?= e($bgPos) ?>;
-        background-size: cover;
-        background-repeat: <?= ($repeatX && $repeatY) ? 'repeat' : ($repeatX ? 'repeat-x' : ($repeatY ? 'repeat-y' : 'no-repeat')) ?>;
-        background-attachment: fixed;
-        <?php endif; ?>
-        <?php if ($transparent): ?>
-        background-color: transparent;
-        <?php endif; ?>
-        min-height: 100vh;
     }
+    <?php if ($fontColor): ?>
+    .profile-theme-wrapper h1,
+    .profile-theme-wrapper .profile-font-color {
+        color: <?= e($fontColor) ?> !important;
+    }
+    <?php endif; ?>
     <?php if ($linkColor): ?>
     .profile-theme-wrapper a:not(.no-theme) {
         color: <?= e($linkColor) ?>;
@@ -98,7 +115,7 @@
     <div class="relative w-full h-48 md:h-64 bg-neutral-200 rounded-xl overflow-hidden shadow-sm mb-6 group">
         @if($profileUser->profile && $profileUser->profile->background)
             <!-- Menampilkan Cover Jika Ada -->
-            <img src="{{ asset('storage/backgrounds/' . $profileUser->profile->background) }}" class="w-full h-full object-cover" alt="Cover Profile">
+            <img src="{{ asset('uploads/backgrounds/' . $profileUser->profile->background) }}" class="w-full h-full object-cover" alt="Cover Profile" onerror="this.style.display='none';">
         @else
             <!-- Gambar Default Cover Jika Belum Punya -->
             <div class="w-full h-full bg-gradient-to-r from-neutral-300 to-neutral-200"></div>
@@ -129,13 +146,18 @@
     <div class="mb-6">
         <h1 class="text-sm font-extrabold text-neutral-900 uppercase tracking-widest mb-4">{{ $profileUser->fullname }}</h1>
         
+        @if(!$blockedByMe)
         <div class="flex items-center space-x-8 border-b border-neutral-200">
             <a href="?tab=dinding" class="text-xs font-bold pb-3 uppercase tracking-wider transition {{ $tab === 'dinding' ? 'text-red-700 border-b-2 border-red-700' : 'text-neutral-500 hover:text-neutral-800' }}">Dinding</a>
             <a href="?tab=menyukai" class="text-xs font-bold pb-3 uppercase tracking-wider transition {{ $tab === 'menyukai' ? 'text-red-700 border-b-2 border-red-700' : 'text-neutral-500 hover:text-neutral-800' }}">Menyukai</a>
+            @if(\App\Helpers\ModuleHelper::isActive('PHOTOS'))
             <a href="?tab=foto" class="text-xs font-bold pb-3 uppercase tracking-wider transition {{ $tab === 'foto' ? 'text-red-700 border-b-2 border-red-700' : 'text-neutral-500 hover:text-neutral-800' }}">Foto</a>
+            @endif
+            @if(\App\Helpers\ModuleHelper::isActive('VIDEOS'))
             <a href="?tab=video" class="text-xs font-bold pb-3 uppercase tracking-wider transition {{ $tab === 'video' ? 'text-red-700 border-b-2 border-red-700' : 'text-neutral-500 hover:text-neutral-800' }}">Video</a>
-            
+            @endif
         </div>
+        @endif
     </div>
 
     <!-- Grid 3 Kolom Utama -->
@@ -155,92 +177,105 @@
                 <p class="text-xs text-red-700 font-semibold mt-0.5 mb-3">{{ '@' . $profileUser->username }}</p>
 
                 @if(auth()->check() && auth()->user()->id !== $profileUser->id)
-                    {{-- Profil Teman: Tampilkan jabatan --}}
-                    @if($profileUser->about_me)
-                        <p class="text-[11px] text-neutral-500 mt-0.5 mb-3">{{ Str::limit($profileUser->about_me, 40) }}</p>
-                    @else
-                        <p class="text-[11px] text-neutral-500 mt-0.5 mb-3">Anggota Xcode-Friends</p>
-                    @endif
-
-                    <p class="text-[10px] text-neutral-400 mb-3 text-center">
-                        Terakhir dilihat: {{ $profileUser->last_active ? \Carbon\Carbon::createFromTimestamp($profileUser->last_active)->diffForHumans() : 'Baru saja' }}
-                    </p>
-                    <div class="flex items-center justify-center space-x-6 mb-5 border-y border-neutral-100 py-3">
-                        <div class="text-center">
-                            <span class="block text-sm font-extrabold text-neutral-800">{{ $profileUser->followerUsers()->count() }}</span>
-                            <span class="text-[9px] font-bold text-neutral-400 uppercase tracking-wider">Pengikut</span>
-                        </div>
-                        <div class="text-center">
-                            <span class="block text-sm font-extrabold text-neutral-800">{{ $profileUser->followingUsers()->count() }}</span>
-                            <span class="text-[9px] font-bold text-neutral-400 uppercase tracking-wider">Mengikuti</span>
-                        </div>
-                    </div>
-
-                    {{-- Tombol Aksi Teman --}}
-                    <div class="grid grid-cols-2 gap-2 mb-4">
-                        <!-- Tombol Ikuti / Unfollow -->
-                        <form action="{{ $isFollowing ? route('friends.unfollow', $profileUser->id) : route('friends.follow', $profileUser->id) }}" method="POST" class="w-full">
-                            @csrf
-                            <button type="submit" class="w-full flex items-center justify-center text-[10px] sm:text-xs font-semibold {{ $isFollowing ? 'text-white bg-red-700 hover:bg-red-800' : 'text-neutral-700 bg-neutral-50 hover:bg-red-50 hover:text-red-700 border border-neutral-200 hover:border-red-200' }} py-1.5 rounded transition">
-                                @if($isFollowing)
-                                    <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                    Mengikuti
-                                @else
-                                    <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
-                                    Ikuti
-                                @endif
-                            </button>
-                        </form>
-
-                        <!-- Tombol Pesan -->
-                        <a href="{{ route('messages.conversation', $profileUser->id) }}" class="w-full flex items-center justify-center text-[10px] sm:text-xs font-semibold text-neutral-700 bg-neutral-50 border border-neutral-200 py-1.5 rounded hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 transition">
-                            <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
-                            Pesan
-                        </a>
-
-                        <!-- Tombol Tambah Teman -->
-                        @if($isFriend)
-                            <form action="{{ route('friends.unfriend', $profileUser->id) }}" method="POST" class="w-full">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="w-full flex items-center justify-center text-[10px] sm:text-xs font-semibold text-white bg-green-600 hover:bg-green-700 py-1.5 rounded transition">
-                                    <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                    Berteman
-                                </button>
-                            </form>
-                        @elseif($hasPendingRequest)
-                            <button type="button" class="w-full flex items-center justify-center text-[10px] sm:text-xs font-semibold text-neutral-500 bg-neutral-100 border border-neutral-200 py-1.5 rounded cursor-not-allowed">
-                                <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                Tertunda
-                            </button>
-                        @elseif($hasSentRequest)
-                            <form action="{{ route('friends.accept', $profileUser->id) }}" method="POST" class="w-full">
-                                @csrf
-                                <button type="submit" class="w-full flex items-center justify-center text-[10px] sm:text-xs font-semibold text-white bg-green-600 hover:bg-green-700 py-1.5 rounded transition">
-                                    <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                    Terima
-                                </button>
-                            </form>
+                    {{-- Profil Teman: Tampilkan info --}}
+                    @if(!$blockedByMe)
+                        @if($profileUser->about_me)
+                            <p class="text-[11px] text-neutral-500 mt-0.5 mb-3">{{ Str::limit($profileUser->about_me, 40) }}</p>
                         @else
-                            <form action="{{ route('friends.sendRequest') }}" method="POST" class="w-full">
-                                @csrf
-                                <input type="hidden" name="uid" value="{{ $profileUser->id }}">
-                                <button type="submit" class="w-full flex items-center justify-center text-[10px] sm:text-xs font-semibold text-neutral-700 bg-neutral-50 border border-neutral-200 py-1.5 rounded hover:bg-green-50 hover:text-green-700 hover:border-green-200 transition">
-                                    <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                                    Tambah
-                                </button>
-                            </form>
+                            <p class="text-[11px] text-neutral-500 mt-0.5 mb-3">Anggota Xcode-Friends</p>
                         @endif
 
-                        <!-- Tombol Blokir -->
-                        <form action="{{ $isBlocked ? route('friends.unblock', $profileUser->id) : route('friends.block', $profileUser->id) }}" method="POST" class="w-full">
-                            @csrf
-                            <button type="submit" class="w-full flex items-center justify-center text-[10px] sm:text-xs font-semibold {{ $isBlocked ? 'text-white bg-red-700 hover:bg-red-800' : 'text-neutral-700 bg-neutral-50 hover:bg-red-50 hover:text-red-700 border border-neutral-200 hover:border-red-200' }} py-1.5 rounded transition">
-                                <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
-                                {{ $isBlocked ? 'Buka Blokir' : 'Blokir' }}
-                            </button>
-                        </form>
-                    </div>
+                        <p class="text-[10px] text-neutral-400 mb-3 text-center">
+                            Terakhir dilihat: {{ $profileUser->last_active ? \Carbon\Carbon::createFromTimestamp($profileUser->last_active)->diffForHumans() : 'Baru saja' }}
+                        </p>
+                        <div class="flex items-center justify-center space-x-6 mb-5 border-y border-neutral-100 py-3">
+                            <div class="text-center">
+                                <span class="block text-sm font-extrabold text-neutral-800">{{ $profileUser->followerUsers()->count() }}</span>
+                                <span class="text-[9px] font-bold text-neutral-400 uppercase tracking-wider">Pengikut</span>
+                            </div>
+                            <div class="text-center">
+                                <span class="block text-sm font-extrabold text-neutral-800">{{ $profileUser->followingUsers()->count() }}</span>
+                                <span class="text-[9px] font-bold text-neutral-400 uppercase tracking-wider">Mengikuti</span>
+                            </div>
+                        </div>
+
+                        {{-- Tombol Aksi Teman --}}
+                        <div class="grid grid-cols-2 gap-2 mb-4">
+                            <!-- Tombol Ikuti / Unfollow -->
+                            <form action="{{ $isFollowing ? route('friends.unfollow', $profileUser->id) : route('friends.follow', $profileUser->id) }}" method="POST" class="w-full">
+                                @csrf
+                                <button type="submit" class="w-full flex items-center justify-center text-[10px] sm:text-xs font-semibold {{ $isFollowing ? 'text-white bg-red-700 hover:bg-red-800' : 'text-neutral-700 bg-neutral-50 hover:bg-red-50 hover:text-red-700 border border-neutral-200 hover:border-red-200' }} py-1.5 rounded transition">
+                                    @if($isFollowing)
+                                        <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                        Mengikuti
+                                    @else
+                                        <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+                                        Ikuti
+                                    @endif
+                                </button>
+                            </form>
+
+                            <!-- Tombol Pesan -->
+                            <a href="{{ route('messages.conversation', $profileUser->id) }}" class="w-full flex items-center justify-center text-[10px] sm:text-xs font-semibold text-neutral-700 bg-neutral-50 border border-neutral-200 py-1.5 rounded hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 transition">
+                                <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+                                Pesan
+                            </a>
+
+                            <!-- Tombol Tambah Teman -->
+                            @if($isFriend)
+                                <form action="{{ route('friends.unfriend', $profileUser->id) }}" method="POST" class="w-full">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="w-full flex items-center justify-center text-[10px] sm:text-xs font-semibold text-white bg-green-600 hover:bg-green-700 py-1.5 rounded transition">
+                                        <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                        Berteman
+                                    </button>
+                                </form>
+                            @elseif($hasPendingRequest)
+                                <button type="button" class="w-full flex items-center justify-center text-[10px] sm:text-xs font-semibold text-neutral-500 bg-neutral-100 border border-neutral-200 py-1.5 rounded cursor-not-allowed">
+                                    <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    Tertunda
+                                </button>
+                            @elseif($hasSentRequest)
+                                <form action="{{ route('friends.accept', $profileUser->id) }}" method="POST" class="w-full">
+                                    @csrf
+                                    <button type="submit" class="w-full flex items-center justify-center text-[10px] sm:text-xs font-semibold text-white bg-green-600 hover:bg-green-700 py-1.5 rounded transition">
+                                        <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                        Terima
+                                    </button>
+                                </form>
+                            @else
+                                <form action="{{ route('friends.sendRequest') }}" method="POST" class="w-full">
+                                    @csrf
+                                    <input type="hidden" name="uid" value="{{ $profileUser->id }}">
+                                    <button type="submit" class="w-full flex items-center justify-center text-[10px] sm:text-xs font-semibold text-neutral-700 bg-neutral-50 border border-neutral-200 py-1.5 rounded hover:bg-green-50 hover:text-green-700 hover:border-green-200 transition">
+                                        <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                        Tambah
+                                    </button>
+                                </form>
+                            @endif
+
+                            <!-- Tombol Blokir -->
+                            <form action="{{ route('friends.block', $profileUser->id) }}" method="POST" class="w-full" onsubmit="return confirm('Apakah Anda yakin ingin memblokir {{ addslashes($profileUser->fullname ?: $profileUser->username) }}?');">
+                                @csrf
+                                <button type="submit" class="w-full flex items-center justify-center text-[10px] sm:text-xs font-semibold text-neutral-700 bg-neutral-50 hover:bg-red-50 hover:text-red-700 border border-neutral-200 hover:border-red-200 py-1.5 rounded transition">
+                                    <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
+                                    Blokir
+                                </button>
+                            </form>
+                        </div>
+                    @else
+                        {{-- Pengguna ini telah diblokir oleh viewer saat ini --}}
+                        <div class="mb-4">
+                            <form action="{{ route('friends.unblock', $profileUser->id) }}" method="POST" class="w-full">
+                                @csrf
+                                <button type="submit" class="w-full flex items-center justify-center text-xs font-semibold text-white bg-red-700 hover:bg-red-800 py-2 rounded-lg transition shadow-sm">
+                                    <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+                                    Buka Blokir
+                                </button>
+                            </form>
+                        </div>
+                    @endif
 
                 @else
                     {{-- Profil Sendiri: Hanya tampilkan status --}}
@@ -269,6 +304,7 @@
 
             </div>
 
+            @if(!$blockedByMe)
             <!-- Tentang Saya -->
             <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
                 <h4 class="text-[11px] font-bold text-neutral-800 uppercase tracking-wider mb-4">TENTANG SAYA</h4>
@@ -415,12 +451,31 @@
                     <div class="bg-neutral-50 border border-neutral-100 rounded text-center py-4 text-xs text-neutral-400">No pages yet</div>
                 @endif
             </div>
+            @endif
         </div>
 
         <!-- KOLOM TENGAH (Feed Dinding / Menyukai / Foto / Video) -->
         <div class="lg:col-span-6 space-y-6">
             
-            @if($tab === 'dinding')
+            @if($blockedByMe)
+                <div class="bg-white rounded-2xl shadow-sm border border-neutral-200 p-8 text-center">
+                    <div class="w-14 h-14 mx-auto mb-3 bg-red-50 text-red-600 rounded-full flex items-center justify-center">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
+                    </div>
+                    <h3 class="text-base font-bold text-neutral-800 mb-1">Pengguna Telah Anda Blokir</h3>
+                    <p class="text-xs text-neutral-500 max-w-md mx-auto mb-5 leading-relaxed">
+                        Anda telah memblokir <strong>{{ $profileUser->fullname ?: $profileUser->username }}</strong>. Postingan, foto, video, dan profil lengkap pengguna ini disembunyikan sampai Anda membuka blokirnya.
+                    </p>
+                    <form action="{{ route('friends.unblock', $profileUser->id) }}" method="POST" class="inline-block">
+                        @csrf
+                        <button type="submit" class="inline-flex items-center gap-2 px-5 py-2.5 bg-red-700 hover:bg-red-800 text-white text-xs font-semibold rounded-xl shadow-sm transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+                            Buka Blokir Sekarang
+                        </button>
+                    </form>
+                </div>
+            @else
+                @if($tab === 'dinding')
                 @if(auth()->check() && auth()->user()->id === $profileUser->id)
                 <!-- Form Bagi Cepat -->
                 <x-feed-upload action="{{ route('stream.store') }}" app="feed" aid="{{ $profileUser->id }}" wallId="{{ $profileUser->id }}" />
@@ -544,7 +599,7 @@
                         <div class="flex justify-between items-start mb-3">
                             <div class="flex items-center space-x-3">
                                 <a href="/{{ '@' . ($stream->user->username ?? '') }}" class="w-10 h-10 rounded-full bg-neutral-100 overflow-hidden border border-neutral-200 hover:ring-2 hover:ring-red-700 transition flex-shrink-0">
-                                    <img src="{{ $stream->user->avatar_url }}" class="w-full h-full object-cover">
+                                    <img src="{{ $stream->user?->avatar_url ?? asset('assets/img/default.png') }}" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='{{ asset('assets/img/default.png') }}';">
                                 </a>
                                 <div>
                                     <h4 class="text-sm font-bold text-neutral-900">
@@ -580,13 +635,13 @@
                         @endif
 
                         @if($stream->type == 2 && $stream->attachment)
-                            @php $att = json_decode($stream->attachment, true); @endphp
-                            @if(isset($att['photos']) && is_array($att['photos']))
-                                @php 
-                                    $ptCount = count($att['photos']); 
-                                    $photoUrls = array_map(fn($p) => asset('storage/posts/' . $p), $att['photos']);
-                                    $jsonPhotos = json_encode($photoUrls);
-                                @endphp
+                            @php 
+                                $att = $stream->parsed_attachment;
+                                $photoUrls = $stream->photo_urls;
+                                $ptCount = count($photoUrls); 
+                                $jsonPhotos = json_encode($photoUrls);
+                            @endphp
+                            @if($ptCount > 0)
                                 <div class="mb-4 rounded-xl overflow-hidden border border-neutral-200">
                                     @if($ptCount == 1)
                                         <img src="{{ $photoUrls[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' class="w-full h-auto max-h-[500px] object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
@@ -683,29 +738,22 @@
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="text-xs font-bold text-neutral-700 uppercase tracking-wider">FOTO</h3>
                         @if(auth()->check() && auth()->user()->id === $profileUser->id)
-                            <a href="#" class="bg-[#990000] text-white text-[10px] font-bold px-4 py-2 rounded uppercase tracking-wider hover:bg-red-800 transition">ADD NEW PHOTO</a>
+                            <a href="{{ route('photos.upload', ['from' => 'profile']) }}" class="no-theme bg-[#990000] text-white text-[10px] font-bold px-4 py-2 rounded uppercase tracking-wider hover:bg-red-800 transition flex items-center gap-1.5 shadow-sm">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                ADD NEW PHOTO
+                            </a>
                         @endif
                     </div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         @forelse($photos as $photo)
                             @php 
-                                $photoUrls = [];
-                                if ($photo->type == 2) {
-                                    $att = json_decode($photo->attachment, true); 
-                                    if (isset($att['photos']) && is_array($att['photos'])) {
-                                        $photoUrls = array_map(fn($p) => asset('storage/posts/' . $p), $att['photos']);
-                                    } elseif (isset($att['photo'])) {
-                                        $photoUrls = [asset('storage/posts/' . $att['photo'])];
-                                    }
-                                } else {
-                                    $photoUrls = [asset('storage/' . $photo->attachment)];
-                                }
+                                $photoUrls = $photo->photo_urls;
                             @endphp
                             @if(count($photoUrls) > 0)
                                 <div class="group">
                                     <div class="w-full h-40 bg-neutral-100 rounded-lg overflow-hidden border border-neutral-200 mb-3 relative cursor-pointer" onclick='openLightbox({!! json_encode($photoUrls) !!}, 0)'>
-                                        <img src="{{ $photoUrls[0] }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                                        <img src="{{ $photoUrls[0] }}" onerror="this.closest('.group')?.remove();" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
                                         @if(count($photoUrls) > 1)
                                             <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
                                                 <span class="text-white font-bold text-lg">+{{ count($photoUrls) - 1 }} Foto</span>
@@ -729,7 +777,10 @@
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="text-xs font-bold text-neutral-700 uppercase tracking-wider">VIDEO</h3>
                         @if(auth()->check() && auth()->user()->id === $profileUser->id)
-                            <a href="#" class="bg-[#990000] text-white text-[10px] font-bold px-4 py-2 rounded uppercase tracking-wider hover:bg-red-800 transition">ADD NEW VIDEO</a>
+                            <a href="{{ route('videos.create', ['from' => 'profile']) }}" class="no-theme bg-[#990000] text-white text-[10px] font-bold px-4 py-2 rounded uppercase tracking-wider hover:bg-red-800 transition flex items-center gap-1.5 shadow-sm">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                ADD NEW VIDEO
+                            </a>
                         @endif
                     </div>
                     
@@ -837,6 +888,7 @@
                 </div>
 
             @endif
+            @endif
 
         </div>
 
@@ -888,30 +940,30 @@
 </script>
 
 {{-- ── MUSIC PLAYER WIDGET ── --}}
-@if($musicplayer && $profile_music)
-    <div id="profile-music-player" class="fixed bottom-4 right-4 bg-white shadow-xl rounded-xl border border-gray-200 p-3 w-72 z-50 transition-transform duration-300 transform" x-data="{ expanded: false }">
+@if(!$blockedByMe && $musicplayer && $profile_music)
+    <div id="profile-music-player" class="fixed bottom-4 right-4 bg-white dark:bg-gray-800 shadow-xl rounded-xl border border-gray-200 dark:border-gray-700 p-3 w-72 z-50 transition-transform duration-300 transform" x-data="{ expanded: false }">
         <div class="flex items-center justify-between mb-2 cursor-pointer" @click="expanded = !expanded">
             <div class="flex items-center gap-2">
-                <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-600 animate-pulse">
+                <div class="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 animate-pulse">
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
                 </div>
                 <div class="truncate w-40">
-                    <h4 class="text-xs font-bold text-gray-800">Musik Profil</h4>
-                    <p class="text-[10px] text-gray-500 truncate" id="now-playing-title">{{ $profile_music }}</p>
+                    <h4 class="text-xs font-bold text-gray-800 dark:text-gray-200">Musik Profil</h4>
+                    <p class="text-[10px] text-gray-500 dark:text-gray-400 truncate" id="now-playing-title">{{ $profile_music }}</p>
                 </div>
             </div>
-            <button class="text-gray-400 hover:text-gray-600">
+            <button class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                 <svg x-show="!expanded" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
                 <svg x-show="expanded" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="display:none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
         </div>
         
-        <div x-show="expanded" style="display:none;" class="mt-3 pt-3 border-t border-gray-100">
+        <div x-show="expanded" style="display:none;" class="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
             <audio id="html5-audio-player" controls autoplay loop class="w-full h-8 outline-none">
-                <source src="{{ asset('storage/music/' . $profile_music) }}" type="audio/mpeg">
+                <source src="{{ file_exists(public_path('uploads/music/' . $profile_music)) ? asset('uploads/music/' . $profile_music) : asset('storage/music/' . $profile_music) }}" type="audio/mpeg">
                 Browser Anda tidak mendukung elemen audio.
             </audio>
-            <div class="mt-2 text-[10px] text-gray-400 text-center">
+            <div class="mt-2 text-[10px] text-gray-400 dark:text-gray-500 text-center">
                 Memutar musik pilihan {{ $profileUser->fullname ?? $profileUser->username }}
             </div>
         </div>

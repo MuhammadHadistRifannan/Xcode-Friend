@@ -18,14 +18,25 @@ class BlockRepository implements BlockRepositoryInterface
             ->exists();
     }
 
-    public function isBlocked(int $userId, int $targetId): bool
+    public function hasBlocked(int $userId, int $targetId): bool
     {
         return DB::table('jcow_blacks')
-            ->where(function ($query) use ($userId, $targetId) {
-                $query->where('uid', $userId)->where('bid', $targetId)
-                    ->orWhere('uid', $targetId)->where('bid', $userId);
-            })
+            ->where('uid', $userId)
+            ->where('bid', $targetId)
             ->exists();
+    }
+
+    public function isBlockedBy(int $userId, int $blockerId): bool
+    {
+        return DB::table('jcow_blacks')
+            ->where('uid', $blockerId)
+            ->where('bid', $userId)
+            ->exists();
+    }
+
+    public function isBlocked(int $userId, int $targetId): bool
+    {
+        return $this->hasBlocked($userId, $targetId);
     }
 
     public function block(int $userId, int $targetId, string $targetName): void
@@ -49,23 +60,26 @@ class BlockRepository implements BlockRepositoryInterface
                 })
                 ->delete();
 
-            $followersRemoved = DB::table('jcow_followers')
-                ->where(function ($q) use ($userId, $targetId) {
-                    $q->where('uid', $userId)->where('fid', $targetId)
-                        ->orWhere('uid', $targetId)->where('fid', $userId);
-                })
+            $removedFollowerTarget = DB::table('jcow_followers')
+                ->where('uid', $targetId)->where('fid', $userId)
                 ->delete();
 
-            if ($followersRemoved) {
-                DB::table('jcow_accounts')
-                    ->where('id', $userId)
-                    ->where('followers', '>', 0)
-                    ->decrement('followers', $followersRemoved);
-
+            if ($removedFollowerTarget) {
                 DB::table('jcow_accounts')
                     ->where('id', $targetId)
                     ->where('followers', '>', 0)
-                    ->decrement('followers', $followersRemoved);
+                    ->decrement('followers', $removedFollowerTarget);
+            }
+
+            $removedFollowerUser = DB::table('jcow_followers')
+                ->where('uid', $userId)->where('fid', $targetId)
+                ->delete();
+
+            if ($removedFollowerUser) {
+                DB::table('jcow_accounts')
+                    ->where('id', $userId)
+                    ->where('followers', '>', 0)
+                    ->decrement('followers', $removedFollowerUser);
             }
 
             DB::table('jcow_friend_reqs')

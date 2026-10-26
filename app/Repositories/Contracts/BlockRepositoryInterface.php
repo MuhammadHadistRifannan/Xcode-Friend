@@ -8,6 +8,10 @@ interface BlockRepositoryInterface
 {
     public function areBlocked(int $userId, int $otherId): bool;
 
+    public function hasBlocked(int $userId, int $targetId): bool;
+
+    public function isBlockedBy(int $userId, int $blockerId): bool;
+
     public function isBlocked(int $userId, int $targetId): bool;
 
     public function block(int $userId, int $targetId, string $targetName): void;

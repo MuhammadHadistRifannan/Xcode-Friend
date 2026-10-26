@@ -49,12 +49,24 @@ class User extends Authenticatable
     // Legacy menggunakan Unix timestamps (integer)
     public $timestamps = false;
 
+    /**
+     * The "booted" method of the model.
+     * Membersihkan seluruh data turunan, konten, dan file saat user dihapus.
+     */
+    protected static function booted(): void
+    {
+        static::deleting(function (User $user) {
+            app(\App\Services\AccountDeletionService::class)->deleteUserData((int) $user->id, $user);
+        });
+    }
+
     protected $fillable = [
         'username', 'fullname', 'email', 'password', 'gender',
         'birthyear', 'birthmonth', 'birthday', 'country', 'about_me',
-        'created', 'lastlogin', 'ipaddress', 'hide_age', 'roles', 'disabled',
+        'created', 'lastlogin', 'last_seen', 'ipaddress', 'hide_age', 'roles', 'disabled',
         'settings', 'avatar', 'level', 'points',
         'location', 'signature', 'blurbs', 'remember_token',
+        'profile_permission', 'hide_me',
         'var1', 'var2', 'var3', 'var4', 'var5', 'var6', 'var7'
     ];
 
@@ -77,6 +89,27 @@ class User extends Authenticatable
         return is_array($decoded) ? $decoded : [];
     }
 
+    public function isAdmin(): bool
+    {
+        $roleLower = strtolower(trim((string) ($this->roles ?? '')));
+        return ((int) $this->level === 1)
+            || ($roleLower === '3')
+            || in_array($roleLower, ['admin', 'administrator']);
+    }
+
+    public function hasRole(?string $roleName = ''): bool
+    {
+        $target = strtolower(trim((string) ($roleName ?? '')));
+        if ($this->isAdmin()) {
+            return in_array($target, ['admin', 'administrator']);
+        }
+        $userRole = strtolower(trim((string) ($this->roles ?? '')));
+        if ($userRole === '' || $userRole === '0' || $userRole === '2' || $userRole === 'member') {
+            return in_array($target, ['general member', 'member', 'user']);
+        }
+        return $userRole === $target;
+    }
+
 
 
     public function getNameAttribute()
@@ -84,9 +117,69 @@ class User extends Authenticatable
         return $this->fullname;
     }
 
-    public function getAvatarUrlAttribute()
+    public static function avatarUrl(?string $avatar): string
     {
-        return $this->avatar ? asset('storage/avatars/' . $this->avatar) : asset('assets/img/default.png');
+        if (empty($avatar)) {
+            return asset('assets/img/default.png');
+        }
+        $avatar = ltrim(trim($avatar), '/');
+        if (in_array(strtolower($avatar), ['undefined.jpg', 's_undefined.jpg', 'default.png', 'default-avatar.png', 'logo.jpg', 's_logo.jpg'])) {
+            return asset('assets/img/default.png');
+        }
+        if (str_starts_with($avatar, 'http://') || str_starts_with($avatar, 'https://')) {
+            return $avatar;
+        }
+        if (str_starts_with($avatar, 'uploads/avatars/')) {
+            $path = public_path($avatar);
+            return file_exists($path) ? asset($avatar) : asset('assets/img/default.png');
+        }
+        if (str_starts_with($avatar, 'avatars/')) {
+            $path = public_path('uploads/' . $avatar);
+            return file_exists($path) ? asset('uploads/' . $avatar) : asset('assets/img/default.png');
+        }
+        if (str_starts_with($avatar, 'uploads/')) {
+            $path = public_path($avatar);
+            return file_exists($path) ? asset($avatar) : asset('assets/img/default.png');
+        }
+        $path = public_path('uploads/avatars/' . $avatar);
+        if (file_exists($path)) {
+            return asset('uploads/avatars/' . $avatar);
+        }
+        if (file_exists(public_path('storage/avatars/' . $avatar))) {
+            return asset('storage/avatars/' . $avatar);
+        }
+        return asset('assets/img/default.png');
+    }
+
+    public function getAvatarUrlAttribute(): string
+    {
+        return self::avatarUrl($this->avatar);
+    }
+
+    public function getIsOnlineAttribute(): bool
+    {
+        $lastSeen = (int) ($this->last_seen ?? 0);
+        $lastLogin = (int) ($this->lastlogin ?? 0);
+        $effective = max($lastSeen, $lastLogin);
+
+        return $effective > 0 && (time() - $effective) < 300;
+    }
+
+    public function getLastActiveTextAttribute(): string
+    {
+        $lastSeen = (int) ($this->last_seen ?? 0);
+        $lastLogin = (int) ($this->lastlogin ?? 0);
+        $effective = max($lastSeen, $lastLogin);
+
+        if ($effective <= 0) {
+            return 'Offline';
+        }
+
+        if ((time() - $effective) < 300) {
+            return 'Online';
+        }
+
+        return \Carbon\Carbon::createFromTimestamp($effective)->diffForHumans();
     }
 
     public function friends()

@@ -40,19 +40,23 @@
         <div class="flex flex-wrap gap-2 mb-6">
             <a href="{{ route('admin.stream-monitor', request()->except('type', 'page')) }}" 
                class="px-4 py-2 rounded-lg text-sm font-bold transition-colors {{ !request('type') ? 'bg-gray-800 text-white shadow-md' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50' }}">
-                All Streams ({{ number_format($typeStats['all']) }})
+                Semua Postingan ({{ number_format($typeStats['all']) }})
             </a>
-            <a href="{{ route('admin.stream-monitor', array_merge(request()->except('page'), ['type' => 1])) }}" 
-               class="px-4 py-2 rounded-lg text-sm font-bold transition-colors {{ request('type') == '1' ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-600 border border-gray-200 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200' }}">
-                <i data-lucide="file-text" class="w-4 h-4 inline-block mr-1"></i> Teks ({{ number_format($typeStats['1']) }})
+            <a href="{{ route('admin.stream-monitor', array_merge(request()->except('page'), ['type' => 'text'])) }}" 
+               class="px-4 py-2 rounded-lg text-sm font-bold transition-colors {{ in_array(request('type'), ['1', 'text']) ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-600 border border-gray-200 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200' }}">
+                <i data-lucide="file-text" class="w-4 h-4 inline-block mr-1"></i> Teks ({{ number_format($typeStats['text']) }})
             </a>
-            <a href="{{ route('admin.stream-monitor', array_merge(request()->except('page'), ['type' => 2])) }}" 
-               class="px-4 py-2 rounded-lg text-sm font-bold transition-colors {{ request('type') == '2' ? 'bg-pink-600 text-white shadow-md' : 'bg-white text-gray-600 border border-gray-200 hover:bg-pink-50 hover:text-pink-600 hover:border-pink-200' }}">
-                <i data-lucide="image" class="w-4 h-4 inline-block mr-1"></i> Foto ({{ number_format($typeStats['2']) }})
+            <a href="{{ route('admin.stream-monitor', array_merge(request()->except('page'), ['type' => 'photo'])) }}" 
+               class="px-4 py-2 rounded-lg text-sm font-bold transition-colors {{ in_array(request('type'), ['2', 'photo']) ? 'bg-pink-600 text-white shadow-md' : 'bg-white text-gray-600 border border-gray-200 hover:bg-pink-50 hover:text-pink-600 hover:border-pink-200' }}">
+                <i data-lucide="image" class="w-4 h-4 inline-block mr-1"></i> Foto ({{ number_format($typeStats['photo']) }})
             </a>
-            <a href="{{ route('admin.stream-monitor', array_merge(request()->except('page'), ['type' => 3])) }}" 
-               class="px-4 py-2 rounded-lg text-sm font-bold transition-colors {{ request('type') == '3' ? 'bg-orange-600 text-white shadow-md' : 'bg-white text-gray-600 border border-gray-200 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200' }}">
-                <i data-lucide="video" class="w-4 h-4 inline-block mr-1"></i> Video ({{ number_format($typeStats['3']) }})
+            <a href="{{ route('admin.stream-monitor', array_merge(request()->except('page'), ['type' => 'video'])) }}" 
+               class="px-4 py-2 rounded-lg text-sm font-bold transition-colors {{ in_array(request('type'), ['3', 'video']) ? 'bg-orange-600 text-white shadow-md' : 'bg-white text-gray-600 border border-gray-200 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200' }}">
+                <i data-lucide="video" class="w-4 h-4 inline-block mr-1"></i> Video ({{ number_format($typeStats['video']) }})
+            </a>
+            <a href="{{ route('admin.stream-monitor', array_merge(request()->except('page'), ['type' => 'blog'])) }}" 
+               class="px-4 py-2 rounded-lg text-sm font-bold transition-colors {{ request('type') == 'blog' ? 'bg-purple-600 text-white shadow-md' : 'bg-white text-gray-600 border border-gray-200 hover:bg-purple-50 hover:text-purple-600 hover:border-purple-200' }}">
+                <i data-lucide="book-open" class="w-4 h-4 inline-block mr-1"></i> Blog ({{ number_format($typeStats['blog']) }})
             </a>
         </div>
 
@@ -67,64 +71,217 @@
         {{-- Stream Feed --}}
         <div class="space-y-4" id="admin-stream-feed">
             @forelse($streams as $stream)
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                @php
+                    $att = $stream->parsed_attachment;
+                    $photoUrls = $stream->photo_urls;
+                    $videoUrl = $att['video_url'] ?? null;
+                    $ytEmbed = null;
+                    $vstoryId = null;
+                    $videoRecord = null;
+                    // 1. Ekstrak YouTube Embed langsung dari videoUrl atau attachment
+                    if ($videoUrl && preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i', $videoUrl, $vm)) {
+                        $ytEmbed = 'https://www.youtube.com/embed/' . $vm[1];
+                    } elseif ($stream->attachment && str_starts_with($stream->attachment, 'youtube:')) {
+                        $ytEmbed = 'https://www.youtube.com/embed/' . str_replace('youtube:', '', $stream->attachment);
+                    }
+
+                    // 2. Cari ID Video di jcow_stories (vstoryId)
+                    if (!empty($att['video_id'])) {
+                        $vstoryId = $att['video_id'];
+                    } elseif (!empty($att['uri']) && preg_match('/(?:videos\/viewstory\/|\/)(\d+)$/', $att['uri'], $vsm)) {
+                        $vstoryId = $vsm[1];
+                    } elseif ($stream->type == 3 || in_array($stream->app, ['video', 'videos']) || $videoUrl) {
+                        // Cari record video berdasarkan stream_id atau kecocokan video_url dengan uid
+                        $videoRecord = \App\Models\Video::where(function($q) use ($stream, $videoUrl) {
+                            $q->where('stream_id', $stream->id);
+                            if ($videoUrl) {
+                                $q->orWhere(function($sq) use ($stream, $videoUrl) {
+                                    $sq->where('uid', $stream->uid)->where('var1', $videoUrl);
+                                });
+                                if (preg_match('/(?:youtu\.be\/|v=)([^"&?\/\s]{11})/', $videoUrl, $yid)) {
+                                    $q->orWhere(function($sq) use ($stream, $yid) {
+                                        $sq->where('uid', $stream->uid)->where('var1', 'like', '%' . $yid[1] . '%');
+                                    });
+                                }
+                            }
+                        })->first();
+                        if ($videoRecord) {
+                            $vstoryId = $videoRecord->id;
+                        }
+                    }
+
+                    // 3. Ambil data record Video jika ada vstoryId
+                    if ($vstoryId && !$videoRecord) {
+                        $videoRecord = \App\Models\Video::find($vstoryId);
+                    }
+
+                    // 4. Resolve ytEmbed dari videoRecord jika belum ada
+                    if (!$ytEmbed && $videoRecord && $videoRecord->youtube_embed_url) {
+                        $ytEmbed = $videoRecord->youtube_embed_url;
+                    }
+                    $isVid = $stream->type == 3 || in_array($stream->app, ['video', 'videos']) || $ytEmbed !== null;
+                    $isPic = count($photoUrls) > 0 || $stream->type == 2 || in_array($stream->app, ['photo', 'photos']);
+                    $isBlog = $stream->app === 'blogs';
+                    $hasUser = (bool) $stream->user;
+                    $username = $stream->user?->username ?? 'user';
+                    $fullname = $stream->user?->fullname ?: $username;
+                @endphp
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:border-gray-300 transition-colors" id="admin-stream-{{ $stream->id }}">
                     <div class="flex justify-between items-start mb-3">
                         <div class="flex items-start gap-3">
-                            <img src="{{ $stream->user?->avatar_url ?? asset('assets/img/default.png') }}" alt="{{ $stream->user?->username }}" class="w-10 h-10 rounded-full border border-gray-200 object-cover bg-gray-100">
+                            @if($hasUser)
+                                <a href="{{ route('profile.show', $username) }}" class="shrink-0">
+                                    <img src="{{ $stream->user?->avatar_url ?? asset('assets/img/default.png') }}" alt="{{ $username }}" class="w-10 h-10 rounded-full border border-gray-200 object-cover bg-gray-100 hover:opacity-90 transition">
+                                </a>
+                            @else
+                                <img src="{{ asset('assets/img/default.png') }}" alt="User" class="w-10 h-10 rounded-full border border-gray-200 object-cover bg-gray-100 shrink-0">
+                            @endif
                             <div>
-                                <div class="font-bold text-gray-900 text-sm">
-                                    <a href="{{ route('profile.show', $stream->user?->username ?? '#') }}" target="_blank" class="hover:underline">{{ $stream->user?->fullname ?: $stream->user?->username }}</a>
+                                <div class="font-bold text-gray-900 text-sm flex items-center gap-2 flex-wrap">
+                                    @if($hasUser)
+                                        <a href="{{ route('profile.show', $username) }}" class="hover:underline hover:text-red-600 transition">{{ $fullname }}</a>
+                                        <span class="text-xs font-normal text-gray-400">({{'@' . $username}})</span>
+                                    @else
+                                        <span class="text-gray-500 italic">Pengguna Dihapus</span>
+                                    @endif
+                                    
+                                    @if($stream->app === 'group' && $stream->targetPage)
+                                        <span class="text-xs font-normal text-gray-500">
+                                            &bull; di Grup <a href="{{ url('/groups/' . $stream->targetPage->id) }}" class="font-bold text-gray-700 hover:text-red-600 hover:underline"><i data-lucide="users" class="w-3 h-3 inline"></i> {{ $stream->targetPage->name }}</a>
+                                        </span>
+                                    @elseif($stream->app === 'page' && $stream->targetPage)
+                                        <span class="text-xs font-normal text-gray-500">
+                                            &bull; di Halaman <a href="{{ url('/pages/' . $stream->targetPage->id) }}" class="font-bold text-gray-700 hover:text-red-600 hover:underline"><i data-lucide="flag" class="w-3 h-3 inline"></i> {{ $stream->targetPage->name }}</a>
+                                        </span>
+                                    @elseif($stream->app === 'feed' && $stream->wall_id && $stream->wall_id != $stream->uid && $stream->targetWallUser)
+                                        <span class="text-xs font-normal text-gray-500">
+                                            &bull; di Dinding <a href="{{ url('/@' . $stream->targetWallUser->username) }}" class="font-bold text-gray-700 hover:text-red-600 hover:underline"><i data-lucide="user" class="w-3 h-3 inline"></i> {{ $stream->targetWallUser->fullname ?? $stream->targetWallUser->username }}</a>
+                                        </span>
+                                    @endif
                                 </div>
-                                <div class="text-xs text-gray-500">
-                                    {{ $stream->created_at->diffForHumans() }} &bull; 
-                                    ID: {{ $stream->id }} &bull; 
-                                    @if($stream->type == 1)
-                                        <span class="text-blue-600 font-semibold"><i data-lucide="file-text" class="w-3 h-3 inline"></i> Teks</span>
-                                    @elseif($stream->type == 2)
-                                        <span class="text-pink-600 font-semibold"><i data-lucide="image" class="w-3 h-3 inline"></i> Foto</span>
-                                    @elseif($stream->type == 3)
-                                        <span class="text-orange-600 font-semibold"><i data-lucide="video" class="w-3 h-3 inline"></i> Video</span>
+                                <div class="text-xs text-gray-500 mt-0.5 flex items-center gap-2 flex-wrap">
+                                    <span>{{ $stream->created_at->diffForHumans() }}</span>
+                                    <span>&bull;</span>
+                                    <span>ID: {{ $stream->id }}</span>
+                                    <span>&bull;</span>
+                                    @if($isVid)
+                                        <span class="inline-flex items-center gap-1 text-orange-600 font-bold bg-orange-50 px-2 py-0.5 rounded text-[11px]"><i data-lucide="video" class="w-3 h-3"></i> Video</span>
+                                    @elseif($isPic)
+                                        <span class="inline-flex items-center gap-1 text-pink-600 font-bold bg-pink-50 px-2 py-0.5 rounded text-[11px]"><i data-lucide="image" class="w-3 h-3"></i> Foto {{ count($photoUrls) > 0 ? '('.count($photoUrls).')' : '' }}</span>
+                                    @elseif($isBlog)
+                                        <span class="inline-flex items-center gap-1 text-purple-600 font-bold bg-purple-50 px-2 py-0.5 rounded text-[11px]"><i data-lucide="book-open" class="w-3 h-3"></i> Blog</span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1 text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded text-[11px]"><i data-lucide="file-text" class="w-3 h-3"></i> Teks</span>
+                                    @endif
+                                    
+                                    @if($stream->privacy)
+                                        <span class="text-gray-400 capitalize text-[11px]">({{ $stream->privacy }})</span>
                                     @endif
                                 </div>
                             </div>
                         </div>
                         
-                        {{-- Delete Button --}}
-                        <form action="{{ route('admin.stream-monitor.destroy', $stream->id) }}" method="POST" onsubmit="return confirm('Hapus postingan ini secara permanen?');">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="text-gray-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors" title="Hapus Postingan">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
-                        </form>
+                        {{-- Action Buttons --}}
+                        <div class="flex items-center gap-1">
+                            <a href="{{ url('/stream/' . $stream->id) }}" class="text-gray-400 hover:text-blue-600 hover:bg-blue-50 p-2 rounded-lg transition-colors" title="Buka Postingan">
+                                <i data-lucide="external-link" class="w-4 h-4"></i>
+                            </a>
+                            <form action="{{ route('admin.stream-monitor.destroy', $stream->id) }}" method="POST" onsubmit="return confirm('Hapus postingan ini secara permanen?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-gray-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors" title="Hapus Postingan">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </form>
+                        </div>
                     </div>
 
-                    {{-- Content --}}
+                    {{-- Content Message --}}
                     @if($stream->message)
-                        <p class="text-gray-800 text-sm mb-3 whitespace-pre-wrap">{{ $stream->message }}</p>
+                        <div class="text-gray-800 text-sm mb-3 whitespace-pre-wrap leading-relaxed">{!! strip_tags($stream->message, '<a><b><i><strong><em><br><p>') !!}</div>
                     @endif
 
-                    @if($stream->attachment)
+                    {{-- Photos --}}
+                    @if(count($photoUrls) > 0)
                         <div class="mt-3">
-                            @if($stream->type == 3 && str_starts_with($stream->attachment, 'youtube:'))
-                                @php $ytId = str_replace('youtube:', '', $stream->attachment); @endphp
-                                <iframe class="w-full max-w-2xl aspect-video rounded-xl" src="https://www.youtube.com/embed/{{ $ytId }}" frameborder="0"></iframe>
-                            @elseif($stream->type == 2 || $stream->type == 3)
-                                @php
-                                    $photos = [];
-                                    $attJson = json_decode($stream->attachment, true);
-                                    if ($attJson && isset($attJson['photos']) && is_array($attJson['photos'])) {
-                                        $photos = $attJson['photos'];
-                                    } elseif (is_string($stream->attachment) && !str_starts_with($stream->attachment, '{')) {
-                                        $photos = [$stream->attachment];
-                                    }
-                                @endphp
-                                @foreach($photos as $photo)
-                                    <img src="{{ asset('storage/posts/'.$photo) }}" class="rounded-xl max-h-80 object-contain bg-gray-50 border border-gray-100 mb-2">
-                                @endforeach
+                            @if(count($photoUrls) === 1)
+                                <a href="{{ $photoUrls[0] }}" target="_blank" class="inline-block max-w-xl rounded-xl overflow-hidden border border-gray-200 bg-gray-50 hover:opacity-95 transition" title="Klik untuk membuka ukuran penuh">
+                                    <img src="{{ $photoUrls[0] }}" class="w-full max-h-96 object-contain rounded-xl" alt="Foto Postingan">
+                                </a>
+                            @else
+                                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-w-2xl">
+                                    @foreach($photoUrls as $pUrl)
+                                        <a href="{{ $pUrl }}" target="_blank" class="aspect-square rounded-lg overflow-hidden border border-gray-200 bg-gray-50 block hover:opacity-95 transition" title="Klik untuk membuka ukuran penuh">
+                                            <img src="{{ $pUrl }}" class="w-full h-full object-cover" alt="Foto Postingan">
+                                        </a>
+                                    @endforeach
+                                </div>
                             @endif
                         </div>
                     @endif
+
+                    {{-- Videos / YouTube --}}
+                    @if($ytEmbed)
+                        <div class="mt-3 max-w-2xl rounded-xl overflow-hidden border border-gray-200 bg-black aspect-video">
+                            <iframe class="w-full h-full rounded-xl" src="{{ $ytEmbed }}" frameborder="0" allowfullscreen></iframe>
+                        </div>
+                        @if($vstoryId)
+                            <div class="mt-2">
+                                <a href="{{ url('/videos/' . $vstoryId . '/watch?ref=stream-monitor') }}" class="inline-flex items-center gap-1.5 text-xs text-red-600 hover:text-red-800 font-semibold hover:underline">
+                                    <i data-lucide="play-circle" class="w-3.5 h-3.5"></i>
+                                    <span>Buka Halaman Pemutar Video &rarr;</span>
+                                </a>
+                            </div>
+                        @endif
+                    @elseif(!empty($att['video_url']))
+                        <div class="mt-3 max-w-2xl">
+                            <a href="{{ $att['video_url'] }}" target="_blank" class="inline-flex items-center gap-2.5 p-3.5 bg-red-50 text-red-700 border border-red-200 rounded-xl hover:bg-red-100 transition text-sm font-semibold">
+                                <i data-lucide="play-circle" class="w-5 h-5 text-red-600 shrink-0"></i>
+                                <span>{{ $att['title'] ?: $att['video_url'] }}</span>
+                            </a>
+                        </div>
+                    @elseif($vstoryId || (!empty($att['uri']) && str_starts_with($att['uri'], 'videos/viewstory/')))
+                        @php
+                            if (!$vstoryId && !empty($att['uri'])) {
+                                preg_match('/videos\/viewstory\/(\d+)/', $att['uri'], $vsm);
+                                $vstoryId = $vsm[1] ?? null;
+                            }
+                        @endphp
+                        <div class="mt-3 max-w-2xl">
+                            <a href="{{ url('/videos/' . ($vstoryId ?: '') . '/watch?ref=stream-monitor') }}" class="inline-flex items-center gap-2.5 p-3.5 bg-red-50 text-red-700 border border-red-200 rounded-xl hover:bg-red-100 transition text-sm font-semibold">
+                                <i data-lucide="video" class="w-5 h-5 text-red-600 shrink-0"></i>
+                                <span>{{ $att['name'] ?? ($videoRecord?->title ?? 'Lihat Video') }}</span>
+                            </a>
+                        </div>
+                    @endif
+
+                    {{-- Blogs --}}
+                    @if($stream->app === 'blogs' && $att && !empty($att['name']))
+                        <div class="mt-3 max-w-xl rounded-xl border border-purple-200 bg-purple-50/50 p-4 flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
+                                <i data-lucide="book-open" class="w-5 h-5"></i>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <span class="text-[10px] font-bold text-purple-600 tracking-wider uppercase">ARTIKEL BLOG</span>
+                                <h5 class="text-sm font-bold text-gray-900 truncate">{{ $att['name'] }}</h5>
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- Footer info --}}
+                    <div class="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
+                        <span class="flex items-center gap-1.5">
+                            <i data-lucide="message-square" class="w-3.5 h-3.5 text-gray-400"></i> {{ $stream->comments()->count() }} Komentar
+                        </span>
+                        <span>&bull;</span>
+                        <span class="flex items-center gap-1.5">
+                            <i data-lucide="heart" class="w-3.5 h-3.5 text-gray-400"></i> {{ $stream->likes }} Suka
+                        </span>
+                        <span>&bull;</span>
+                        <a href="{{ url('/stream/' . $stream->id) }}" class="text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 font-medium ml-auto">
+                            Buka di Feed <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+                        </a>
+                    </div>
                 </div>
             @empty
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
@@ -152,13 +309,15 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     if (!window.Echo) {
+        let _isSecure = window.location.protocol === 'https:';
+        let _wsPort = window.location.port || (_isSecure ? 443 : 80);
         window.Echo = new Echo({
             broadcaster: 'pusher',
             key: '{{ config("broadcasting.connections.reverb.key") }}',
-            wsHost: '{{ config("broadcasting.connections.reverb.options.host", "127.0.0.1") }}',
-            wsPort: {{ config("broadcasting.connections.reverb.options.port", 8080) }},
-            wssPort: {{ config("broadcasting.connections.reverb.options.port", 8080) }},
-            forceTLS: false,
+            wsHost: window.location.hostname,
+            wsPort: _wsPort,
+            wssPort: _wsPort,
+            forceTLS: _isSecure,
             enabledTransports: ['ws', 'wss'],
         });
     }
@@ -176,31 +335,45 @@ document.addEventListener('DOMContentLoaded', () => {
                 const message = (e.message || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
                 const type = e.type || 1;
 
-                let typeBadge = '<span class="text-blue-600 font-semibold"><i data-lucide="file-text" class="w-3 h-3 inline"></i> Teks</span>';
-                if (type == 2) typeBadge = '<span class="text-pink-600 font-semibold"><i data-lucide="image" class="w-3 h-3 inline"></i> Foto</span>';
-                else if (type == 3) typeBadge = '<span class="text-orange-600 font-semibold"><i data-lucide="video" class="w-3 h-3 inline"></i> Video</span>';
+                let typeBadge = '<span class="inline-flex items-center gap-1 text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded text-[11px]"><i data-lucide="file-text" class="w-3 h-3"></i> Teks</span>';
+                if (type == 2) typeBadge = '<span class="inline-flex items-center gap-1 text-pink-600 font-bold bg-pink-50 px-2 py-0.5 rounded text-[11px]"><i data-lucide="image" class="w-3 h-3"></i> Foto</span>';
+                else if (type == 3) typeBadge = '<span class="inline-flex items-center gap-1 text-orange-600 font-bold bg-orange-50 px-2 py-0.5 rounded text-[11px]"><i data-lucide="video" class="w-3 h-3"></i> Video</span>';
 
                 let attachmentHtml = '';
-                if (e.attachment) {
-                    attachmentHtml += '<div class="mt-3">';
-                    if (type == 3 && e.attachment.startsWith('youtube:')) {
+                let photoList = e.photo_urls || [];
+                if (photoList.length === 0 && e.attachment) {
+                    if (typeof e.attachment === 'string' && e.attachment.startsWith('youtube:')) {
                         const ytId = e.attachment.replace('youtube:', '');
-                        attachmentHtml += `<iframe class="w-full max-w-2xl aspect-video rounded-xl" src="https://www.youtube.com/embed/${ytId}" frameborder="0"></iframe>`;
-                    } else if (type == 2 || type == 3) {
-                        let photos = [];
+                        attachmentHtml += `<div class="mt-3 max-w-2xl rounded-xl overflow-hidden border border-gray-200 bg-black aspect-video"><iframe class="w-full h-full rounded-xl" src="https://www.youtube.com/embed/${ytId}" frameborder="0" allowfullscreen></iframe></div>`;
+                    } else {
                         try {
-                            const attJson = JSON.parse(e.attachment);
-                            if (attJson && attJson.photos && Array.isArray(attJson.photos)) {
-                                photos = attJson.photos;
+                            const parsed = JSON.parse(e.attachment);
+                            if (parsed.video_url) {
+                                let match = parsed.video_url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i);
+                                if (match) {
+                                    attachmentHtml += `<div class="mt-3 max-w-2xl rounded-xl overflow-hidden border border-gray-200 bg-black aspect-video"><iframe class="w-full h-full rounded-xl" src="https://www.youtube.com/embed/${match[1]}" frameborder="0" allowfullscreen></iframe></div>`;
+                                }
+                            } else if (parsed.photos && Array.isArray(parsed.photos)) {
+                                photoList = parsed.photos.map(p => p.startsWith('http') ? p : '/storage/' + (p.startsWith('posts/') || p.startsWith('photos/') ? p : 'posts/' + p));
                             }
                         } catch (err) {
                             if (typeof e.attachment === 'string' && !e.attachment.startsWith('{')) {
-                                photos = [e.attachment];
+                                photoList = ['/storage/posts/' + e.attachment];
                             }
                         }
-                        photos.forEach(photo => {
-                            attachmentHtml += `<img src="/storage/posts/${photo}" class="rounded-xl max-h-80 object-contain bg-gray-50 border border-gray-100 mb-2">`;
+                    }
+                }
+
+                if (photoList.length > 0) {
+                    attachmentHtml += '<div class="mt-3">';
+                    if (photoList.length === 1) {
+                        attachmentHtml += `<a href="${photoList[0]}" target="_blank" class="inline-block max-w-xl rounded-xl overflow-hidden border border-gray-200 bg-gray-50"><img src="${photoList[0]}" class="w-full max-h-96 object-contain rounded-xl"></a>`;
+                    } else {
+                        attachmentHtml += '<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-w-2xl">';
+                        photoList.forEach(url => {
+                            attachmentHtml += `<a href="${url}" target="_blank" class="aspect-square rounded-lg overflow-hidden border border-gray-200 bg-gray-50 block"><img src="${url}" class="w-full h-full object-cover"></a>`;
                         });
+                        attachmentHtml += '</div>';
                     }
                     attachmentHtml += '</div>';
                 }
@@ -209,27 +382,39 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div id="admin-stream-${streamId}" class="bg-white rounded-xl shadow-sm border-2 border-emerald-400 p-5 transition-all duration-500">
                         <div class="flex justify-between items-start mb-3">
                             <div class="flex items-start gap-3">
-                                <img src="${avatar}" alt="${username}" class="w-10 h-10 rounded-full border border-gray-200 object-cover bg-gray-100">
+                                <a href="/@${username}" class="shrink-0">
+                                    <img src="${avatar}" alt="${username}" class="w-10 h-10 rounded-full border border-gray-200 object-cover bg-gray-100 hover:opacity-90 transition">
+                                </a>
                                 <div>
-                                    <div class="font-bold text-gray-900 text-sm">
-                                        <a href="/@${username}" target="_blank" class="hover:underline">${fullname}</a>
+                                    <div class="font-bold text-gray-900 text-sm flex items-center gap-2 flex-wrap">
+                                        <a href="/@${username}" class="hover:underline hover:text-red-600 transition">${fullname}</a>
+                                        <span class="text-xs font-normal text-gray-400">(@${username})</span>
                                         <span class="ml-2 px-2 py-0.5 text-[10px] bg-emerald-100 text-emerald-700 font-bold rounded-full">BARU SAJA</span>
                                     </div>
-                                    <div class="text-xs text-gray-500">
-                                        Baru saja &bull; ID: ${streamId} &bull; ${typeBadge}
+                                    <div class="text-xs text-gray-500 mt-0.5 flex items-center gap-2 flex-wrap">
+                                        <span>Baru saja</span>
+                                        <span>&bull;</span>
+                                        <span>ID: ${streamId}</span>
+                                        <span>&bull;</span>
+                                        ${typeBadge}
                                     </div>
                                 </div>
                             </div>
                             
-                            <form action="/admin/stream-monitor/${streamId}" method="POST" onsubmit="return confirm('Hapus postingan ini secara permanen?');">
-                                <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                                <input type="hidden" name="_method" value="DELETE">
-                                <button type="submit" class="text-gray-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors" title="Hapus Postingan">
-                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                </button>
-                            </form>
+                            <div class="flex items-center gap-1">
+                                <a href="/stream/${streamId}" class="text-gray-400 hover:text-blue-600 hover:bg-blue-50 p-2 rounded-lg transition-colors" title="Buka Postingan">
+                                    <i data-lucide="external-link" class="w-4 h-4"></i>
+                                </a>
+                                <form action="/admin/stream-monitor/${streamId}" method="POST" onsubmit="return confirm('Hapus postingan ini secara permanen?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                    <input type="hidden" name="_method" value="DELETE">
+                                    <button type="submit" class="text-gray-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors" title="Hapus Postingan">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </div>
-                        <p class="text-gray-800 text-sm mb-3 whitespace-pre-wrap">${message}</p>
+                        <div class="text-gray-800 text-sm mb-3 whitespace-pre-wrap leading-relaxed">${message}</div>
                         ${attachmentHtml}
                     </div>
                 `;

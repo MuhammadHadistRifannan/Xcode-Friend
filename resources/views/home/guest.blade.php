@@ -82,11 +82,11 @@
             <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5 mb-4">
                 <div class="flex items-center space-x-3 mb-3">
                     <div class="w-10 h-10 rounded-full bg-neutral-100 overflow-hidden flex-shrink-0 border border-neutral-200">
-                        <img src="{{ $stream->user->avatar_url }}" class="w-full h-full object-cover">
+                        <img src="{{ $stream->user?->avatar_url ?? asset('assets/img/default.png') }}" class="w-full h-full object-cover">
                     </div>
                     <div>
                         <p class="text-sm text-neutral-800">
-                            <span class="font-bold">{{ $stream->user->fullname ?? 'User Tidak Diketahui' }}</span> 
+                            <span class="font-bold">{{ $stream->user?->fullname ?? 'User Tidak Diketahui' }}</span> 
                             @if($stream->type == 1 && !$stream->attachment)
                             <span class="font-normal text-neutral-500">memperbarui status</span>
                             @elseif($stream->type == 2)
@@ -128,70 +128,122 @@
                         </div>
                     @endif
 
-                    @if($stream->type == 2 && $stream->attachment)
-                        @php $att = json_decode($stream->attachment, true); @endphp
-                        @if(isset($att['photos']) && is_array($att['photos']))
-                            @php 
-                                $ptCount = count($att['photos']); 
-                                $photoUrls = array_map(fn($p) => asset('storage/posts/' . $p), $att['photos']);
-                            @endphp
-                            <div class="mb-4 rounded-xl overflow-hidden border border-neutral-200">
-                                @if($ptCount == 1)
-                                    <img src="{{ $photoUrls[0] }}" class="w-full h-auto max-h-[500px] object-cover" alt="Post Photo">
-                                @elseif($ptCount == 2)
-                                    <div class="grid grid-cols-2 gap-1 h-64 sm:h-80">
-                                        <img src="{{ $photoUrls[0] }}" class="w-full h-full object-cover" alt="Post Photo">
-                                        <img src="{{ $photoUrls[1] }}" class="w-full h-full object-cover" alt="Post Photo">
+                    @php
+                        $att = $stream->parsed_attachment;
+                        $photosList = $stream->photo_urls;
+                    @endphp
+
+                    @if(count($photosList) > 0)
+                        @php
+                            $ptCount = count($photosList);
+                            $jsonPhotos = json_encode($photosList);
+                        @endphp
+                        <div class="mb-4 rounded-xl overflow-hidden border border-neutral-200 post-photo-wrapper relative select-none">
+                            @if($ptCount == 1)
+                                <img src="{{ $photosList[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' onerror="this.onerror=null; this.closest('.post-photo-wrapper')?.remove();" class="w-full h-auto max-h-[500px] object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                            @elseif($ptCount == 2)
+                                <div class="grid grid-cols-2 gap-1 h-64 sm:h-80">
+                                    <img src="{{ $photosList[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' onerror="this.onerror=null; this.closest('.post-photo-wrapper')?.remove();" class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                    <img src="{{ $photosList[1] }}" onclick='openLightbox({!! $jsonPhotos !!}, 1)' onerror="this.onerror=null; this.closest('.post-photo-wrapper')?.remove();" class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                </div>
+                            @elseif($ptCount == 3)
+                                <div class="grid grid-cols-2 gap-1 h-64 sm:h-80">
+                                    <img src="{{ $photosList[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' onerror="this.onerror=null; this.closest('.post-photo-wrapper')?.remove();" class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                    <div class="grid grid-rows-2 gap-1 h-full">
+                                        <img src="{{ $photosList[1] }}" onclick='openLightbox({!! $jsonPhotos !!}, 1)' onerror="this.onerror=null; this.closest('.post-photo-wrapper')?.remove();" class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                        <img src="{{ $photosList[2] }}" onclick='openLightbox({!! $jsonPhotos !!}, 2)' onerror="this.onerror=null; this.closest('.post-photo-wrapper')?.remove();" class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
                                     </div>
-                                @elseif($ptCount == 3)
-                                    <div class="grid grid-cols-2 gap-1 h-64 sm:h-80">
-                                        <img src="{{ $photoUrls[0] }}" class="w-full h-full object-cover" alt="Post Photo">
-                                        <div class="grid grid-rows-2 gap-1 h-full">
-                                            <img src="{{ $photoUrls[1] }}" class="w-full h-full object-cover" alt="Post Photo">
-                                            <img src="{{ $photoUrls[2] }}" class="w-full h-full object-cover" alt="Post Photo">
-                                        </div>
+                                </div>
+                            @elseif($ptCount >= 4)
+                                <div class="grid grid-cols-2 grid-rows-2 gap-1 h-72 sm:h-96">
+                                    <img src="{{ $photosList[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' onerror="this.onerror=null; this.closest('.post-photo-wrapper')?.remove();" class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                    <img src="{{ $photosList[1] }}" onclick='openLightbox({!! $jsonPhotos !!}, 1)' onerror="this.onerror=null; this.closest('.post-photo-wrapper')?.remove();" class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                    <img src="{{ $photosList[2] }}" onclick='openLightbox({!! $jsonPhotos !!}, 2)' onerror="this.onerror=null; this.closest('.post-photo-wrapper')?.remove();" class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                                    <div class="relative w-full h-full" onclick='openLightbox({!! $jsonPhotos !!}, 3)'>
+                                        <img src="{{ $photosList[3] }}" onerror="this.onerror=null; this.closest('.post-photo-wrapper')?.remove();" class="w-full h-full object-cover cursor-pointer" alt="Post Photo">
+                                        @if($ptCount > 4)
+                                            <div class="absolute inset-0 bg-black/60 flex items-center justify-center cursor-pointer hover:bg-black/50 transition">
+                                                <span class="text-white text-3xl font-bold">+{{ $ptCount - 4 }}</span>
+                                            </div>
+                                        @endif
                                     </div>
-                                @elseif($ptCount >= 4)
-                                    <div class="grid grid-cols-2 grid-rows-2 gap-1 h-72 sm:h-96">
-                                        <img src="{{ $photoUrls[0] }}" class="w-full h-full object-cover" alt="Post Photo">
-                                        <img src="{{ $photoUrls[1] }}" class="w-full h-full object-cover" alt="Post Photo">
-                                        <img src="{{ $photoUrls[2] }}" class="w-full h-full object-cover" alt="Post Photo">
-                                        <div class="relative w-full h-full">
-                                            <img src="{{ $photoUrls[3] }}" class="w-full h-full object-cover" alt="Post Photo">
-                                            @if($ptCount > 4)
-                                                <div class="absolute inset-0 bg-black/60 flex items-center justify-center">
-                                                    <span class="text-white text-3xl font-bold">+{{ $ptCount - 4 }}</span>
-                                                </div>
-                                            @endif
-                                        </div>
-                                    </div>
-                                @endif
-                            </div>
-                        @elseif(isset($att['photo']))
-                            <div class="mb-4 rounded-xl overflow-hidden border border-neutral-200">
-                                <img src="{{ asset('storage/posts/' . $att['photo']) }}" class="w-full h-auto" alt="Post Photo">
-                            </div>
-                        @endif
+                                </div>
+                            @endif
+                        </div>
                     @endif
-                    
-                    @if($stream->type == 3 && $stream->attachment)
-                        @php $att = json_decode($stream->attachment, true); @endphp
-                        @if(isset($att['video_url']))
-                            @php
-                                $videoUrl = $att['video_url'];
-                                $embedUrl = '';
-                                if (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i', $videoUrl, $matches)) {
-                                    $embedUrl = 'https://www.youtube.com/embed/' . $matches[1];
+
+                    @if(($stream->type == 3 || in_array($stream->app, ['video', 'videos'])) && $att)
+                        @php
+                            $videoUrl = $att['video_url'] ?? null;
+                            $videoId = $att['video_id'] ?? null;
+                            if (!$videoId && !empty($att['uri']) && preg_match('/(?:videos\/viewstory\/|\/)(\d+)$/', $att['uri'], $vm)) {
+                                $videoId = $vm[1];
+                            }
+                            if (!$videoId && ($videoUrl || $stream->id)) {
+                                $vFound = \App\Models\Video::where(function($q) use ($stream, $videoUrl) {
+                                    $q->where('stream_id', $stream->id);
+                                    if ($videoUrl) {
+                                        $q->orWhere(function($sq) use ($stream, $videoUrl) {
+                                            $sq->where('uid', $stream->uid)->where('var1', $videoUrl);
+                                        });
+                                        if (preg_match('/(?:youtu\.be\/|v=)([^"&?\/\s]{11})/', $videoUrl, $yid)) {
+                                            $q->orWhere(function($sq) use ($stream, $yid) {
+                                                $sq->where('uid', $stream->uid)->where('var1', 'like', '%' . $yid[1] . '%');
+                                            });
+                                        }
+                                    }
+                                })->first();
+                                if ($vFound) {
+                                    $videoId = $vFound->id;
                                 }
-                            @endphp
-                            <div class="mb-4 rounded-xl overflow-hidden border border-neutral-200">
-                                @if($embedUrl)
-                                    <iframe src="{{ $embedUrl }}" class="w-full h-[300px]" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                                @else
-                                    <a href="{{ $videoUrl }}" target="_blank" class="text-blue-600 hover:underline flex items-center p-3 bg-neutral-50"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Tonton Video</a>
+                            }
+                            $embedUrl = '';
+                            if ($videoUrl && preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i', $videoUrl, $matches)) {
+                                $embedUrl = 'https://www.youtube.com/embed/' . $matches[1];
+                            } elseif ($videoId) {
+                                $vidModel = \App\Models\Video::find($videoId);
+                                if ($vidModel && $vidModel->youtube_embed_url) {
+                                    $embedUrl = $vidModel->youtube_embed_url;
+                                }
+                            }
+                        @endphp
+                        <div class="mb-4 rounded-xl overflow-hidden border border-neutral-200">
+                            @if($embedUrl)
+                                <iframe src="{{ $embedUrl }}" class="w-full h-[300px]" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                                @if($videoId)
+                                    <div class="p-2.5 bg-neutral-50 border-t border-neutral-100 flex items-center justify-between">
+                                        <span class="text-xs text-neutral-600 font-semibold truncate">{{ $att['title'] ?? ($att['name'] ?? 'Video') }}</span>
+                                        <a href="{{ url('/videos/' . $videoId . '/watch') }}" class="text-xs text-red-600 hover:text-red-800 font-bold hover:underline shrink-0 flex items-center gap-1">
+                                            Tonton di Pemutar Video &rarr;
+                                        </a>
+                                    </div>
                                 @endif
+                            @elseif($videoId)
+                                <a href="{{ url('/videos/' . $videoId . '/watch') }}" class="flex items-center gap-3 p-4 bg-neutral-50 hover:bg-neutral-100 transition group">
+                                    <div class="w-12 h-12 rounded-lg bg-red-600 flex items-center justify-center text-white shrink-0 group-hover:scale-105 transition-transform">
+                                        <svg class="w-6 h-6 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                    </div>
+                                    <div>
+                                        <h5 class="text-sm font-bold text-neutral-800 group-hover:text-red-700 transition">{{ $att['title'] ?? ($att['name'] ?? 'Tonton Video') }}</h5>
+                                        <span class="text-xs text-neutral-500">Klik untuk memutar video</span>
+                                    </div>
+                                </a>
+                            @elseif($videoUrl)
+                                <a href="{{ $videoUrl }}" target="_blank" class="text-blue-600 hover:underline flex items-center p-3 bg-neutral-50"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Tonton Video</a>
+                            @endif
+                        </div>
+                    @endif
+
+                    @if($stream->app === 'blogs' && $att && !empty($att['name']))
+                        <div class="mb-4 rounded-xl border border-neutral-200 bg-neutral-50 p-4 flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-neutral-200 flex items-center justify-center text-neutral-600 shrink-0">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
                             </div>
-                        @endif
+                            <div class="min-w-0 flex-1">
+                                <span class="text-[10px] font-bold text-neutral-400 tracking-wider uppercase">ARTIKEL BLOG</span>
+                                <h5 class="text-sm font-bold text-neutral-800 truncate">{{ $att['name'] }}</h5>
+                            </div>
+                        </div>
                     @endif
                 </div>
 
@@ -254,4 +306,5 @@
         </div>
     </div>
 </div>
+@include('components.lightbox')
 @endsection

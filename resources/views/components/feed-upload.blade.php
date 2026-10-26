@@ -1,7 +1,7 @@
 @props(['action', 'app' => 'feed', 'aid' => 0, 'wallId' => 0])
 @php
-    $photoAlbums = \App\Models\Album::where('app', 'photos')->where('gid', auth()->id())->get();
-    $videoAlbums = \App\Models\Album::where('app', 'video')->where('gid', auth()->id())->get();
+    $photoAlbums = \App\Models\Album::whereIn('app', ['photos', 'photo'])->where('gid', auth()->id())->get();
+    $videoAlbums = \App\Models\Album::whereIn('app', ['video', 'videos'])->where('gid', auth()->id())->get();
 @endphp
 <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
     <h3 class="text-xs font-bold text-neutral-800 uppercase border-l-4 border-red-700 pl-2 mb-4">BAGI CEPAT</h3>
@@ -20,11 +20,16 @@
         <button type="button" onclick="switchTab('status')" id="tab-btn-status" class="flex items-center text-xs font-bold text-red-700 pb-2 border-b-2 border-red-700 transition">
             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg> Status
         </button>
+        @if(\App\Helpers\ModuleHelper::isActive('PHOTOS'))
         <button type="button" onclick="switchTab('unggah')" id="tab-btn-unggah" class="flex items-center text-xs font-medium text-neutral-500 hover:text-red-700 pb-2 transition">
             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg> Foto
         </button>
+        @endif
+        @if(\App\Helpers\ModuleHelper::isActive('VIDEOS'))
         <button type="button" onclick="switchTab('video')" id="tab-btn-video" class="flex items-center text-xs font-medium text-neutral-500 hover:text-red-700 pb-2 transition">
             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg> Video
+        </button>
+        @endif
     </div>
 
     <!-- Form Bagi Cepat -->
@@ -39,6 +44,7 @@
             <textarea name="message" rows="3" placeholder="What's happening..." class="w-full bg-neutral-50 border border-neutral-200 rounded-2xl px-4 py-3 text-sm text-neutral-700 placeholder-neutral-400 shadow-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition resize-none"></textarea>
         </div>
 
+        @if(\App\Helpers\ModuleHelper::isActive('PHOTOS'))
         <!-- TAB CONTENT: UNGGAH -->
         <div id="tab-content-unggah" class="hidden mt-4">
             <p id="photo-album-msg" class="text-[11px] text-green-600 mb-2 font-semibold hidden"></p>
@@ -49,22 +55,25 @@
                     <div>
                         <label class="text-xs font-bold text-neutral-700 block mb-2">Pilih Foto</label>
                         <div class="relative group">
-                            <label for="photo-input-home" class="flex flex-col items-center justify-center w-full border-2 border-dashed border-neutral-300 hover:border-red-400 rounded-2xl bg-neutral-50 hover:bg-red-50/30 transition cursor-pointer py-6 text-center">
+                            <label for="photo-input-home" onclick="preparePhotoInput()" class="flex flex-col items-center justify-center w-full border-2 border-dashed border-neutral-300 hover:border-red-400 rounded-2xl bg-neutral-50 hover:bg-red-50/30 transition cursor-pointer py-6 text-center">
                                 <svg class="w-8 h-8 text-neutral-400 group-hover:text-red-500 mb-2 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
                                 <span class="text-sm font-semibold text-neutral-700 group-hover:text-red-600 transition">Klik untuk memilih foto</span>
-                                <span class="text-[11px] text-neutral-500 mt-1">PNG, JPG, GIF hingga 10MB</span>
+                                <span class="text-[11px] text-neutral-500 mt-1">PNG, JPG, GIF hingga 10MB (Maksimal 10 foto)</span>
                                 <input type="file" name="photos[]" id="photo-input-home" accept="image/*" onchange="previewPhotoHome(event)" class="hidden" multiple disabled>
                             </label>
                         </div>
-                        <div id="photo-preview-container-home" class="hidden mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
-                        <div class="mt-3 flex space-x-2">
-                            <button type="button" onclick="document.getElementById('photo-input-home').click()" class="inline-flex items-center bg-white border border-neutral-200 hover:border-red-200 hover:bg-red-50 text-neutral-700 hover:text-red-700 text-xs font-semibold px-4 py-2 rounded-full transition shadow-sm">
-                                <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                                Tambah foto lainnya
-                            </button>
-                            <button type="button" id="btn-clear-photo" onclick="clearPhotoHome()" class="hidden inline-flex items-center bg-white border border-neutral-200 hover:border-red-200 hover:bg-red-50 text-neutral-700 hover:text-red-700 text-xs font-semibold px-4 py-2 rounded-full transition shadow-sm">
-                                Hapus Semua
-                            </button>
+                        <div id="photo-preview-container-home" class="hidden mt-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5"></div>
+                        <div class="mt-3 flex items-center justify-between flex-wrap gap-2">
+                            <div class="flex items-center space-x-2">
+                                <button type="button" onclick="triggerAddMorePhotos()" class="inline-flex items-center bg-white border border-neutral-200 hover:border-red-200 hover:bg-red-50 text-neutral-700 hover:text-red-700 text-xs font-semibold px-4 py-2 rounded-full transition shadow-sm">
+                                    <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                    Tambah foto lainnya
+                                </button>
+                                <button type="button" id="btn-clear-photo" onclick="clearPhotoHome()" class="hidden inline-flex items-center bg-white border border-neutral-200 hover:border-red-200 hover:bg-red-50 text-neutral-700 hover:text-red-700 text-xs font-semibold px-4 py-2 rounded-full transition shadow-sm">
+                                    Hapus Semua
+                                </button>
+                            </div>
+                            <span id="photo-count-badge" class="hidden text-[11px] font-semibold text-neutral-500 bg-neutral-100 px-2.5 py-1 rounded-full"></span>
                         </div>
                     </div>
                     
@@ -137,7 +146,9 @@
                 </div>
             </div>
         </div>
+        @endif
 
+        @if(\App\Helpers\ModuleHelper::isActive('VIDEOS'))
         <!-- TAB CONTENT: VIDEO -->
         <div id="tab-content-video" class="hidden mt-4">
             <div class="text-[11px] font-medium text-red-600 mb-3">please insert a video URL</div>
@@ -239,6 +250,7 @@
                 </div>
             </div>
         </div>
+        @endif
         <div class="flex items-center justify-between mt-4 border-t border-neutral-100 pt-4">
             <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

@@ -175,6 +175,30 @@ class VideoController extends Controller
                 'page_type' => '',
             ]);
 
+            // Buat record Stream agar video muncul di feed beranda dan tab video profil
+            \App\Models\Stream::create([
+                'message'    => $request->title,
+                'uid'        => auth()->id(),
+                'created'    => time(),
+                'type'       => 3, // 3 = video
+                'app'        => 'video',
+                'wall_id'    => 0,
+                'attachment' => json_encode([
+                    'video_url' => $request->youtube_url,
+                    'album_id'  => $albumId,
+                    'title'     => $request->title,
+                    'desc'      => $request->description ?? '',
+                ]),
+                'aid'        => $albumId ?? 0,
+                'hide'       => 0,
+                'likes'      => 0,
+                'privacy'    => 'public',
+            ]);
+
+            if ($request->input('from') === 'profile' && auth()->check()) {
+                return redirect()->route('profile.show', [auth()->user()->username, 'tab' => 'video'])->with('success', 'Video "' . $request->title . '" berhasil ditambahkan!');
+            }
+
             return redirect()
                 ->route('video.index')
                 ->with('success', 'Video "' . $request->title . '" berhasil ditambahkan!');
@@ -195,6 +219,13 @@ class VideoController extends Controller
     {
         // 1. Ambil video beserta relasi albumnya (atau 404 jika tidak ada)
         $video = Video::with('album')->findOrFail($id);
+
+        if (auth()->check() && $video->uid && (int) $video->uid !== (int) auth()->id()) {
+            $friendRepo = app(\App\Repositories\Contracts\FriendRepositoryInterface::class);
+            if ($friendRepo->areBlocked(auth()->id(), (int) $video->uid)) {
+                abort(404, 'Video tidak ditemukan.');
+            }
+        }
 
         // 2. Ambil album tempat video ini berada
         $album = $video->album;

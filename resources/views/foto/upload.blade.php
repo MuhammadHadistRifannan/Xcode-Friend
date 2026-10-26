@@ -4,19 +4,32 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
     
     {{-- ===== HEADER ===== --}}
-    <div class="flex items-center gap-4 mb-8">
-        <a href="{{ route('foto.index') }}"
-           class="flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-gray-900 bg-white border border-gray-200 px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-all">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
-                 stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Kembali
-        </a>
-        <div>
-            <div class="text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-0.5">MY APPS &gt; FOTO &gt; TAMBAH FOTO</div>
-            <h1 class="text-2xl font-black text-gray-900 uppercase">Tambah Foto</h1>
-        </div>
+    <div class="mb-5">
+        @if(request('from') === 'profile' && auth()->check())
+            <a href="{{ route('profile.show', [auth()->user()->username, 'tab' => 'foto']) }}"
+               class="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-gray-900 bg-white border border-gray-200 px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Kembali ke Profil
+            </a>
+        @else
+            <a href="{{ route('foto.index') }}"
+               class="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-gray-900 bg-white border border-gray-200 px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Kembali ke Album
+            </a>
+        @endif
+    </div>
+
+    <div class="mb-8">
+        <div class="text-[10px] font-bold text-gray-500 tracking-widest uppercase mb-1">MY APPS &gt; FOTO &gt; TAMBAH FOTO</div>
+        <h1 class="text-2xl sm:text-3xl font-black text-gray-900 uppercase tracking-tight">Tambah Foto</h1>
+        <p class="text-sm text-gray-500 mt-1">Unggah beberapa foto sekaligus ke album Anda.</p>
     </div>
 
     <div class="grid grid-cols-12 gap-8">
@@ -31,23 +44,95 @@
 
             {{-- ===== COMPACT UPLOAD WIDGET ===== --}}
             <div x-data="{
-                fileCount: 0,
+                files: [],
                 previewFiles: [],
-                handleFiles(event) {
-                    const files = event.target.files;
-                    this.fileCount = files.length;
-                    this.previewFiles = [];
-                    for (let i = 0; i < files.length; i++) {
-                        this.previewFiles.push({
-                            name: files[i].name,
-                            url: URL.createObjectURL(files[i])
-                        });
+
+                syncInput() {
+                    const input = this.$refs.photoInput;
+                    if (!input) return;
+                    try {
+                        const dt = new DataTransfer();
+                        this.files.forEach(f => dt.items.add(f));
+                        input.files = dt.files;
+                    } catch (e) {
+                        console.warn('DataTransfer sync warning:', e);
                     }
                 },
+
+                handleFiles(event) {
+                    const input = event.target;
+                    if (!input.files || input.files.length === 0) return;
+
+                    const newFiles = Array.from(input.files);
+                    newFiles.forEach(file => {
+                        if (!file.type || !file.type.startsWith('image/')) return;
+
+                        // Cek duplikasi file (nama, ukuran, waktu modifikasi)
+                        const exists = this.files.some(f => 
+                            f.name === file.name && f.size === file.size && f.lastModified === file.lastModified
+                        );
+
+                        if (!exists) {
+                            this.files.push(file);
+                            this.previewFiles.push({
+                                name: file.name,
+                                size: file.size,
+                                url: URL.createObjectURL(file)
+                            });
+                        }
+                    });
+
+                    this.syncInput();
+                },
+
+                triggerAddMore() {
+                    const input = this.$refs.photoInput;
+                    if (!input) return;
+
+                    input.value = '';
+
+                    const onFocus = () => {
+                        window.removeEventListener('focus', onFocus);
+                        setTimeout(() => {
+                            if (!input.files || input.files.length === 0) {
+                                this.syncInput();
+                            }
+                        }, 300);
+                    };
+                    window.addEventListener('focus', onFocus);
+
+                    input.click();
+                },
+
+                removeFile(index) {
+                    if (index < 0 || index >= this.files.length) return;
+
+                    if (this.previewFiles[index] && this.previewFiles[index].url) {
+                        try {
+                            URL.revokeObjectURL(this.previewFiles[index].url);
+                        } catch (e) {}
+                    }
+
+                    this.files.splice(index, 1);
+                    this.previewFiles.splice(index, 1);
+
+                    this.syncInput();
+                },
+
                 clearFiles() {
-                    this.fileCount = 0;
+                    this.previewFiles.forEach(p => {
+                        if (p.url) {
+                            try {
+                                URL.revokeObjectURL(p.url);
+                            } catch (e) {}
+                        }
+                    });
+                    this.files = [];
                     this.previewFiles = [];
-                    this.$refs.photoInput.value = '';
+                    if (this.$refs.photoInput) {
+                        this.$refs.photoInput.value = '';
+                    }
+                    this.syncInput();
                 }
             }" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 
@@ -58,8 +143,9 @@
                 </div>
 
                 <div class="p-5">
-                    <form action="{{ url('/photos/upload') }}" method="POST" enctype="multipart/form-data">
+                    <form action="{{ url('/photos/upload') }}" method="POST" enctype="multipart/form-data" @submit="syncInput()">
                         @csrf
+                        <input type="hidden" name="from" value="{{ request('from') }}">
                         
                         <!-- File Upload Input Area -->
                         <div class="mb-5">
@@ -70,22 +156,51 @@
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
                                 </div>
                                 <span class="text-sm font-bold text-gray-900 mb-1">Klik untuk memilih gambar</span>
-                                <span class="text-xs text-gray-400">JPG, PNG, GIF, WebP (Maks 10MB)</span>
+                                <span class="text-xs text-gray-400">JPG, PNG, GIF, WebP (Maks 10MB per foto)</span>
                             </label>
                             
                             <!-- Preview Grid -->
-                            <div x-show="previewFiles.length > 0" class="bg-gray-50 border border-gray-200 rounded-lg p-4" style="display: none;">
-                                <div class="flex justify-between items-center mb-3">
-                                    <span class="text-sm font-bold text-green-600" x-text="fileCount + ' File Dipilih'"></span>
-                                    <button type="button" @click="clearFiles()" class="text-xs font-bold text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition-colors">
-                                        Hapus Semua
-                                    </button>
+                            <div x-show="previewFiles.length > 0" class="bg-gray-50 border border-gray-200 rounded-xl p-4" style="display: none;">
+                                <div class="flex flex-wrap items-center justify-between gap-2 mb-4 pb-3 border-b border-gray-200/80">
+                                    <div class="flex items-center gap-2">
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-green-50 text-green-700 border border-green-200">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                                            <span x-text="previewFiles.length + ' Foto Dipilih'"></span>
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <button type="button" @click="triggerAddMore()" class="inline-flex items-center gap-1.5 bg-white border border-gray-200 hover:border-red-200 hover:bg-red-50 text-gray-700 hover:text-red-700 text-xs font-semibold px-3 py-1.5 rounded-lg transition shadow-2xs">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                            Tambah Foto Lainnya
+                                        </button>
+                                        <button type="button" @click="clearFiles()" class="inline-flex items-center gap-1 text-xs font-bold text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition">
+                                            Hapus Semua
+                                        </button>
+                                    </div>
                                 </div>
-                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                                     <template x-for="(file, index) in previewFiles" :key="index">
-                                        <div class="relative rounded-lg overflow-hidden border border-gray-200 aspect-square group shadow-sm bg-white">
-                                            <img :src="file.url" class="w-full h-full object-cover">
-                                            <div class="absolute bottom-0 w-full bg-black/60 text-white text-[10px] p-1.5 truncate text-center font-medium" x-text="file.name"></div>
+                                        <div class="relative rounded-xl overflow-hidden border border-gray-200 aspect-square group shadow-sm bg-white select-none">
+                                            <img :src="file.url" class="w-full h-full object-cover transition duration-200 group-hover:scale-105">
+                                            
+                                            <!-- Subtle dark gradient on hover -->
+                                            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 opacity-0 group-hover:opacity-100 transition duration-200 pointer-events-none"></div>
+
+                                            <!-- File name & index badge (bottom) -->
+                                            <div class="absolute bottom-1.5 inset-x-1.5 flex items-center justify-between pointer-events-none opacity-0 group-hover:opacity-100 transition duration-200">
+                                                <span class="text-[10px] text-white font-medium truncate max-w-[75%] drop-shadow bg-black/50 px-1.5 py-0.5 rounded" x-text="file.name"></span>
+                                                <span class="text-[9px] text-white/90 drop-shadow bg-black/50 px-1 py-0.5 rounded" x-text="'#' + (index + 1)"></span>
+                                            </div>
+
+                                            <!-- Tombol Silang (X) untuk menghapus foto tertentu -->
+                                            <button type="button" 
+                                                    @click.stop="removeFile(index)" 
+                                                    class="absolute top-1.5 right-1.5 w-6 h-6 bg-neutral-900/80 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition shadow-md hover:scale-110 active:scale-95 focus:outline-none" 
+                                                    title="Hapus foto ini">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
+                                                </svg>
+                                            </button>
                                         </div>
                                     </template>
                                 </div>
@@ -135,10 +250,16 @@
 
                         <!-- Action Footer -->
                         <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
-                            <a href="{{ route('foto.index') }}" class="text-sm font-bold text-gray-500 hover:text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors">
-                                Batal
-                            </a>
-                            <button type="submit" class="bg-red-700 hover:bg-red-800 text-white px-6 py-2.5 rounded-lg font-bold text-sm flex items-center gap-2 shadow-sm transition-colors">
+                            @if(request('from') === 'profile' && auth()->check())
+                                <a href="{{ route('profile.show', [auth()->user()->username, 'tab' => 'foto']) }}" class="text-sm font-bold text-gray-500 hover:text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors">
+                                    Batal
+                                </a>
+                            @else
+                                <a href="{{ route('foto.index') }}" class="text-sm font-bold text-gray-500 hover:text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors">
+                                    Batal
+                                </a>
+                            @endif
+                            <button type="submit" :disabled="files.length === 0" :class="files.length === 0 ? 'opacity-50 cursor-not-allowed bg-red-700' : 'bg-red-700 hover:bg-red-800'" class="text-white px-6 py-2.5 rounded-lg font-bold text-sm flex items-center gap-2 shadow-sm transition-colors">
                                 UNGGAH FOTO
                                 <svg class="w-4 h-4 transform rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
                             </button>

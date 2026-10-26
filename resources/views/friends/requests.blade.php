@@ -117,13 +117,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (incomingList) incomingList.classList.remove('hidden');
 
                 const initial = (req.fullname || req.username || '?').substring(0, 1).toUpperCase();
+                const avatarUrl = req.avatar_url || '{{ asset("assets/img/default.png") }}';
                 const msgHtml = req.msg ? `<p class="text-xs text-gray-600 mt-1 italic">"${req.msg}"</p>` : '';
 
                 const cardHtml = `
                     <div class="bg-white rounded-[14px] p-4 shadow-sm border border-red-200 transition-all duration-500 animate-pulse">
                         <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 rounded-full bg-[#f4dada] flex items-center justify-center text-[#b71c1c] font-bold text-lg">
-                                ${initial}
+                            <div class="w-12 h-12 rounded-full bg-[#f4dada] flex items-center justify-center overflow-hidden shrink-0">
+                                <img src="${avatarUrl}" alt="${req.username || 'User'}" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='{{ asset('assets/img/default.png') }}';">
                             </div>
                             <div class="flex-grow">
                                 <p class="text-sm font-bold text-gray-900">${req.username}</p>

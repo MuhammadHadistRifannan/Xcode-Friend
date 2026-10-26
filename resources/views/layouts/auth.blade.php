@@ -1,12 +1,47 @@
+@php
+    $activeTheme = \App\Helpers\SettingHelper::get('theme_color', 'red');
+@endphp
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="{{ $activeTheme === 'dark' ? 'dark' : '' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title') - XCODE-FRIENDS</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    @if($activeTheme === 'dark')
+    <style>
+        :root, html.dark { color-scheme: dark; }
+        body { background-color: #121212 !important; color: #e5e5e5 !important; }
+        .bg-\[\#FAFAFA\], .bg-\[\#fafafa\], [class*="bg-[#FAFAFA]"], [class*="bg-[#fafafa]"] { background-color: #121212 !important; }
+        .bg-white { background-color: #1e1e1e !important; border-color: #333333 !important; color: #e5e5e5 !important; }
+        .bg-gray-50, .bg-neutral-50 { background-color: #262626 !important; border-color: #383838 !important; }
+        input:not([type="submit"]):not([type="button"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+        select, textarea {
+            background-color: #252525 !important;
+            border-color: #3f3f3f !important;
+            color: #f5f5f5 !important;
+        }
+        input:focus, select:focus, textarea:focus {
+            background-color: #2a2a2a !important;
+            border-color: #b71c1c !important;
+            color: #ffffff !important;
+        }
+        input::placeholder, textarea::placeholder { color: #737373 !important; }
+        .text-black, .text-gray-900, .text-neutral-900, .text-gray-800, .text-neutral-800, .text-gray-700, .text-neutral-700 { color: #f5f5f5 !important; }
+        .text-gray-600, .text-neutral-600, .text-gray-500, .text-neutral-500 { color: #a3a3a3 !important; }
+        .border-gray-200, .border-neutral-200, .border-gray-300, .border-neutral-300 { border-color: #333333 !important; }
+    </style>
+    @else
     <style> 
         body { background-color: #FAFAFA; } 
+    </style>
+    @endif
+    <style>
         
         /* Custom Animations */
         @keyframes fade-in-up {
