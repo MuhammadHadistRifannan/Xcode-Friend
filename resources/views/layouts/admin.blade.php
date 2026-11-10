@@ -256,6 +256,11 @@
                         <i data-lucide="shield-alert" class="w-4 h-4 {{ request()->routeIs('admin.spam-logs') ? 'text-red-500' : 'text-gray-400' }}"></i>
                         Spam Monitor
                     </a>
+
+                    <a href="{{ route('admin.pentest') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('admin.pentest') ? 'bg-red-50 text-red-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <i data-lucide="bug" class="w-4 h-4 {{ request()->routeIs('admin.pentest') ? 'text-red-500' : 'text-gray-400' }}"></i>
+                        Pentest
+                    </a>
                 </nav>
             </div>
 

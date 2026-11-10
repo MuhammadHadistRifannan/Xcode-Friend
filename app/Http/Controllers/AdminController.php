@@ -156,6 +156,18 @@ class AdminController extends Controller
         return view('admin.translate', compact('langs'));
     }
 
+    public function pentest()
+    {
+        return view('admin.pentest');
+    }
+
+    // Renders the embedded AgenticPentest app in-process. Gated by auth+admin on the route.
+    public function pentestApp()
+    {
+        require base_path('pentest-app/index.php');
+        exit;
+    }
+
     public function reports(Request $request)
     {
         $query = Report::with('user')->orderBy('created', 'desc');

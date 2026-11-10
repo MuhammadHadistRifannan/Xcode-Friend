@@ -22,6 +22,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'module.active' => \App\Http\Middleware\CheckModuleActive::class,
         ]);
         $middleware->redirectUsersTo('/beranda');
+        // Embedded pentest app posts via fetch('') without a Laravel CSRF token; it is
+        // already gated by auth+admin on the route.
+        $middleware->validateCsrfTokens(except: ['admin/pentest/app']);
         $middleware->web(append: [
             \App\Http\Middleware\CheckOfflineMode::class,
             \App\Http\Middleware\CheckPrivateNetwork::class,

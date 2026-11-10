@@ -189,6 +189,10 @@ Route::prefix('admin')->group(function () {
         Route::get('/spam-logs', [\App\Http\Controllers\AdminSpamController::class, 'index'])->name('admin.spam-logs');
         Route::delete('/spam-logs/{id}', [\App\Http\Controllers\AdminSpamController::class, 'destroy'])->name('admin.spam-logs.destroy');
         Route::post('/spam-logs/clear', [\App\Http\Controllers\AdminSpamController::class, 'clear'])->name('admin.spam-logs.clear');
+
+        // Pentest (AgenticPentest embedded, served same-domain under admin auth)
+        Route::get('/pentest', [\App\Http\Controllers\AdminController::class, 'pentest'])->name('admin.pentest');
+        Route::match(['get', 'post'], '/pentest/app', [\App\Http\Controllers\AdminController::class, 'pentestApp'])->name('admin.pentest.app');
     });
 });
 

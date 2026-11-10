@@ -40,3 +40,7 @@ uploads.tar
 uploads/
 database/backups/
 
+
+# Embedded pentest app (secrets & runtime output)
+/pentest-app/.env
+/pentest-app/data/
