@@ -49,27 +49,29 @@ class ProfileDesignController extends Controller
         if (!is_array($theme)) $theme = [];
 
         // ── Music Player Section ──
-        $theme['musicplayer'] = $request->boolean('musicplayer');
+        if (\App\Helpers\ModuleHelper::isActive('MUSIC')) {
+            $theme['musicplayer'] = $request->boolean('musicplayer');
 
-        if ($request->hasFile('profile_music') && $request->file('profile_music')->isValid()) {
-            $musicFile = $request->file('profile_music');
-            $extension = $musicFile->getClientOriginalExtension() ?: 'mp3';
-            $musicName = 'PROFILE-MUSIC-' . $user->username . '-' . time() . '.' . $extension;
-            
-            if (!file_exists(public_path('uploads/music'))) {
-                @mkdir(public_path('uploads/music'), 0777, true);
-            }
-
-            $musicFile->storeAs('music', $musicName, 'public');
-
-            if (!empty($theme['profile_music'])) {
-                Storage::disk('public')->delete('music/' . $theme['profile_music']);
-                $oldMusicPath = public_path('uploads/music/' . $theme['profile_music']);
-                if (file_exists($oldMusicPath)) {
-                    @unlink($oldMusicPath);
+            if ($request->hasFile('profile_music') && $request->file('profile_music')->isValid()) {
+                $musicFile = $request->file('profile_music');
+                $extension = $musicFile->getClientOriginalExtension() ?: 'mp3';
+                $musicName = 'PROFILE-MUSIC-' . $user->username . '-' . time() . '.' . $extension;
+                
+                if (!file_exists(public_path('uploads/music'))) {
+                    @mkdir(public_path('uploads/music'), 0777, true);
                 }
+
+                $musicFile->storeAs('music', $musicName, 'public');
+
+                if (!empty($theme['profile_music'])) {
+                    Storage::disk('public')->delete('music/' . $theme['profile_music']);
+                    $oldMusicPath = public_path('uploads/music/' . $theme['profile_music']);
+                    if (file_exists($oldMusicPath)) {
+                        @unlink($oldMusicPath);
+                    }
+                }
+                $theme['profile_music'] = $musicName;
             }
-            $theme['profile_music'] = $musicName;
         }
 
         // ── Wallpaper Section ──
@@ -161,6 +163,10 @@ class ProfileDesignController extends Controller
 
     public function destroyMusic()
     {
+        if (!\App\Helpers\ModuleHelper::isActive('MUSIC')) {
+            abort(404, 'Modul musik sedang dinonaktifkan.');
+        }
+
         $user    = auth()->user();
         $profile = Profile::where('id', $user->id)->first();
 

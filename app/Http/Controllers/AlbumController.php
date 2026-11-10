@@ -17,6 +17,13 @@ class AlbumController extends Controller
         $q    = $request->get('q', '');
         $type = $request->get('type', 'photos'); // photos atau videos
 
+        if (in_array($type, ['video', 'videos']) && !\App\Helpers\ModuleHelper::isActive('VIDEOS')) {
+            return response()->json([]);
+        }
+        if (in_array($type, ['photo', 'photos']) && !\App\Helpers\ModuleHelper::isActive('PHOTOS')) {
+            return response()->json([]);
+        }
+
         $apps = in_array($type, ['video', 'videos']) ? ['video', 'videos'] : ['photos', 'photo'];
 
         $albums = Album::whereIn('app', $apps)
@@ -38,6 +45,13 @@ class AlbumController extends Controller
             'name' => 'required|string|max:150',
             'type' => 'required|in:photos,photo,video,videos',
         ]);
+
+        if (in_array($request->type, ['video', 'videos']) && !\App\Helpers\ModuleHelper::isActive('VIDEOS')) {
+            abort(404, 'Modul video sedang dinonaktifkan.');
+        }
+        if (in_array($request->type, ['photos', 'photo']) && !\App\Helpers\ModuleHelper::isActive('PHOTOS')) {
+            abort(404, 'Modul foto sedang dinonaktifkan.');
+        }
 
         $appType = in_array($request->type, ['video', 'videos']) ? 'video' : 'photos';
 

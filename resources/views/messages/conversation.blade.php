@@ -4,6 +4,14 @@
 
 @push('styles')
 <style>
+    .chat-bubble {
+        word-break: break-word;
+        overflow-wrap: anywhere;
+    }
+    .chat-bubble p {
+        word-break: break-word;
+        overflow-wrap: anywhere;
+    }
     @keyframes chatBubblePop {
         0% {
             opacity: 0;
@@ -124,8 +132,8 @@
                         $isMine = $msg->from_id == Auth::id();
                     @endphp
                     <div class="flex {{ $isMine ? 'justify-end' : 'justify-start' }} mb-2">
-                        <div class="max-w-[70%]">
-                            <div class="chat-bubble {{ $isMine ? 'bg-[#b71c1c] text-white' : 'bg-white text-gray-900' }} rounded-[14px] px-4 py-3 shadow-sm cursor-pointer select-none"
+                        <div class="max-w-[70%] min-w-0">
+                            <div class="chat-bubble {{ $isMine ? 'bg-[#b71c1c] text-white' : 'bg-white text-gray-900' }} rounded-[14px] px-4 py-3 shadow-sm cursor-pointer select-none break-words"
                                 data-id="{{ $msg->id }}"
                                 data-from="{{ $msg->from_id }}"
                                 data-message="{{ $msg->message }}"
@@ -152,7 +160,7 @@
                                 @endif
 
                                 @if(!empty($msg->message))
-                                    <p class="text-sm whitespace-pre-wrap">{{ $msg->message }}</p>
+                                    <p class="text-sm whitespace-pre-wrap break-words [overflow-wrap:anywhere] [word-break:break-word]">{{ $msg->message }}</p>
                                 @endif
                             </div>
                             <div class="flex items-center gap-2 mt-1 {{ $isMine ? 'justify-end' : 'justify-start' }}">
@@ -389,7 +397,7 @@
 
         var textHtml = '';
         if (message.message && message.message.trim() !== '') {
-            textHtml = '<p class="text-sm whitespace-pre-wrap">' + escapeHtml(message.message) + '</p>';
+            textHtml = '<p class="text-sm whitespace-pre-wrap break-words [overflow-wrap:anywhere] [word-break:break-word]">' + escapeHtml(message.message) + '</p>';
         }
 
         var replyHtml = '';
@@ -406,8 +414,8 @@
         }
 
         var html = '<div class="flex ' + justify + ' mb-2">'
-            + '<div class="max-w-[70%]">'
-            + '<div class="chat-bubble chat-bubble-pop ' + originClass + ' ' + bubbleClass + ' rounded-[14px] px-4 py-3 shadow-sm cursor-pointer select-none"'
+            + '<div class="max-w-[70%] min-w-0">'
+            + '<div class="chat-bubble chat-bubble-pop ' + originClass + ' ' + bubbleClass + ' rounded-[14px] px-4 py-3 shadow-sm cursor-pointer select-none break-words"'
             + ' data-id="' + message.id + '"'
             + ' data-from="' + message.from_id + '"'
             + ' data-message="' + escapeHtml(message.message || '') + '"'

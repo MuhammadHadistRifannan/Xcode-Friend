@@ -52,8 +52,10 @@ Route::get('/@{username}', [ProfileController::class, 'show'])->name('profile.sh
 // ==========================================
 // SEARCH ROUTES
 // ==========================================
-Route::get('/search', [SearchController::class, 'index'])->name('search.index');
-Route::get('/search/autocomplete', [SearchController::class, 'autocomplete'])->name('search.autocomplete');
+Route::middleware('module.active:SEARCH')->group(function () {
+    Route::get('/search', [SearchController::class, 'index'])->name('search.index');
+    Route::get('/search/autocomplete', [SearchController::class, 'autocomplete'])->name('search.autocomplete');
+});
 
 
 Route::middleware('auth')->group(function () {
@@ -93,7 +95,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/notifications/unread-count', [App\Http\Controllers\NotificationController::class, 'unreadCount'])->middleware('throttle:1000,1')->name('notifications.unreadCount');
 
     // Telusur (Browse Members)
-    Route::get('/telusur', [App\Http\Controllers\TelusurController::class, 'index'])->name('telusur.index');
+    Route::middleware('module.active:BROWSE')->get('/telusur', [App\Http\Controllers\TelusurController::class, 'index'])->name('telusur.index');
 });
 
 
@@ -194,39 +196,43 @@ Route::prefix('admin')->group(function () {
 // ==========================================
 // 4. PAGES ROUTES
 // ==========================================
-Route::get('/pages', [PageController::class, 'index'])->name('pages.index');
+Route::middleware('module.active:PAGES')->group(function () {
+    Route::get('/pages', [PageController::class, 'index'])->name('pages.index');
 
-Route::middleware('auth')->group(function () {
-    Route::get('/pages/create', [PageController::class, 'create'])->name('pages.create');
-    Route::post('/pages', [PageController::class, 'store'])->name('pages.store');
-    Route::get('/pages/mine', [PageController::class, 'mine'])->name('pages.mine');
-    Route::get('/my-pages', [MyPageController::class, 'index'])->name('my-pages.index');
-    Route::get('/pages/{id}/edit', [PageController::class, 'edit'])->name('pages.edit');
-    Route::put('/pages/{id}', [PageController::class, 'update'])->name('pages.update');
-    Route::delete('/pages/{id}', [PageController::class, 'destroy'])->name('pages.destroy');
-    Route::post('/pages/{id}/like', [PageController::class, 'like'])->name('pages.like');
-    Route::delete('/pages/{id}/unlike', [PageController::class, 'unlike'])->name('pages.unlike');
-    Route::post('/pages/{id}/stream', [PageController::class, 'postStream'])->name('pages.stream');
+    Route::middleware('auth')->group(function () {
+        Route::get('/pages/create', [PageController::class, 'create'])->name('pages.create');
+        Route::post('/pages', [PageController::class, 'store'])->name('pages.store');
+        Route::get('/pages/mine', [PageController::class, 'mine'])->name('pages.mine');
+        Route::get('/my-pages', [MyPageController::class, 'index'])->name('my-pages.index');
+        Route::get('/pages/{id}/edit', [PageController::class, 'edit'])->name('pages.edit');
+        Route::put('/pages/{id}', [PageController::class, 'update'])->name('pages.update');
+        Route::delete('/pages/{id}', [PageController::class, 'destroy'])->name('pages.destroy');
+        Route::post('/pages/{id}/like', [PageController::class, 'like'])->name('pages.like');
+        Route::delete('/pages/{id}/unlike', [PageController::class, 'unlike'])->name('pages.unlike');
+        Route::post('/pages/{id}/stream', [PageController::class, 'postStream'])->name('pages.stream');
+    });
+
+    Route::get('/pages/{id}', [PageController::class, 'show'])->name('pages.show');
+    Route::get('/pages/{page}/media/{type}', [PageController::class, 'media'])->name('pages.media');
+    Route::get('/pages/{id}/followers', [PageController::class, 'followers'])->name('pages.followers');
 });
-
-Route::get('/pages/{id}', [PageController::class, 'show'])->name('pages.show');
-Route::get('/pages/{page}/media/{type}', [PageController::class, 'media'])->name('pages.media');
-Route::get('/pages/{id}/followers', [PageController::class, 'followers'])->name('pages.followers');
 
 // ==========================================
 // 5. VIDEOS ROUTES
 // ==========================================
-Route::get('/videos', [VideoController::class, 'publicIndex'])->name('videos.public');
-Route::get('/videos/{id}/watch', [VideoController::class, 'watch'])->name('videos.watch');
+Route::middleware('module.active:VIDEOS')->group(function () {
+    Route::get('/videos', [VideoController::class, 'publicIndex'])->name('videos.public');
+    Route::get('/videos/{id}/watch', [VideoController::class, 'watch'])->name('videos.watch');
 
-Route::middleware('auth')->group(function () {
-    Route::get('/videos/create', [VideoController::class, 'create'])->name('videos.create');
-    Route::post('/videos', [VideoController::class, 'store'])->name('videos.store');
-    Route::get('/video', [VideoController::class, 'index'])->name('video.index');
-    Route::get('/video/album/{id}/edit', [VideoController::class, 'editAlbum'])->name('video.album.edit');
-    Route::put('/video/album/{id}', [VideoController::class, 'updateAlbum'])->name('video.album.update');
-    Route::delete('/video/album/{id}', [VideoController::class, 'destroyAlbum'])->name('video.album.destroy');
-    Route::delete('/video/video/{id}', [VideoController::class, 'destroyVideo'])->name('video.video.destroy');
+    Route::middleware('auth')->group(function () {
+        Route::get('/videos/create', [VideoController::class, 'create'])->name('videos.create');
+        Route::post('/videos', [VideoController::class, 'store'])->name('videos.store');
+        Route::get('/video', [VideoController::class, 'index'])->name('video.index');
+        Route::get('/video/album/{id}/edit', [VideoController::class, 'editAlbum'])->name('video.album.edit');
+        Route::put('/video/album/{id}', [VideoController::class, 'updateAlbum'])->name('video.album.update');
+        Route::delete('/video/album/{id}', [VideoController::class, 'destroyAlbum'])->name('video.album.destroy');
+        Route::delete('/video/video/{id}', [VideoController::class, 'destroyVideo'])->name('video.video.destroy');
+    });
 });
 
 // ==========================================
@@ -241,23 +247,25 @@ Route::middleware('auth')->group(function () {
 // ==========================================
 // 7. PHOTOS ROUTES
 // ==========================================
-Route::get('/foto', [PhotoController::class, 'index'])->name('foto.index');
-Route::get('/foto/{id}', [PhotoController::class, 'show'])->name('foto.show');
+Route::middleware('module.active:PHOTOS')->group(function () {
+    Route::get('/foto', [PhotoController::class, 'index'])->name('foto.index');
+    Route::get('/foto/{id}', [PhotoController::class, 'show'])->name('foto.show');
 
-Route::middleware('auth')->group(function () {
-    Route::get('/photos/upload', [PhotoController::class, 'create'])->name('photos.upload');
-    Route::post('/photos/upload', [PhotoController::class, 'store'])->name('photos.store');
-    Route::get('/foto/album/{id}/edit', [PhotoController::class, 'editAlbum'])->name('foto.album.edit');
-    Route::put('/foto/album/{id}', [PhotoController::class, 'updateAlbum'])->name('foto.album.update');
-    Route::delete('/foto/album/{id}', [PhotoController::class, 'destroyAlbum'])->name('foto.album.destroy');
-    Route::put('/foto/photo/{id}', [PhotoController::class, 'updatePhoto'])->name('foto.photo.update');
-    Route::delete('/foto/photo/{id}', [PhotoController::class, 'destroyPhoto'])->name('foto.photo.destroy');
+    Route::middleware('auth')->group(function () {
+        Route::get('/photos/upload', [PhotoController::class, 'create'])->name('photos.upload');
+        Route::post('/photos/upload', [PhotoController::class, 'store'])->name('photos.store');
+        Route::get('/foto/album/{id}/edit', [PhotoController::class, 'editAlbum'])->name('foto.album.edit');
+        Route::put('/foto/album/{id}', [PhotoController::class, 'updateAlbum'])->name('foto.album.update');
+        Route::delete('/foto/album/{id}', [PhotoController::class, 'destroyAlbum'])->name('foto.album.destroy');
+        Route::put('/foto/photo/{id}', [PhotoController::class, 'updatePhoto'])->name('foto.photo.update');
+        Route::delete('/foto/photo/{id}', [PhotoController::class, 'destroyPhoto'])->name('foto.photo.destroy');
+    });
 });
 
 // ==========================================
 // 8. GROUPS ROUTES
 // ==========================================
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'module.active:GROUPS'])->group(function () {
     // Custom Browse & Mine
     Route::get('/groups/browse', [GroupController::class, 'browse'])->name('groups.browse');
     Route::get('/groups/mine', [GroupController::class, 'mine'])->name('groups.mine');
@@ -287,8 +295,13 @@ Route::middleware('auth')->group(function () {
 
     // Stream (Wall Post)
     Route::post('/groups/{id}/stream', [GroupController::class, 'postStream'])->name('groups.stream');
-    
-    // Reports
+
+    // CRUD Resource Utama
+    Route::resource('groups', GroupController::class);
+});
+
+// Common Interactions (Reports & Stream Interactions)
+Route::middleware('auth')->group(function () {
     Route::post('/report', [\App\Http\Controllers\ReportController::class, 'store'])->name('reports.store');
     
     Route::get('/stream/{id}', [\App\Http\Controllers\StreamController::class, 'show'])->name('stream.show');
@@ -298,9 +311,6 @@ Route::middleware('auth')->group(function () {
     Route::delete('/stream/{id}', [\App\Http\Controllers\StreamController::class, 'destroy'])->name('stream.destroy');
     Route::put('/comment/{id}', [CommentController::class, 'update'])->name('comment.update');
     Route::delete('/comment/{id}', [CommentController::class, 'destroy'])->name('comment.destroy');
-
-    // CRUD Resource Utama
-    Route::resource('groups', GroupController::class);
 });
 
 // ==========================================
@@ -310,7 +320,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/desain-profil', [ProfileDesignController::class, 'index'])->name('desain-profil.index');
     Route::post('/desain-profil', [ProfileDesignController::class, 'save'])->name('desain-profil.save');
     Route::delete('/desain-profil/background', [ProfileDesignController::class, 'destroyBackground'])->name('desain-profil.destroy-bg');
-    Route::delete('/desain-profil/music', [ProfileDesignController::class, 'destroyMusic'])->name('desain-profil.destroy-music');
+    Route::delete('/desain-profil/music', [ProfileDesignController::class, 'destroyMusic'])->middleware('module.active:MUSIC')->name('desain-profil.destroy-music');
 });
 
 // ==========================================

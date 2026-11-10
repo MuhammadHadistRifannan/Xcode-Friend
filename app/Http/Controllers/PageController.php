@@ -14,6 +14,12 @@ use Illuminate\Validation\Rule;
 
 class PageController extends Controller
 {
+    public function __construct()
+    {
+        if (!\App\Helpers\ModuleHelper::isActive('PAGES')) {
+            abort(404, 'Modul halaman sedang dinonaktifkan.');
+        }
+    }
     // =========================================================================
     // INDEX — Tampilkan semua Pages (grid publik)
     // =========================================================================

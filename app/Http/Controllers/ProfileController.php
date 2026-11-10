@@ -74,6 +74,9 @@ class ProfileController extends Controller
                             ->orderBy('created', 'desc')
                             ->paginate(10);
             } elseif ($tab === 'foto') {
+                if (!\App\Helpers\ModuleHelper::isActive('PHOTOS')) {
+                    return redirect()->route('profile.show', ['username' => $profileUser->username]);
+                }
                 // Sinkronisasikan foto album milik pengguna yang belum memiliki record di jcow_streams
                 $userAlbumIds = \App\Models\Album::where('gid', $profileUser->id)->pluck('id');
                 if ($userAlbumIds->isNotEmpty()) {
@@ -129,6 +132,9 @@ class ProfileController extends Controller
                             ->orderBy('created', 'desc')
                             ->paginate(12);
             } elseif ($tab === 'video') {
+                if (!\App\Helpers\ModuleHelper::isActive('VIDEOS')) {
+                    return redirect()->route('profile.show', ['username' => $profileUser->username]);
+                }
                 // Sinkronisasikan video milik pengguna di jcow_stories yang belum ada di jcow_streams
                 $unsyncedVideos = \App\Models\Video::where('uid', $profileUser->id)->where('app', 'video')->get();
                 foreach ($unsyncedVideos as $vItem) {

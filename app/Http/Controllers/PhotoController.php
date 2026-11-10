@@ -9,6 +9,12 @@ use App\Models\Photo;
 
 class PhotoController extends Controller
 {
+    public function __construct()
+    {
+        if (!\App\Helpers\ModuleHelper::isActive('PHOTOS')) {
+            abort(404, 'Modul foto sedang dinonaktifkan.');
+        }
+    }
     /**
      * Halaman index: Menampilkan daftar semua Album foto.
      * Setiap album sudah ter-eager-load dengan foto terbaru (untuk cover).

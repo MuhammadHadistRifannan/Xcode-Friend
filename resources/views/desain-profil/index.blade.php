@@ -129,6 +129,7 @@
             <form action="{{ route('desain-profil.save') }}" method="POST" enctype="multipart/form-data" id="design-form">
                 @csrf
 
+                @if(\App\Helpers\ModuleHelper::isActive('MUSIC'))
                 {{-- ── 0. PEMUTAR MUSIK ── --}}
                 <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm mb-5 overflow-hidden">
                     <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-700">
@@ -174,6 +175,7 @@
                         </div>
                     </div>
                 </div>
+                @endif
 
                 {{-- ── 1. LATAR BELAKANG / WALLPAPER ── --}}
                 <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm mb-5 overflow-hidden">

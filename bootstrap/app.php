@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'is_admin' => \App\Http\Middleware\IsAdmin::class,
+            'module.active' => \App\Http\Middleware\CheckModuleActive::class,
         ]);
         $middleware->redirectUsersTo('/beranda');
         $middleware->web(append: [

@@ -9,6 +9,25 @@ use Illuminate\Support\Facades\Schema;
 class ModuleHelper
 {
     /**
+     * Module alias mappings (singular to plural, or legacy names)
+     */
+    protected static array $aliases = [
+        'VIDEO'       => 'VIDEOS',
+        'PHOTO'       => 'PHOTOS',
+        'PAGE'        => 'PAGES',
+        'GROUP'       => 'GROUPS',
+        'BLOG'        => 'BLOGS',
+        'EVENT'       => 'EVENTS',
+        'EVENTS2005'  => 'EVENTS',
+        'CHAT'        => 'XCODECHAT',
+        'CHATBAR'     => 'XCODECHAT',
+        'FORUM'       => 'XCODEFORUM',
+        'GAME'        => 'DEGAMES',
+        'GAMES'       => 'DEGAMES',
+        'TELUSUR'     => 'BROWSE',
+    ];
+
+    /**
      * Check if a module is active.
      * Core modules (like ADMIN) or non-existent in DB will default to true for safety,
      * unless explicitly set to 0.
@@ -19,23 +38,32 @@ class ModuleHelper
      */
     public static function isActive($moduleName, $default = true)
     {
-        $moduleName = strtoupper($moduleName);
+        $normalized = strtoupper(trim($moduleName));
+        if (isset(self::$aliases[$normalized])) {
+            $normalized = self::$aliases[$normalized];
+        }
         
-        return Cache::rememberForever('jcow_module_' . $moduleName, function () use ($moduleName, $default) {
+        return Cache::rememberForever('jcow_module_' . $normalized, function () use ($normalized, $default) {
             try {
                 if (!Schema::hasTable('jcow_modules')) {
                     return $default;
                 }
                 
-                $module = DB::table('jcow_modules')
-                    ->whereRaw('UPPER(name) = ?', [$moduleName])
-                    ->first();
-
-                if (!$module && $moduleName === 'EVENTS') {
-                    $module = DB::table('jcow_modules')
-                        ->whereRaw('UPPER(name) = ?', ['EVENTS2005'])
-                        ->first();
+                // Collect possible DB names to check
+                $searchNames = [$normalized];
+                if ($normalized === 'EVENTS') {
+                    $searchNames[] = 'EVENTS2005';
                 }
+                if (str_ends_with($normalized, 'S')) {
+                    $searchNames[] = substr($normalized, 0, -1);
+                } else {
+                    $searchNames[] = $normalized . 'S';
+                }
+
+                $module = DB::table('jcow_modules')
+                    ->whereIn(DB::raw('UPPER(name)'), $searchNames)
+                    ->orderBy('actived', 'asc')
+                    ->first();
                 
                 if ($module) {
                     return (bool) $module->actived;
@@ -53,8 +81,10 @@ class ModuleHelper
      */
     public static function clearCache()
     {
-        // Simple wipe out if using file driver.
-        // For production with redis, tag-based clearing is better, but this is fine.
         Cache::flush();
+
+        foreach (array_unique(array_values(self::$aliases)) as $canonical) {
+            Cache::forget('jcow_module_' . $canonical);
+        }
     }
 }

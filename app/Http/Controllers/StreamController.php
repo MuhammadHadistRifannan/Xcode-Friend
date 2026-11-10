@@ -63,6 +63,20 @@ class StreamController extends Controller
         $albumId = $request->input('album_id', 0);
         $videoAlbumId = $request->input('video_album_id', 0);
 
+        if ($request->hasFile('photos') && !\App\Helpers\ModuleHelper::isActive('PHOTOS')) {
+            if ($request->ajax()) {
+                return response()->json(['error' => 'Fitur foto sedang dinonaktifkan oleh administrator.'], 403);
+            }
+            return back()->withErrors(['photos' => 'Fitur foto sedang dinonaktifkan oleh administrator.']);
+        }
+
+        if (!empty($request->video_url) && !\App\Helpers\ModuleHelper::isActive('VIDEOS')) {
+            if ($request->ajax()) {
+                return response()->json(['error' => 'Fitur video sedang dinonaktifkan oleh administrator.'], 403);
+            }
+            return back()->withErrors(['video_url' => 'Fitur video sedang dinonaktifkan oleh administrator.']);
+        }
+
         if ($albumId == 0 && $request->hasFile('photos')) {
             $defaultPhotoAlbum = \App\Models\Album::firstOrCreate(
                 ['gid' => auth()->id(), 'app' => 'photos', 'name' => 'Timeline Photos'],

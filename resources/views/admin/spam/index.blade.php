@@ -122,12 +122,21 @@
                                     <p class="text-sm text-gray-700 line-clamp-2 break-words">{{ $log->message ?: '—' }}</p>
                                 </td>
                                 <td class="px-4 py-4">
-                                    @php $reasons = explode(',', $log->reasons ?? ''); @endphp
+                                    @php
+                                        $rawReasons = trim((string) ($log->reasons ?? ''));
+                                        if (str_starts_with($rawReasons, '[') && str_ends_with($rawReasons, ']')) {
+                                            $decoded = json_decode($rawReasons, true);
+                                            $reasons = is_array($decoded) ? $decoded : [$rawReasons];
+                                        } else {
+                                            $reasons = explode(',', $rawReasons);
+                                        }
+                                    @endphp
                                     <div class="flex flex-wrap gap-1">
                                         @foreach($reasons as $reason)
-                                            @if(trim($reason))
+                                            @php $rClean = trim($reason, " \t\n\r\0\x0B\"'[]"); @endphp
+                                            @if($rClean !== '')
                                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-red-700 border border-red-200">
-                                                {{ trim($reason) }}
+                                                {{ $rClean }}
                                             </span>
                                             @endif
                                         @endforeach

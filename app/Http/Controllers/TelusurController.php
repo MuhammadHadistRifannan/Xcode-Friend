@@ -13,7 +13,11 @@ class TelusurController extends Controller
     public function __construct(
         private AccountRepositoryInterface $accountRepo,
         private BlockRepositoryInterface $blockRepo
-    ) {}
+    ) {
+        if (!\App\Helpers\ModuleHelper::isActive('BROWSE')) {
+            abort(404, 'Modul telusur sedang dinonaktifkan.');
+        }
+    }
 
     public function index(Request $request): mixed
     {

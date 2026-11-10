@@ -34,8 +34,12 @@ class MessageService
     public function send(int $senderId, int $recipientId, ?string $subject, ?string $message, ?int $replyTo = null, ?string $attachment = null): object
     {
         $safeMessage = $message ?? '';
-        $isSpam = !empty($safeMessage) && $this->spamService->recordThisPosting($senderId, $safeMessage);
+        $isSpam = $this->spamService->recordThisPosting($senderId, $safeMessage, $attachment);
         if ($isSpam) {
+            if (!empty($attachment)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($attachment);
+            }
+
             return (object) [
                 'id' => 0,
                 'from_id' => $senderId,

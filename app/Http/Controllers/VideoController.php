@@ -8,6 +8,12 @@ use App\Models\AlbumVideo;
 
 class VideoController extends Controller
 {
+    public function __construct()
+    {
+        if (!\App\Helpers\ModuleHelper::isActive('VIDEOS')) {
+            abort(404, 'Modul video sedang dinonaktifkan.');
+        }
+    }
     /**
      * Halaman index: Menampilkan daftar semua Album video.
      * Eager-load 'videos' agar accessor coverVideo tidak memicu N+1.

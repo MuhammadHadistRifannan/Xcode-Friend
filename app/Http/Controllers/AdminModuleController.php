@@ -87,6 +87,22 @@ class AdminModuleController extends Controller
                 DB::table($this->table)
                     ->whereRaw('UPPER(name) = ?', ['EVENTS2005'])
                     ->update(['actived' => $isActive]);
+            } elseif ($upperName === 'PAGES') {
+                DB::table($this->table)
+                    ->whereRaw('UPPER(name) = ?', ['PAGE'])
+                    ->update(['actived' => $isActive]);
+            } elseif ($upperName === 'GROUPS') {
+                DB::table($this->table)
+                    ->whereRaw('UPPER(name) = ?', ['GROUP'])
+                    ->update(['actived' => $isActive]);
+            } elseif ($upperName === 'VIDEOS') {
+                DB::table($this->table)
+                    ->whereRaw('UPPER(name) = ?', ['VIDEO'])
+                    ->update(['actived' => $isActive]);
+            } elseif ($upperName === 'PHOTOS') {
+                DB::table($this->table)
+                    ->whereRaw('UPPER(name) = ?', ['PHOTO'])
+                    ->update(['actived' => $isActive]);
             }
 
             if ($affected === 0) {

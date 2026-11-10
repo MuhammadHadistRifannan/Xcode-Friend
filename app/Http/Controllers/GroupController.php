@@ -17,6 +17,12 @@ use Illuminate\Support\Facades\Storage;
 
 class GroupController extends Controller
 {
+    public function __construct()
+    {
+        if (!\App\Helpers\ModuleHelper::isActive('GROUPS')) {
+            abort(404, 'Modul grup sedang dinonaktifkan.');
+        }
+    }
     public function index()
     {
         return redirect()->route('groups.browse');
