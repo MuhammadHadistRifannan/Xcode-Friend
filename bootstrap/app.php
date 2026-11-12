@@ -11,6 +11,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ])
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         channels: __DIR__.'/../routes/channels.php',
         health: '/up',
@@ -20,12 +21,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'is_admin' => \App\Http\Middleware\IsAdmin::class,
             'module.active' => \App\Http\Middleware\CheckModuleActive::class,
+            'blocked.ip' => \App\Http\Middleware\CheckBlockedIp::class,
         ]);
         $middleware->redirectUsersTo('/beranda');
-        // Embedded pentest app posts via fetch('') without a Laravel CSRF token; it is
-        // already gated by auth+admin on the route.
-        $middleware->validateCsrfTokens(except: ['admin/pentest/app']);
         $middleware->web(append: [
+            \App\Http\Middleware\CheckBlockedIp::class,
             \App\Http\Middleware\CheckOfflineMode::class,
             \App\Http\Middleware\CheckPrivateNetwork::class,
             \App\Http\Middleware\EnsureAccountIsActive::class,

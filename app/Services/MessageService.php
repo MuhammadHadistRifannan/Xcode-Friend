@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Events\MessageSent;
 use App\Events\MessageRead;
+use App\Events\MessageDeleted;
 use App\Events\NotificationCreated;
 use App\Repositories\Contracts\MessageRepositoryInterface;
 use App\Repositories\Contracts\NotificationRepositoryInterface;
@@ -188,12 +189,48 @@ class MessageService
 
     public function deleteForSelf(int $messageId, int $userId): bool
     {
-        return $this->messageRepo->deleteForSelf($messageId, $userId);
+        $msg = $this->messageRepo->getById($messageId, $userId);
+        $deleted = $this->messageRepo->deleteForSelf($messageId, $userId);
+
+        if ($deleted && $msg) {
+            Cache::forget('unread:msg:' . $userId);
+            try {
+                broadcast(new MessageDeleted(
+                    (int) $messageId,
+                    (int) $userId,
+                    (int) ($msg->to_id == $userId ? $msg->from_id : $msg->to_id),
+                    'self'
+                ))->toOthers();
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Broadcast MessageDeleted gagal: ' . $e->getMessage());
+            }
+        }
+
+        return $deleted;
     }
 
     public function deleteForEveryone(int $messageId, int $userId): bool
     {
-        return $this->messageRepo->deleteForEveryone($messageId, $userId);
+        $msg = $this->messageRepo->getById($messageId, $userId);
+        $deleted = $this->messageRepo->deleteForEveryone($messageId, $userId);
+
+        if ($deleted && $msg) {
+            $recipientId = (int) ($msg->from_id == $userId ? $msg->to_id : $msg->from_id);
+            Cache::forget('unread:msg:' . $userId);
+            Cache::forget('unread:msg:' . $recipientId);
+            try {
+                broadcast(new MessageDeleted(
+                    (int) $messageId,
+                    (int) $userId,
+                    $recipientId,
+                    'everyone'
+                ))->toOthers();
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Broadcast MessageDeleted gagal: ' . $e->getMessage());
+            }
+        }
+
+        return $deleted;
     }
 
     public function deleteConversation(int $userId, int $otherId): bool

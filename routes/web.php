@@ -59,17 +59,15 @@ Route::middleware('module.active:SEARCH')->group(function () {
 
 
 Route::middleware('auth')->group(function () {
-    // Messages
+    // Messages (Real-time via Laravel Reverb Private Channels)
     Route::get('/messages', [App\Http\Controllers\MessageController::class, 'index'])->name('messages.index');
     Route::get('/messages/conversation/{userId}', [App\Http\Controllers\MessageController::class, 'conversation'])->name('messages.conversation');
-    Route::get('/messages/poll/{userId}', [App\Http\Controllers\MessageController::class, 'poll'])->name('messages.poll');
     Route::post('/messages', [App\Http\Controllers\MessageController::class, 'store'])->middleware('throttle:60,1')->name('messages.store');
     Route::delete('/messages/{id}', [App\Http\Controllers\MessageController::class, 'destroy'])->name('messages.destroy');
     Route::post('/messages/bulk-delete', [App\Http\Controllers\MessageController::class, 'bulkDelete'])->middleware('throttle:30,1')->name('messages.bulkDelete');
     Route::get('/messages/unread-count', [App\Http\Controllers\MessageController::class, 'unreadCount'])->middleware('throttle:1000,1')->name('messages.unreadCount');
     Route::get('/messages/unread-counts', [App\Http\Controllers\MessageController::class, 'unreadCounts'])->middleware('throttle:1000,1')->name('messages.unreadCounts');
     Route::post('/messages/mark-read/{userId}', [App\Http\Controllers\MessageController::class, 'markAsRead'])->middleware('throttle:120,1')->name('messages.markAsRead');
-    Route::get('/messages/online-status/{userId}', [App\Http\Controllers\MessageController::class, 'onlineStatus'])->name('messages.onlineStatus');
     Route::post('/presence', [App\Http\Controllers\MessageController::class, 'updatePresence'])->middleware('throttle:120,1')->name('presence.update');
     Route::post('/messages/delete-for-everyone/{id}', [App\Http\Controllers\MessageController::class, 'deleteForEveryone'])->name('messages.deleteForEveryone');
 
@@ -190,9 +188,16 @@ Route::prefix('admin')->group(function () {
         Route::delete('/spam-logs/{id}', [\App\Http\Controllers\AdminSpamController::class, 'destroy'])->name('admin.spam-logs.destroy');
         Route::post('/spam-logs/clear', [\App\Http\Controllers\AdminSpamController::class, 'clear'])->name('admin.spam-logs.clear');
 
-        // Pentest (AgenticPentest embedded, served same-domain under admin auth)
-        Route::get('/pentest', [\App\Http\Controllers\AdminController::class, 'pentest'])->name('admin.pentest');
-        Route::match(['get', 'post'], '/pentest/app', [\App\Http\Controllers\AdminController::class, 'pentestApp'])->name('admin.pentest.app');
+        // AI Security Logs (Sanctum Webhook + Admin SOC Panel)
+        Route::get('/ai-security-logs', [\App\Http\Controllers\AdminAiSecurityLogController::class, 'index'])->name('admin.ai-security-logs');
+        Route::post('/ai-security-logs/block-ip', [\App\Http\Controllers\AdminAiSecurityLogController::class, 'blockIp'])->name('admin.ai-security-logs.block-ip');
+        Route::post('/ai-security-logs/unblock-ip', [\App\Http\Controllers\AdminAiSecurityLogController::class, 'unblockIp'])->name('admin.ai-security-logs.unblock-ip');
+        Route::patch('/ai-security-logs/{id}/status', [\App\Http\Controllers\AdminAiSecurityLogController::class, 'updateStatus'])->name('admin.ai-security-logs.status');
+        Route::post('/ai-security-logs/tokens', [\App\Http\Controllers\AdminAiSecurityLogController::class, 'generateToken'])->name('admin.ai-security-logs.tokens.store');
+        Route::delete('/ai-security-logs/tokens/{tokenId}', [\App\Http\Controllers\AdminAiSecurityLogController::class, 'revokeToken'])->name('admin.ai-security-logs.tokens.destroy');
+        Route::post('/ai-security-logs/simulate', [\App\Http\Controllers\AdminAiSecurityLogController::class, 'simulateWebhook'])->name('admin.ai-security-logs.simulate');
+        Route::delete('/ai-security-logs/{id}', [\App\Http\Controllers\AdminAiSecurityLogController::class, 'destroy'])->name('admin.ai-security-logs.destroy');
+        Route::post('/ai-security-logs/clear', [\App\Http\Controllers\AdminAiSecurityLogController::class, 'clear'])->name('admin.ai-security-logs.clear');
     });
 });
 

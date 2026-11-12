@@ -224,64 +224,6 @@ class MessageController extends Controller
         }
     }
 
-    public function poll(int $userId): mixed
-    {
-        try {
-            $currentUserId = Auth::id();
-
-            $areBlocked = $this->friendService->areBlocked($currentUserId, $userId);
-            if ($areBlocked) {
-                return response()->json(['html' => '']);
-            }
-
-            $this->messageService->markConversationAsRead($currentUserId, $userId);
-
-            $messages = $this->messageService->getConversation($currentUserId, $userId);
-
-            $html = '';
-            foreach ($messages as $msg) {
-                $isMine = $msg->from_id == $currentUserId;
-                $time = \Carbon\Carbon::createFromTimestamp($msg->created)->format('H:i');
-                $readCheck = ($isMine && $msg->hasread) ? '<span class="read-check text-[10px] text-[#b71c1c]">&#10003;&#10003;</span>' : '';
-                $replyBlock = '';
-                if ($msg->reply_to && $msg->replied_message) {
-                    $replySenderClass = $isMine ? 'text-white/90' : 'text-[#b71c1c]';
-                    $replyBg = $isMine ? 'bg-white/15' : 'bg-gray-50';
-                    $replyBorder = $isMine ? 'border-white/40' : 'border-[#b71c1c]';
-                    $replyTextClass = $isMine ? 'text-white/70' : 'text-gray-500';
-                    $replyBlock = '<div class="mb-2 ' . $replyBg . ' rounded-lg px-3 py-2 border-l-[3px] ' . $replyBorder . '">'
-                        . '<p class="text-[10px] font-bold ' . $replySenderClass . '">' . e($msg->replied_sender_name) . '</p>'
-                        . '<p class="text-[10px] ' . $replyTextClass . ' truncate">' . e(\Illuminate\Support\Str::limit($msg->replied_message, 80)) . '</p>'
-                        . '</div>';
-                }
-                $bubbleClass = $isMine ? 'bg-[#b71c1c] text-white' : 'bg-white text-gray-900';
-                $justify = $isMine ? 'justify-end' : 'justify-start';
-                $timeAlign = $isMine ? 'justify-end' : 'justify-start';
-
-                $html .= '<div class="flex ' . $justify . ' mb-2">'
-                    . '<div class="max-w-[70%]">'
-                    . '<div class="chat-bubble ' . $bubbleClass . ' rounded-[14px] px-4 py-3 shadow-sm cursor-pointer select-none"'
-                    . ' data-id="' . $msg->id . '"'
-                    . ' data-from="' . $msg->from_id . '"'
-                    . ' data-message="' . e($msg->message) . '"'
-                    . ' onclick="showContextMenu(event, this)">'
-                    . $replyBlock
-                    . '<p class="text-sm whitespace-pre-wrap">' . e($msg->message) . '</p>'
-                    . '</div>'
-                    . '<div class="flex items-center gap-2 mt-1 ' . $timeAlign . '">'
-                    . '<p class="text-[10px] text-gray-400">' . $time . '</p>'
-                    . $readCheck
-                    . '</div>'
-                    . '</div>'
-                    . '</div>';
-            }
-
-            return response()->json(['html' => $html]);
-        } catch (\Exception $e) {
-            return response()->json(['html' => '']);
-        }
-    }
-
     public function markAsRead(int $userId): mixed
     {
         try {
@@ -290,35 +232,6 @@ class MessageController extends Controller
             return response()->json(['status' => 'ok']);
         } catch (\Exception $e) {
             return response()->json(['status' => 'error'], 500);
-        }
-    }
-
-    public function onlineStatus(int $userId): mixed
-    {
-        try {
-            $user = $this->accountRepo->findById($userId);
-
-            if (!$user) {
-                return response()->json(['online' => false, 'text' => 'Offline']);
-            }
-
-            $lastSeenValue = (int) ($user->last_seen ?? 0);
-            $lastLoginValue = (int) ($user->lastlogin ?? 0);
-            $effectiveLastSeen = $lastSeenValue > 0 ? $lastSeenValue : $lastLoginValue;
-            $isOnline = $effectiveLastSeen > 0 && (time() - $effectiveLastSeen) < 300;
-
-            $text = $isOnline
-                ? 'Online'
-                : ($effectiveLastSeen > 0
-                    ? 'Terakhir online ' . \Carbon\Carbon::createFromTimestamp($effectiveLastSeen)->diffForHumans()
-                    : 'Offline');
-
-            return response()->json([
-                'online' => $isOnline,
-                'text' => $text,
-            ]);
-        } catch (\Exception $e) {
-            return response()->json(['online' => false, 'text' => 'Offline']);
         }
     }
 
@@ -340,7 +253,7 @@ class MessageController extends Controller
         }
     }
 
-    public function destroy(int $id): mixed
+    public function destroy(Request $request, int $id): mixed
     {
         try {
             $userId = Auth::id();
@@ -348,6 +261,9 @@ class MessageController extends Controller
             $message = $this->messageService->getById($id, $userId);
 
             if (!$message) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['status' => 'error', 'message' => 'Pesan tidak ditemukan.'], 404);
+                }
                 return $this->noCache(
                     redirect()->route('messages.index')->with('error', 'Pesan tidak ditemukan.')
                 );
@@ -355,10 +271,17 @@ class MessageController extends Controller
 
             $this->messageService->deleteForSelf($id, $userId);
 
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['status' => 'success', 'message_id' => $id]);
+            }
+
             return $this->noCache(
                 back()->with('success', 'Pesan berhasil dihapus.')
             );
         } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['status' => 'error', 'message' => 'Gagal menghapus pesan.'], 500);
+            }
             return $this->noCache(
                 redirect()->back()->with('error', 'Gagal menghapus pesan.')
             );
@@ -393,7 +316,7 @@ class MessageController extends Controller
         }
     }
 
-    public function deleteForEveryone($id): mixed
+    public function deleteForEveryone(Request $request, $id): mixed
     {
         try {
             $userId = Auth::id();
@@ -401,23 +324,36 @@ class MessageController extends Controller
             $message = $this->messageService->getById($id, $userId);
 
             if (!$message) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['status' => 'error', 'message' => 'Pesan tidak ditemukan.'], 404);
+                }
                 return $this->noCache(
                     redirect()->route('messages.index')->with('error', 'Pesan tidak ditemukan.')
                 );
             }
 
             if ((int) $message->from_id !== (int) $userId) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['status' => 'error', 'message' => 'Anda hanya bisa menghapus pesan yang dikirim.'], 403);
+                }
                 return $this->noCache(
                     back()->with('error', 'Anda hanya bisa menghapus pesan yang dikirim.')
                 );
             }
 
-            $this->messageService->deleteForEveryone($id, $userId);
+            $this->messageService->deleteForEveryone((int) $id, $userId);
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['status' => 'success', 'message_id' => (int) $id]);
+            }
 
             return $this->noCache(
                 back()->with('success', 'Pesan berhasil dihapus untuk semua.')
             );
         } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['status' => 'error', 'message' => 'Gagal menghapus pesan.'], 500);
+            }
             return $this->noCache(
                 redirect()->back()->with('error', 'Gagal menghapus pesan.')
             );

@@ -44,3 +44,9 @@ database/backups/
 # Embedded pentest app (secrets & runtime output)
 /pentest-app/.env
 /pentest-app/data/
+
+# Local temporary / installer / briefing files
+image.png
+install.cmd
+*.pdf
+

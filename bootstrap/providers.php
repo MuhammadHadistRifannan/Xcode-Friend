@@ -6,4 +6,5 @@ use App\Providers\RepositoryServiceProvider;
 return [
     AppServiceProvider::class,
     RepositoryServiceProvider::class,
+    \Laravel\Sanctum\SanctumServiceProvider::class,
 ];

@@ -1,4 +1,4 @@
-@props(['stream'])
+@props(['stream', 'forBroadcast' => false])
 
 <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5 stream-card transition-all duration-300" id="stream-card-{{ $stream->id }}" x-data="{ editingStream: false, openOptions: false }">
     <div class="flex justify-between items-start mb-2">
@@ -50,10 +50,10 @@
             </button>
             <div x-show="openOptions" style="display: none;" class="absolute right-0 mt-2 w-36 bg-white rounded-md shadow-lg border border-neutral-100 z-50 overflow-hidden">
                 @php
-                    $isAuthor = auth()->check() && ((int) auth()->id() === (int) $stream->uid);
-                    $isAdmin = auth()->check() && (auth()->user()->isAdmin());
-                    $isGroupOwner = auth()->check() && (($stream->app === 'group' && $stream->targetPage && (int) $stream->targetPage->uid === (int) auth()->id()) || ($stream->targetGroup && (int) $stream->targetGroup->uid === (int) auth()->id()));
-                    $isPageOwner = auth()->check() && $stream->app === 'page' && $stream->targetPage && (int) $stream->targetPage->uid === (int) auth()->id();
+                    $isAuthor = !$forBroadcast && auth()->check() && ((int) auth()->id() === (int) $stream->uid);
+                    $isAdmin = !$forBroadcast && auth()->check() && (auth()->user()->isAdmin());
+                    $isGroupOwner = !$forBroadcast && auth()->check() && (($stream->app === 'group' && $stream->targetPage && (int) $stream->targetPage->uid === (int) auth()->id()) || ($stream->targetGroup && (int) $stream->targetGroup->uid === (int) auth()->id()));
+                    $isPageOwner = !$forBroadcast && auth()->check() && $stream->app === 'page' && $stream->targetPage && (int) $stream->targetPage->uid === (int) auth()->id();
                     $canDelete = $isAuthor || $isAdmin || $isGroupOwner || $isPageOwner;
                 @endphp
                 @if($isAuthor)

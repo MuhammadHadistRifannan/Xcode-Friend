@@ -874,46 +874,64 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 5. WEBSOCKET REALTIME (Laravel Echo & Reverb)
     if (window.Echo) {
-        window.Echo.channel('public-feed')
-            .listen('.stream.created', function(e) {
-                console.log('Realtime StreamCreated:', e);
-                // Abaikan jika postingan ini sudah ada (misal diunggah oleh akun sendiri)
-                if (document.getElementById('stream-card-' + e.stream_id)) return;
+        function handleStreamCreated(e) {
+            console.log('Realtime StreamCreated:', e);
+            // Abaikan jika postingan ini sudah ada (misal diunggah oleh akun sendiri)
+            if (document.getElementById('stream-card-' + e.stream_id)) return;
 
-                const container = document.getElementById('feed-stream-container');
-                if (container && e.html) {
-                    const wallUid = container.getAttribute('data-wall-uid');
-                    if (wallUid && e.user_id != wallUid && e.wall_id != wallUid) {
-                        return;
-                    }
-                    const groupId = container.getAttribute('data-group-id');
-                    if (groupId && e.wall_id != groupId) {
-                        return;
-                    }
-                    const pageId = container.getAttribute('data-page-id');
-                    if (pageId && e.wall_id != pageId) {
-                        return;
-                    }
-                    const emptyState = document.getElementById('feed-empty-state');
-                    if (emptyState) emptyState.remove();
+            // Abaikan jika pembuat postingan memblokir atau diblokir oleh user saat ini
+            if (currentUserId && Array.isArray(e.blocked_user_ids) && e.blocked_user_ids.indexOf(Number(currentUserId)) !== -1) {
+                return;
+            }
 
-                    // Tampilkan card postingan baru dengan animasi slideDown dan highlight glow
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = e.html;
-                    const newCard = tempDiv.firstElementChild;
-                    newCard.classList.add('feed-entry-animate', 'feed-glow-highlight');
-                    container.insertBefore(newCard, container.firstChild);
-                    if (window.Alpine) {
-                        window.Alpine.initTree(newCard);
-                    }
+            // Cegah kebocoran privasi di sisi klien sebagai lapisan pengaman kedua
+            if (e.privacy === 'private' && (!currentUserId || Number(currentUserId) !== Number(e.user_id))) {
+                return;
+            }
 
-                    setTimeout(() => {
-                        newCard.classList.remove('feed-glow-highlight');
-                    }, 2500);
-
-                    if (window.lucide) window.lucide.createIcons();
+            const container = document.getElementById('feed-stream-container');
+            if (container && e.html) {
+                const wallUid = container.getAttribute('data-wall-uid');
+                if (wallUid && e.user_id != wallUid && e.wall_id != wallUid) {
+                    return;
                 }
-            })
+                const groupId = container.getAttribute('data-group-id');
+                if (groupId && e.wall_id != groupId) {
+                    return;
+                }
+                const pageId = container.getAttribute('data-page-id');
+                if (pageId && e.wall_id != pageId) {
+                    return;
+                }
+                if (!pageId && e.app === 'page') {
+                    return;
+                }
+
+                const emptyState = document.getElementById('feed-empty-state');
+                if (emptyState) emptyState.remove();
+
+                // Tampilkan card postingan baru dengan animasi slideDown dan highlight glow
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = e.html;
+                const newCard = tempDiv.firstElementChild;
+                if (!newCard) return;
+
+                newCard.classList.add('feed-entry-animate', 'feed-glow-highlight');
+                container.insertBefore(newCard, container.firstChild);
+                if (window.Alpine) {
+                    window.Alpine.initTree(newCard);
+                }
+
+                setTimeout(() => {
+                    newCard.classList.remove('feed-glow-highlight');
+                }, 2500);
+
+                if (window.lucide) window.lucide.createIcons();
+            }
+        }
+
+        window.Echo.channel('public-feed')
+            .listen('.stream.created', handleStreamCreated)
             .listen('.comment.created', function(e) {
                 console.log('Realtime CommentCreated:', e);
                 const countEl = document.getElementById('comments-count-' + e.stream_id);
@@ -926,7 +944,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const isAuthor = currentUserId && (parseInt(currentUserId) === parseInt(commentUser.id));
                 const canDelete = isAuthor || isCurrentAdmin;
 
-                const commentHtml = buildCommentHtml(e.comment, e.stream_id, isAuthor, canDelete);
+                const commentHtml = buildCommentHtml(e.comment, e.streamId || e.stream_id, isAuthor, canDelete);
                 const listEl = document.getElementById('comments-list-' + e.stream_id);
                 if (listEl) {
                     listEl.insertAdjacentHTML('beforeend', commentHtml);
@@ -942,6 +960,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 const countEl = document.getElementById('like-count-' + e.stream_id);
                 if (countEl) countEl.textContent = e.likes_count;
             });
+
+        if (currentUserId) {
+            window.Echo.private('user.' + currentUserId)
+                .listen('.stream.created', handleStreamCreated);
+
+            const feedContainer = document.getElementById('feed-stream-container');
+            const activeGroupId = feedContainer ? feedContainer.getAttribute('data-group-id') : null;
+            if (activeGroupId) {
+                window.Echo.private('group.' + activeGroupId)
+                    .listen('.stream.created', handleStreamCreated);
+            }
+        }
     }
     // ==========================================
     // ALBUM MANAGEMENT (Fetch, Toggle Mode, Create)

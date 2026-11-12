@@ -584,6 +584,13 @@
                     updateReadReceipts();
                 }
             })
+            .listen('.message.deleted', function(e) {
+                var targetBubble = document.querySelector('.chat-bubble[data-id="' + e.messageId + '"]');
+                if (targetBubble) {
+                    var row = targetBubble.closest('.flex');
+                    if (row) row.remove();
+                }
+            })
             .listenForWhisper('typing', function(e) {
                 if (e.userId == otherUserId && typingIndicatorEl) {
                     typingIndicatorEl.classList.remove('hidden');
@@ -763,17 +770,41 @@
 
     function deleteMsg(type) {
         contextMenu.classList.add('hidden');
-        if (type === 'self') {
-            if (!confirm('Hapus pesan ini untuk anda?')) return;
-            var form = document.getElementById('deleteForm');
-            form.action = '{{ route('messages.destroy', ':id') }}'.replace(':id', selectedMsg.id);
-            form.submit();
-        } else {
-            if (!confirm('Hapus pesan ini untuk semua orang?')) return;
-            var form = document.getElementById('deleteEveryoneForm');
-            form.action = '{{ route('messages.deleteForEveryone', ':id') }}'.replace(':id', selectedMsg.id);
-            form.submit();
-        }
+        var msgId = selectedMsg.id;
+        if (!msgId) return;
+
+        var confirmText = type === 'self' ? 'Hapus pesan ini untuk anda?' : 'Hapus pesan ini untuk semua orang?';
+        if (!confirm(confirmText)) return;
+
+        var url = type === 'self'
+            ? '{{ route("messages.destroy", ":id") }}'.replace(':id', msgId)
+            : '{{ route("messages.deleteForEveryone", ":id") }}'.replace(':id', msgId);
+        var method = type === 'self' ? 'DELETE' : 'POST';
+
+        fetch(url, {
+            method: method,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            }
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.status === 'success') {
+                var bubble = document.querySelector('.chat-bubble[data-id="' + msgId + '"]');
+                if (bubble) {
+                    var row = bubble.closest('.flex');
+                    if (row) row.remove();
+                }
+                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Pesan berhasil dihapus.', showConfirmButton: false, timer: 2000 });
+            } else {
+                Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: data.message || 'Gagal menghapus pesan.', showConfirmButton: false, timer: 3000 });
+            }
+        })
+        .catch(function() {
+            Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: 'Gagal menghapus pesan.', showConfirmButton: false, timer: 3000 });
+        });
     }
 </script>
 @endpush

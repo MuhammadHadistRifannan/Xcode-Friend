@@ -703,7 +703,6 @@
         if (document.visibilityState === 'visible') syncUnreadCounts();
     });
     window.addEventListener('sync-unread-badges', syncUnreadCounts);
-    setInterval(syncUnreadCounts, 30000);
 
     @auth
     if (window.Echo) {
