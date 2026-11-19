@@ -24,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'blocked.ip' => \App\Http\Middleware\CheckBlockedIp::class,
         ]);
         $middleware->redirectUsersTo('/beranda');
+        $middleware->append(\App\Http\Middleware\WriteAccessLog::class);
         $middleware->web(append: [
             \App\Http\Middleware\CheckBlockedIp::class,
             \App\Http\Middleware\CheckOfflineMode::class,
