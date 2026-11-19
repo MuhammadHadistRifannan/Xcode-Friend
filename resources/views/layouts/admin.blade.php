@@ -8,12 +8,107 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Admin Panel - XCODE')</title>
     <!-- Tailwind CSS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
+            theme: { extend: { fontFamily: { sans: ['Geist', 'ui-sans-serif', 'system-ui', 'sans-serif'] } } },
         }
     </script>
+    {{-- Admin shell, diadaptasi dari design system Generator Sertifikat XCODE dengan palet XCODE Friends. --}}
+    <style>
+        :root {
+            --brand: #990000;
+            --brand-hover: #7a0000;
+            --brand-soft: #fdecec;
+            --side: #141416;
+            --panel: #f4f4f5;
+            --raised: #ffffff;
+            --line: #e4e4e7;
+            --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+            --shadow-card: 0 1px 2px rgb(24 24 27 / 0.04), 0 8px 24px -12px rgb(24 24 27 / 0.12);
+            --shadow-pop: 0 24px 64px -16px rgb(24 24 27 / 0.28);
+        }
+        .admin-shell { background: var(--side); }
+        .admin-side { background: var(--side); position: relative; isolation: isolate; }
+        .admin-glow {
+            position: absolute; z-index: -1; width: 280px; height: 280px; left: -110px; bottom: 40px;
+            border-radius: 999px; background: radial-gradient(circle, rgb(183 28 28 / 0.55), transparent 70%);
+            filter: blur(40px); pointer-events: none;
+        }
+        .admin-panel { background: var(--panel); isolation: isolate; }
+        @media (min-width: 1024px) {
+            .admin-panel { box-shadow: 0 0 0 1px rgb(255 255 255 / 0.04); }
+            .admin-panel::before {
+                content: ''; position: absolute; top: 0; left: 0; width: 240px; height: 240px; z-index: -1;
+                border-top-left-radius: 28px; pointer-events: none;
+                background: radial-gradient(circle at 0 0, var(--brand-soft), transparent 70%);
+            }
+        }
+        .admin-link {
+            display: flex; align-items: center; gap: 0.75rem; height: 42px; padding: 0 1rem;
+            border-radius: 999px; color: #a1a1aa; font-size: 0.875rem; font-weight: 500;
+            transition: color 0.2s, background-color 0.2s;
+        }
+        .admin-link:hover { color: #fafafa; background: rgb(255 255 255 / 0.06); }
+        .admin-link[aria-current='page'] { color: #18181b; background: #ffffff; font-weight: 600; }
+        .admin-link[aria-current='page'] svg { color: var(--brand); }
+        .admin-scroll { scrollbar-width: thin; scrollbar-color: #3f3f46 transparent; }
+        .admin-promo {
+            overflow: hidden; isolation: isolate; border-radius: 24px; padding: 1.25rem; color: #fff;
+            background: linear-gradient(160deg, #d32f2f -20%, var(--brand) 45%, #4a0000 120%);
+        }
+        .admin-promo::before {
+            content: ''; position: absolute; right: -40px; bottom: -60px; width: 180px; height: 180px; z-index: -1;
+            border-radius: 999px; background: repeating-radial-gradient(circle, rgb(255 255 255 / 0.14) 0 1px, transparent 1px 16px);
+        }
+        /* Layar pendek: menu lebih penting daripada kartu promo. */
+        @media (max-height: 820px) { .admin-promo-side { display: none; } }
+        .admin-search {
+            display: flex; align-items: center; gap: 0.5rem; height: 44px; padding: 0 1rem; border-radius: 999px;
+            background: var(--raised); box-shadow: var(--shadow-card); color: #71717a; transition: box-shadow 0.2s;
+        }
+        .admin-search:focus-within { box-shadow: 0 0 0 4px var(--brand-soft), var(--shadow-card); }
+        .admin-search input { background: transparent; border: 0; outline: none; width: 100%; font-size: 0.875rem; color: #18181b; }
+        .admin-search input::placeholder { color: #71717a; }
+        .admin-round {
+            display: grid; place-items: center; width: 44px; height: 44px; border-radius: 999px;
+            background: var(--raised); box-shadow: var(--shadow-card); color: #18181b; transition: transform 0.2s var(--ease-out), color 0.2s;
+        }
+        .admin-round:hover { transform: translateY(-1px); color: var(--brand); }
+        .admin-account > summary { list-style: none; cursor: pointer; }
+        .admin-account > summary::-webkit-details-marker { display: none; }
+        .admin-pop {
+            position: absolute; z-index: 40; top: calc(100% + 8px); left: 0; min-width: 220px; padding: 6px;
+            background: var(--raised); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow-pop);
+        }
+        .admin-pop-item {
+            display: flex; align-items: center; gap: 0.625rem; padding: 0.625rem 0.75rem; border-radius: 10px;
+            font-size: 0.875rem; font-weight: 500; color: #3f3f46; text-align: left;
+        }
+        .admin-pop-item:hover { background: #f4f4f5; }
+        /* Kartu statistik (padanan komponen kpi sertigenerator) */
+        .admin-tile {
+            position: relative; overflow: hidden; border-radius: 20px; padding: 1.25rem; background: var(--raised);
+            box-shadow: var(--shadow-card); transition: transform 0.25s var(--ease-out), box-shadow 0.25s;
+        }
+        a.admin-tile:hover { transform: translateY(-2px); box-shadow: 0 1px 2px rgb(24 24 27 / 0.04), 0 16px 32px -16px rgb(122 0 0 / 0.25); }
+        .admin-tile-icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; color: #fff; }
+        [data-reveal] { animation: admin-rise 0.55s var(--ease-out) backwards; animation-delay: calc(var(--i, 0) * 50ms); }
+        @keyframes admin-rise { from { opacity: 0; transform: translateY(12px); } }
+        @media (prefers-reduced-motion: reduce) {
+            [data-reveal] { animation: none; }
+            .admin-round, .admin-tile, .admin-link { transition: none; }
+        }
+        html.dark { --panel: #121212; --raised: #1e1e1e; --line: #333333; --brand-soft: rgb(153 0 0 / 0.18); }
+        html.dark .admin-search input, html.dark .admin-round { color: #f5f5f5; }
+        html.dark .admin-pop-item { color: #e5e5e5; }
+        html.dark .admin-pop-item:hover { background: #2a2a2a; }
+        html.dark .text-zinc-900 { color: #f5f5f5; }
+    </style>
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Alpine.js & Anti-Flicker Cloak -->
     <style>
@@ -182,123 +277,151 @@
     <style> body { background-color: #f5f5f5; } </style>
     @endif
 </head>
-<body class="flex flex-col h-screen overflow-hidden antialiased text-neutral-900">
+@php
+    $adminUser = auth()->user();
+    $adminName = $adminUser->fullname ?: $adminUser->username;
+    $navGroups = [
+        'Utama' => [
+            ['admin.dashboard', 'Dashboard', 'layout-dashboard', ['admin.dashboard', 'admin.index']],
+            ['admin.site-config', 'Site Config', 'settings', ['admin.site-config']],
+            ['admin.modules', 'Modules', 'box', ['admin.modules']],
+            ['admin.themes', 'Themes', 'palette', ['admin.themes']],
+            ['admin.themes.blocks', 'Manage Blocks', 'layout-template', ['admin.themes.blocks']],
+        ],
+        'Komunitas' => [
+            ['admin.members', 'Members', 'users', ['admin.members', 'admin.members.show']],
+            ['admin.stream-monitor', 'Stream Monitor', 'activity', ['admin.stream-monitor']],
+            ['admin.reports', 'Reports', 'alert-triangle', ['admin.reports']],
+            ['admin.custom-fields', 'Custom Fields', 'layout-list', ['admin.custom-fields']],
+            ['admin.user-roles', 'User Roles', 'shield', ['admin.user-roles']],
+        ],
+        'Keamanan' => [
+            ['admin.spam-logs', 'Spam Monitor', 'shield-alert', ['admin.spam-logs']],
+            ['admin.ai-security-logs', 'AI Security Logs', 'cpu', ['admin.ai-security-logs*']],
+        ],
+    ];
+    $onSecurity = request()->routeIs('admin.ai-security-logs*');
+    $offlineMode = \App\Helpers\SettingHelper::get('offline', '0');
+@endphp
+<body class="admin-shell h-dvh overflow-hidden antialiased font-sans text-neutral-900 lg:grid lg:grid-cols-[264px_1fr]">
 
+    {{-- Sidebar (desktop) --}}
+    <aside class="admin-side hidden lg:flex flex-col h-dvh overflow-hidden px-4 py-6 text-white">
+        <div class="admin-glow" aria-hidden="true"></div>
+        <a href="{{ route('admin.dashboard') }}" class="relative flex items-center gap-3 px-2 mb-8">
+            <span class="grid place-items-center size-10 rounded-xl bg-[#990000] shadow-lg shadow-black/30">
+                <img src="{{ asset('assets/img/logo-xcode.png') }}" alt="" class="h-5 w-auto">
+            </span>
+            <span class="leading-tight">
+                <span class="block text-[15px] font-semibold text-white">XCODE Friends</span>
+                <span class="block text-xs text-zinc-400">Admin Panel</span>
+            </span>
+        </a>
 
+        <nav class="admin-scroll relative flex-1 overflow-y-auto -mx-1 px-1" aria-label="Navigasi admin">
+            @include('layouts.partials.admin-nav')
+        </nav>
 
-    <!-- Layout Admin -->
-    <div class="flex-grow flex w-full h-full overflow-hidden">
-        
-        <!-- Sidebar Management Tools -->
-        <aside class="w-64 bg-white border-r border-gray-200 h-full overflow-hidden hidden md:flex flex-col flex-shrink-0">
-            <!-- Header Fixed -->
-            <div class="p-6 pb-4 border-b border-gray-100/50">
-                <div class="text-[10px] font-bold text-gray-400 tracking-widest uppercase">Management Tools</div>
-            </div>
-            
-            <!-- Scrollable Nav -->
-            <div class="px-6 py-4 flex-grow overflow-y-auto">
-                <nav class="flex flex-col gap-1">
-                    
-                    <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('admin.dashboard', 'admin.index') ? 'bg-red-50 text-red-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-                        <i data-lucide="layout-dashboard" class="w-4 h-4 {{ request()->routeIs('admin.dashboard', 'admin.index') ? 'text-red-500' : 'text-gray-400' }}"></i>
-                        Dashboard
-                    </a>
-                    
-                    <a href="{{ route('admin.site-config') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('admin.site-config') ? 'bg-red-50 text-red-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-                        <i data-lucide="settings" class="w-4 h-4 {{ request()->routeIs('admin.site-config') ? 'text-red-500' : 'text-gray-400' }}"></i>
-                        Site Config
-                    </a>
+        <div class="admin-promo admin-promo-side relative mt-6">
+            <span class="grid place-items-center size-11 rounded-2xl bg-white text-[#990000] shadow-lg">
+                <i data-lucide="{{ $onSecurity ? 'globe' : 'shield-check' }}" class="w-5 h-5"></i>
+            </span>
+            <p class="mt-4 font-semibold leading-snug">{{ $onSecurity ? 'Lihat situs publik' : 'Pantau ancaman real-time' }}</p>
+            <p class="mt-1 text-sm text-white/80">{{ $onSecurity ? 'Cek tampilan beranda yang dilihat anggota.' : 'Insiden dari agen AI tampil tanpa perlu refresh.' }}</p>
+            <a href="{{ $onSecurity ? route('beranda') : route('admin.ai-security-logs') }}"
+               class="mt-4 flex h-10 w-full items-center justify-center rounded-full bg-white text-sm font-semibold text-zinc-900 transition hover:bg-zinc-100 active:scale-[0.98]">
+                {{ $onSecurity ? 'Buka Beranda' : 'Buka Security Logs' }}
+            </a>
+        </div>
+    </aside>
 
-                    <a href="{{ route('admin.modules') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('admin.modules') ? 'bg-red-50 text-red-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-                        <i data-lucide="box" class="w-4 h-4 {{ request()->routeIs('admin.modules') ? 'text-red-500' : 'text-gray-400' }}"></i>
-                        Modules
-                    </a>
+    {{-- Panel konten --}}
+    <main class="admin-panel relative min-w-0 h-dvh overflow-y-auto lg:h-[calc(100dvh-24px)] lg:my-3 lg:mr-3 lg:rounded-[28px]">
 
-
-                    
-                    <a href="{{ route('admin.themes') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('admin.themes') ? 'bg-red-50 text-red-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-                        <i data-lucide="palette" class="w-4 h-4 {{ request()->routeIs('admin.themes') ? 'text-red-500' : 'text-gray-400' }}"></i>
-                        Themes
-                    </a>
-
-                    <a href="{{ route('admin.themes.blocks') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('admin.themes.blocks') ? 'bg-red-50 text-red-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-                        <i data-lucide="layout-template" class="w-4 h-4 {{ request()->routeIs('admin.themes.blocks') ? 'text-red-500' : 'text-gray-400' }}"></i>
-                        Manage Blocks
-                    </a>
-
-                    <a href="{{ route('admin.members') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('admin.members', 'admin.members.show') ? 'bg-red-50 text-red-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-                        <i data-lucide="users" class="w-4 h-4 {{ request()->routeIs('admin.members', 'admin.members.show') ? 'text-red-500' : 'text-gray-400' }}"></i>
-                        Members
-                    </a>
-
-                    <a href="{{ route('admin.stream-monitor') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('admin.stream-monitor') ? 'bg-red-50 text-red-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-                        <i data-lucide="activity" class="w-4 h-4 {{ request()->routeIs('admin.stream-monitor') ? 'text-red-500' : 'text-gray-400' }}"></i>
-                        Stream Monitor
-                    </a>
-
-                    <a href="{{ route('admin.reports') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('admin.reports') ? 'bg-red-50 text-red-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-                        <i data-lucide="alert-triangle" class="w-4 h-4 {{ request()->routeIs('admin.reports') ? 'text-red-500' : 'text-gray-400' }}"></i>
-                        Reports
-                    </a>
-
-                    <a href="{{ route('admin.custom-fields') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('admin.custom-fields') ? 'bg-red-50 text-red-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-                        <i data-lucide="layout-list" class="w-4 h-4 {{ request()->routeIs('admin.custom-fields') ? 'text-red-500' : 'text-gray-400' }}"></i>
-                        Custom Fields
-                    </a>
-
-                    <a href="{{ route('admin.user-roles') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('admin.user-roles') ? 'bg-red-50 text-red-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-                        <i data-lucide="shield" class="w-4 h-4 {{ request()->routeIs('admin.user-roles') ? 'text-red-500' : 'text-gray-400' }}"></i>
-                        User Roles
-                    </a>
-
-                    <a href="{{ route('admin.spam-logs') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('admin.spam-logs') ? 'bg-red-50 text-red-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-                        <i data-lucide="shield-alert" class="w-4 h-4 {{ request()->routeIs('admin.spam-logs') ? 'text-red-500' : 'text-gray-400' }}"></i>
-                        Spam Monitor
-                    </a>
-
-                    <a href="{{ route('admin.ai-security-logs') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ request()->routeIs('admin.ai-security-logs*') ? 'bg-red-50 text-red-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-                        <i data-lucide="cpu" class="w-4 h-4 {{ request()->routeIs('admin.ai-security-logs*') ? 'text-red-500' : 'text-gray-400' }}"></i>
-                        AI Security Logs
-                    </a>
-                </nav>
-            </div>
-
-            <div class="p-6 border-t border-gray-200">
-                <div class="flex flex-col gap-2">
-                    <a href="{{ route('beranda') }}" class="flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-gray-100 text-gray-700 hover:bg-gray-200">
-                        <i data-lucide="home" class="w-4 h-4"></i>
-                        Tampilan Utama
-                    </a>
-                    
-                    <form method="POST" action="{{ route('logout') }}" class="w-full">
-                        @csrf
-                        <button type="submit" class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-red-50 text-red-600 hover:bg-red-100">
-                            <i data-lucide="log-out" class="w-4 h-4"></i>
-                            Log Out
+        {{-- Bar atas + drawer (ponsel/tablet) --}}
+        <div x-data="{ open: false }" class="lg:hidden sticky top-0 z-30">
+            <header class="admin-side flex h-16 items-center justify-between px-4 text-white">
+                <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2.5">
+                    <span class="grid place-items-center size-9 rounded-lg bg-[#990000]">
+                        <img src="{{ asset('assets/img/logo-xcode.png') }}" alt="" class="h-4 w-auto">
+                    </span>
+                    <span class="text-sm font-semibold">Admin Panel</span>
+                </a>
+                <button type="button" @click="open = true" class="grid place-items-center size-10 rounded-full hover:bg-white/10" aria-label="Buka menu">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+            </header>
+            <div x-show="open" x-cloak class="fixed inset-0 z-40" @keydown.escape.window="open = false">
+                <div class="absolute inset-0 bg-black/50" @click="open = false"></div>
+                <aside class="admin-side absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col overflow-y-auto px-4 py-5 text-white">
+                    <div class="mb-6 flex items-center justify-between px-2">
+                        <span class="text-sm font-semibold">Menu</span>
+                        <button type="button" @click="open = false" class="grid place-items-center size-9 rounded-full hover:bg-white/10" aria-label="Tutup menu">
+                            <i data-lucide="x" class="w-5 h-5"></i>
                         </button>
+                    </div>
+                    <nav aria-label="Navigasi admin">
+                        @include('layouts.partials.admin-nav')
+                    </nav>
+                    <div class="mt-6 grid gap-1 border-t border-white/10 pt-4">
+                        <a href="{{ route('beranda') }}" class="admin-link"><i data-lucide="home" class="w-[18px] h-[18px]"></i>Tampilan Utama</a>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="admin-link w-full"><i data-lucide="log-out" class="w-[18px] h-[18px]"></i>Keluar</button>
+                        </form>
+                    </div>
+                </aside>
+            </div>
+        </div>
+
+        {{-- Topbar (desktop) --}}
+        <div class="hidden lg:flex items-center justify-between gap-4 px-8 pt-6">
+            <details class="admin-account relative">
+                <summary class="flex items-center gap-3 rounded-full py-1 pl-1 pr-3 transition hover:bg-white">
+                    <img src="{{ $adminUser->avatar_url }}" alt="" class="size-11 rounded-full object-cover bg-zinc-200"
+                         onerror="this.src='https://ui-avatars.com/api/?name={{ urlencode($adminUser->username) }}&background=990000&color=fff&size=88'">
+                    <span class="leading-tight">
+                        <span class="block font-semibold text-zinc-900">{{ \Illuminate\Support\Str::limit($adminName, 24) }}</span>
+                        <span class="block text-sm text-zinc-500">Administrator &middot; {{ '@'.$adminUser->username }}</span>
+                    </span>
+                    <i data-lucide="chevron-down" class="w-4 h-4 text-zinc-500"></i>
+                </summary>
+                <div class="admin-pop">
+                    <a href="{{ route('beranda') }}" class="admin-pop-item"><i data-lucide="home" class="w-4 h-4"></i>Tampilan Utama</a>
+                    <a href="{{ route('admin.site-config') }}" class="admin-pop-item"><i data-lucide="settings" class="w-4 h-4"></i>Site Config</a>
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="admin-pop-item w-full text-[#990000]"><i data-lucide="log-out" class="w-4 h-4"></i>Keluar</button>
                     </form>
                 </div>
+            </details>
+
+            <div class="flex items-center gap-3">
+                <form action="{{ route('admin.members') }}" method="GET" class="admin-search w-[320px]" role="search">
+                    <i data-lucide="search" class="w-[18px] h-[18px] shrink-0"></i>
+                    <label for="admin-top-search" class="sr-only">Cari member</label>
+                    <input id="admin-top-search" name="search" placeholder="Cari member, username, atau email"
+                           value="{{ request()->routeIs('admin.members') ? request('search') : '' }}">
+                </form>
+                <a href="{{ route('admin.ai-security-logs') }}" class="admin-round" aria-label="AI Security Logs" title="AI Security Logs">
+                    <i data-lucide="bell" class="w-5 h-5"></i>
+                </a>
+                <a href="{{ route('beranda') }}" class="admin-round" aria-label="Tampilan utama" title="Tampilan utama">
+                    <i data-lucide="home" class="w-5 h-5"></i>
+                </a>
             </div>
-        </aside>
+        </div>
 
-        <!-- Konten Utama Admin -->
-        <main class="flex-grow relative h-full overflow-y-auto bg-[#f5f5f5]">
-            @php
-                $offlineMode = \App\Helpers\SettingHelper::get('offline', '0');
-            @endphp
-            @if($offlineMode == '1' || $offlineMode === true)
-            <div class="bg-amber-400 text-amber-900 text-sm font-bold px-5 py-2.5 flex items-center gap-2 border-b border-amber-500">
-                <i data-lucide="construction" class="w-4 h-4 shrink-0"></i>
-                <span>⚠️ MODE MAINTENANCE AKTIF — Website sedang dalam kondisi offline untuk pengguna publik.</span>
-                <a href="{{ route('admin.site-config') }}" class="ml-auto text-xs underline hover:text-amber-800 transition shrink-0">Ubah Pengaturan →</a>
-            </div>
-            @endif
-            @yield('content')
+        @if($offlineMode == '1' || $offlineMode === true)
+        <div class="mx-4 mt-4 lg:mx-8 flex items-center gap-2 rounded-2xl bg-amber-100 px-4 py-3 text-sm font-semibold text-amber-900">
+            <i data-lucide="construction" class="w-4 h-4 shrink-0"></i>
+            <span>Mode maintenance aktif. Website sedang offline untuk pengguna publik.</span>
+            <a href="{{ route('admin.site-config') }}" class="ml-auto shrink-0 text-xs underline hover:text-amber-700">Ubah Pengaturan</a>
+        </div>
+        @endif
 
-
-        </main>
-    </div>
+        @yield('content')
+    </main>
 
     <script>
         if (typeof lucide !== 'undefined') {
