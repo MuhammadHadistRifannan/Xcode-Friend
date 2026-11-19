@@ -86,7 +86,7 @@
         @endif
 
         {{-- Stats Cards --}}
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+        <div id="live-stats" class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
             <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-between">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="font-bold text-gray-600 text-[10px] tracking-wider uppercase">Total Insiden AI</h3>
@@ -130,7 +130,7 @@
 
         {{-- Navigation Tabs --}}
         <div class="flex flex-wrap items-center gap-2 mb-6 border-b border-gray-200 pb-3">
-            <button type="button" @click="activeTab = 'logs'"
+            <button type="button" id="live-tab-logs" @click="activeTab = 'logs'"
                     :class="activeTab === 'logs' ? 'bg-red-600 text-white shadow-sm' : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'"
                     class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition">
                 <i data-lucide="list-filter" class="w-4 h-4"></i>
@@ -196,7 +196,7 @@
             </div>
 
             {{-- Table --}}
-            <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div id="live-table" class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                 @if($logs->isEmpty())
                     <div class="flex flex-col items-center justify-center py-20 text-center px-4">
                         <div class="w-14 h-14 bg-emerald-50 rounded-full flex items-center justify-center mb-4">
@@ -656,3 +656,55 @@ print(response.status_code, response.json())</pre>
 
 </div>
 @endsection
+
+@push('scripts')
+{{-- Real-time: Reverb private channel admin.security -> muat ulang statistik & tabel tanpa refresh --}}
+<script src="https://cdn.jsdelivr.net/npm/pusher-js@7/dist/web/pusher.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/laravel-echo@1/dist/echo.iife.js"></script>
+<script>
+(function () {
+    var secure = window.location.protocol === 'https:';
+    // Dev (artisan serve :8000) -> Reverb langsung di REVERB_PORT; produksi (nginx 80/443) -> proxy /app.
+    var port = window.location.port ? {{ (int) config('reverb.servers.reverb.port', env('REVERB_PORT', 8080)) }} : (secure ? 443 : 80);
+    var echo = new Echo({
+        broadcaster: 'pusher',
+        key: '{{ config("broadcasting.connections.reverb.key") }}',
+        wsHost: window.location.hostname,
+        wsPort: port,
+        wssPort: port,
+        forceTLS: secure,
+        enabledTransports: ['ws', 'wss'],
+        auth: { headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' } },
+    });
+
+    var pending = null;
+    function reloadLive() {
+        fetch(window.location.href, { headers: { 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
+            .then(function (r) { return r.text(); })
+            .then(function (html) {
+                var doc = new DOMParser().parseFromString(html, 'text/html');
+                ['live-stats', 'live-tab-logs', 'live-table'].forEach(function (id) {
+                    var fresh = doc.getElementById(id), cur = document.getElementById(id);
+                    if (fresh && cur) cur.innerHTML = fresh.innerHTML;
+                });
+                if (window.lucide) window.lucide.createIcons();
+            })
+            .catch(function (e) { console.warn('[AI Security] live reload gagal', e); });
+    }
+
+    window.aiSecurityEcho = echo;
+    echo.private('admin.security').listen('.ai-security.recorded', function (e) {
+        clearTimeout(pending);
+        pending = setTimeout(reloadLive, 500); // gabungkan beberapa event beruntun jadi satu reload
+        if (window.Swal) {
+            Swal.fire({
+                toast: true, position: 'top-end', timer: 5000, showConfirmButton: false,
+                icon: ['critical', 'high'].indexOf(e.top_severity) >= 0 ? 'error' : 'warning',
+                title: e.count + ' insiden baru (' + String(e.top_severity).toUpperCase() + ')',
+                text: (e.attack_types || []).join(', '),
+            });
+        }
+    });
+})();
+</script>
+@endpush

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Events\AiSecurityLogsRecorded;
 use App\Events\MessageDeleted;
 use App\Events\StreamCreated;
 use App\Models\BlockedIp;
@@ -10,7 +11,9 @@ use App\Models\User;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Laravel\Sanctum\Sanctum;
@@ -196,11 +199,22 @@ class TimAWebEngineeringTest extends TestCase
         ]);
 
         Sanctum::actingAs($admin, ['ai-security:write']);
+        Event::fake([AiSecurityLogsRecorded::class]);
 
         $authResponse = $this->postJson('/api/ai-security-logs', $payload);
         $authResponse->assertStatus(201)
             ->assertJsonPath('status', 'success')
             ->assertJsonPath('recorded_count', 1);
+
+        // Panel admin diberi tahu real-time lewat private channel admin-only.
+        Event::assertDispatched(AiSecurityLogsRecorded::class, function ($e) {
+            return $e->count === 1 && $e->topSeverity === 'critical'
+                && $e->broadcastOn()[0]->name === 'private-admin.security';
+        });
+        $authorize = Broadcast::driver()->getChannels()->get('admin.security');
+        $this->assertTrue($authorize($admin));
+        $member = new User(['username' => 'member', 'roles' => null, 'level' => 0]);
+        $this->assertFalse($authorize($member));
 
         $this->assertDatabaseHas('ai_security_logs', [
             'attack_type' => 'SQL Injection (UNION-Based)',

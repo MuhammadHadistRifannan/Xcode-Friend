@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\AiSecurityLogsRecorded;
 use App\Http\Controllers\Controller;
 use App\Models\AiSecurityLog;
 use App\Models\BlockedIp;
@@ -150,6 +151,22 @@ class AiSecurityWebhookController extends Controller
                 'status'      => $log->status,
                 'ip_blocked'  => $log->ip_blocked,
             ];
+        }
+
+        if (!empty($createdLogs)) {
+            $rank = ['info' => 0, 'low' => 1, 'medium' => 2, 'high' => 3, 'critical' => 4];
+            $top = collect($createdLogs)->sortByDesc(fn ($l) => $rank[$l['severity']] ?? 0)->first()['severity'];
+            try {
+                AiSecurityLogsRecorded::dispatch(
+                    count($createdLogs),
+                    $top,
+                    collect($createdLogs)->pluck('attack_type')->unique()->values()->all(),
+                );
+            } catch (\Throwable $e) {
+                // Logs are already saved; a Reverb outage must not turn this into a 500
+                // (the agent would retry and create duplicates).
+                report($e);
+            }
         }
 
         if (empty($createdLogs) && !empty($errors)) {

@@ -20,6 +20,10 @@ Broadcast::channel('group.{groupId}', function ($user, $groupId) {
     return $group->members()->where('uid', $user->id)->exists();
 });
 
+Broadcast::channel('admin.security', function ($user) {
+    return $user->isAdmin();
+});
+
 Broadcast::channel('online', function ($user) {
     return [
         'id' => (int) $user->id,
