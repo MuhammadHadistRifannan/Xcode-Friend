@@ -14,14 +14,14 @@
     <script>
         tailwind.config = {
             darkMode: 'class',
+            theme: { extend: { fontFamily: { sans: ['Geist', 'ui-sans-serif', 'system-ui', 'sans-serif'] } } },
         }
     </script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <!-- Google Fonts: Montserrat (Gotham Bold alternative) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Montserrat:wght@800&display=swap" rel="stylesheet">
     
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -288,8 +288,30 @@
     @endif
 
     @if($activeTheme !== 'dark')
-    <style> body { background-color: #FAFAFA; } </style>
+    <style>
+        body { background-color: #ECECEE; }
+        /* Seragamkan kartu lama di semua halaman anggota ke gaya feed baru */
+        main :is(div, section, aside).bg-white.shadow-sm:is(.rounded-xl, .rounded-2xl, .rounded-lg) {
+            border-radius: 20px; border-color: transparent; box-shadow: 0 1px 2px rgba(20, 20, 22, .04);
+        }
+    </style>
     @endif
+    <style>
+        /* Token bersama auth + admin + feed */
+        :root { --brand: #990000; --brand-ink: #7a0000; --side: #141416; }
+        body { font-family: 'Geist', ui-sans-serif, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+        [x-cloak] { display: none !important; }
+        .xf-label { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #71717a; }
+        .xf-pill { display: inline-flex; align-items: center; gap: .375rem; height: 2.25rem; padding: 0 1rem; border-radius: 9999px; font-size: 13px; font-weight: 500; transition: background-color .15s, color .15s, transform .1s; }
+        .xf-pill:active { transform: scale(.98); }
+        .xf-promo { position: relative; overflow: hidden; border-radius: 20px; padding: 1.25rem; color: #fff;
+            background: radial-gradient(120% 90% at 100% 0%, #c41a1a 0%, rgba(196,26,26,0) 55%), linear-gradient(160deg, #3a0d0d 0%, #990000 55%, #4a0808 100%); }
+        .like-btn.text-red-700 { color: var(--brand); }
+        .xf-tab { border: 0 !important; height: 2rem; padding: 0 .875rem; border-radius: 9999px; font-size: 12.5px; font-weight: 500 !important; color: #52525b; transition: background-color .15s, color .15s; }
+        .xf-tab:hover { background: #f4f4f5; color: #18181b; }
+        .xf-tab.text-red-700 { background: var(--side); color: #fff; }
+        .xf-promo::after { content: ''; position: absolute; inset: 0; pointer-events: none; border-radius: inherit; box-shadow: inset 0 1px 0 rgba(255,255,255,.12); }
+    </style>
     <style>
         .custom-scrollbar::-webkit-scrollbar {
             width: 5px;
@@ -361,7 +383,7 @@
     @endauth
 
     <!-- Konten Utama -->
-    <main class="flex-grow w-full py-10 relative">
+    <main class="flex-grow w-full py-6 lg:py-8 relative">
         @yield('content')
     </main>
 

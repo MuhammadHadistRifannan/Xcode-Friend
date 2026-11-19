@@ -1,136 +1,120 @@
 @extends('layouts.app')
-@section('title', 'Dashboard')
+@section('title', 'Beranda · XCODE Friends')
+
+@php
+    $me = auth()->user();
+    $myPostCount = \Illuminate\Support\Facades\DB::table('jcow_streams')->where('uid', $me->id)->count();
+    $card = 'bg-white rounded-[20px] shadow-[0_1px_2px_rgba(20,20,22,0.04)]';
+@endphp
 
 @section('content')
-<div class="max-w-[95%] lg:max-w-5xl mx-auto w-full">
- <!-- Header Page -->
- <h2 class="text-xs font-bold text-neutral-800 uppercase tracking-widest mb-6">DASHBOARD</h2>
+<div class="max-w-[1400px] mx-auto w-full px-4 sm:px-6">
+    <div class="grid grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)] xl:grid-cols-[272px_minmax(0,1fr)_304px] gap-5 items-start">
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {{-- ============ KIRI ============ --}}
+        <aside class="space-y-4 lg:sticky lg:top-24 animate-fade-in-up">
 
-        <!-- KOLOM KIRI: Menu Navigasi Samping -->
-        <div class="lg:col-span-3 space-y-6 animate-fade-in-up">
-
-            <!-- Pages Populer -->
-            @if(\App\Helpers\ModuleHelper::isActive('PAGES'))
-            <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
-                <div class="flex items-center justify-between border-l-4 border-red-700 pl-2 mb-4">
-                    <h3 class="text-xs font-bold text-neutral-800 uppercase tracking-wider">PAGES POPULER</h3>
-                    <a href="{{ route('pages.index') }}" class="text-[11px] text-red-600 hover:text-red-700 hover:underline font-bold">Semua</a>
+            <a href="{{ route('undang.index') }}" class="xf-promo block group">
+                <div class="relative flex items-start justify-between gap-3">
+                    <span class="text-[11px] font-semibold uppercase tracking-[0.08em] text-white/70">Undang teman</span>
+                    <span class="grid place-items-center size-7 rounded-full bg-white/10 transition group-hover:bg-white/20 group-hover:rotate-45">
+                        <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+                    </span>
                 </div>
-                <div class="space-y-3">
+                <p class="relative mt-3 text-[15px] font-semibold leading-snug">Ajak rekan belajar dan berbagi karya di XCODE Friends.</p>
+            </a>
+
+            @if(\App\Helpers\ModuleHelper::isActive('PAGES') || \App\Helpers\ModuleHelper::isActive('GROUPS'))
+            <section class="{{ $card }} p-4">
+                @if(\App\Helpers\ModuleHelper::isActive('PAGES'))
+                <div class="flex items-center justify-between px-1 mb-2">
+                    <h3 class="xf-label">Pages populer</h3>
+                    <a href="{{ route('pages.index') }}" class="text-xs font-medium text-zinc-500 hover:text-[#990000] transition">Semua</a>
+                </div>
+                <div class="space-y-0.5">
                     @forelse($popularPages as $page)
-                        <a href="{{ route('pages.show', $page->id) }}" class="flex items-center space-x-3 p-2 rounded-lg hover:bg-neutral-50 transition group">
-                            <div class="shrink-0">
-                                @if($page->logo_url)
-                                    <img src="{{ $page->logo_url }}" alt="{{ $page->name }}" class="w-9 h-9 rounded-lg object-cover border border-neutral-200">
-                                @else
-                                    <div class="w-9 h-9 rounded-lg bg-red-50 text-red-600 flex items-center justify-center border border-red-100 font-bold text-xs">
-                                        {{ strtoupper(substr($page->name, 0, 1)) }}
-                                    </div>
-                                @endif
-                            </div>
-                            <div class="min-w-0 flex-1">
-                                <h4 class="text-xs font-bold text-neutral-800 truncate group-hover:text-red-700 transition">
-                                    {{ $page->name }}
-                                </h4>
-                                <p class="text-[11px] text-neutral-400">
-                                    {{ number_format($page->followers_count ?? $page->users ?? 0) }} Pengikut
-                                </p>
-                            </div>
+                        <a href="{{ route('pages.show', $page->id) }}" class="flex items-center gap-3 rounded-xl px-1.5 py-1.5 hover:bg-zinc-50 transition group">
+                            @if($page->logo_url)
+                                <img src="{{ $page->logo_url }}" alt="" class="size-8 rounded-lg object-cover bg-zinc-100">
+                            @else
+                                <span class="grid place-items-center size-8 rounded-lg bg-red-50 text-[#990000] text-xs font-semibold">{{ strtoupper(substr($page->name, 0, 1)) }}</span>
+                            @endif
+                            <span class="min-w-0 flex-1 truncate text-[13px] font-medium text-zinc-800 group-hover:text-zinc-950">{{ $page->name }}</span>
+                            <span class="shrink-0 text-[11px] tabular-nums text-zinc-400">{{ number_format($page->followers_count ?? $page->users ?? 0) }}</span>
                         </a>
                     @empty
-                        <p class="text-xs text-neutral-400 py-2 text-center">Belum ada page populer.</p>
+                        <p class="px-1.5 py-2 text-xs text-zinc-400">Belum ada page populer.</p>
                     @endforelse
                 </div>
-            </div>
-            @endif
+                @endif
 
-            <!-- Grup Populer -->
-            @if(\App\Helpers\ModuleHelper::isActive('GROUPS'))
-            <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
-                <div class="flex items-center justify-between border-l-4 border-red-700 pl-2 mb-4">
-                    <h3 class="text-xs font-bold text-neutral-800 uppercase tracking-wider">GRUP POPULER</h3>
-                    <a href="{{ route('groups.browse') }}" class="text-[11px] text-red-600 hover:text-red-700 hover:underline font-bold">Semua</a>
+                @if(\App\Helpers\ModuleHelper::isActive('GROUPS'))
+                <div class="flex items-center justify-between px-1 mb-2 {{ \App\Helpers\ModuleHelper::isActive('PAGES') ? 'mt-4 pt-4 border-t border-zinc-100' : '' }}">
+                    <h3 class="xf-label">Grup populer</h3>
+                    <a href="{{ route('groups.browse') }}" class="text-xs font-medium text-zinc-500 hover:text-[#990000] transition">Semua</a>
                 </div>
-                <div class="space-y-3">
+                <div class="space-y-0.5">
                     @forelse($popularGroups as $group)
-                        <a href="{{ route('groups.show', $group->id) }}" class="flex items-center space-x-3 p-2 rounded-lg hover:bg-neutral-50 transition group">
-                            <div class="shrink-0">
-                                @if($group->logo_url)
-                                    <img src="{{ $group->logo_url }}" alt="{{ $group->name }}" class="w-9 h-9 rounded-lg object-cover border border-neutral-200">
-                                @else
-                                    <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 font-bold text-xs">
-                                        {{ strtoupper(substr($group->name, 0, 1)) }}
-                                    </div>
-                                @endif
-                            </div>
-                            <div class="min-w-0 flex-1">
-                                <h4 class="text-xs font-bold text-neutral-800 truncate group-hover:text-red-700 transition">
-                                    {{ $group->name }}
-                                </h4>
-                                <p class="text-[11px] text-neutral-400">
-                                    {{ number_format($group->members_count ?? $group->users ?? 0) }} Anggota
-                                </p>
-                            </div>
+                        <a href="{{ route('groups.show', $group->id) }}" class="flex items-center gap-3 rounded-xl px-1.5 py-1.5 hover:bg-zinc-50 transition group">
+                            @if($group->logo_url)
+                                <img src="{{ $group->logo_url }}" alt="" class="size-8 rounded-lg object-cover bg-zinc-100">
+                            @else
+                                <span class="grid place-items-center size-8 rounded-lg bg-zinc-100 text-zinc-600 text-xs font-semibold">{{ strtoupper(substr($group->name, 0, 1)) }}</span>
+                            @endif
+                            <span class="min-w-0 flex-1 truncate text-[13px] font-medium text-zinc-800 group-hover:text-zinc-950">{{ $group->name }}</span>
+                            <span class="shrink-0 rounded-full bg-zinc-900 px-2 py-0.5 text-[10px] font-semibold tabular-nums text-white">{{ number_format($group->members_count ?? $group->users ?? 0) }}</span>
                         </a>
                     @empty
-                        <p class="text-xs text-neutral-400 py-2 text-center">Belum ada grup populer.</p>
+                        <p class="px-1.5 py-2 text-xs text-zinc-400">Belum ada grup populer.</p>
                     @endforelse
                 </div>
-            </div>
+                @endif
+            </section>
             @endif
 
- <!-- Profile Info Menu -->
- <div class="bg-white rounded-xl shadow-sm border border-neutral-200 py-3">
- <a href="{{ route('profile.show', auth()->user()->username) }}" class="flex items-center px-5 py-3 hover:bg-neutral-50 transition border-b border-neutral-100 group">
- <svg class="w-5 h-5 text-neutral-400 mr-3 group-hover:text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
- <span class="text-sm font-semibold text-neutral-700">Profilku</span>
- </a>
- <a href="{{ route('profile.show', ['username' => auth()->user()->username, 'tab' => 'pengikut']) }}" class="flex items-center justify-between px-5 py-3 hover:bg-neutral-50 transition border-b border-neutral-100 group">
- <div class="flex items-center">
- <svg class="w-5 h-5 text-neutral-400 mr-3 group-hover:text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
- <span class="text-sm font-semibold text-neutral-700">Pengikutku</span>
- </div>
- <span class="text-xs bg-neutral-100 text-neutral-600 px-2 py-0.5 rounded-full">{{ $followerCount }}</span>
- </a>
- <a href="{{ route('profile.show', ['username' => auth()->user()->username, 'tab' => 'mengikuti']) }}" class="flex items-center justify-between px-5 py-3 hover:bg-neutral-50 transition border-b border-neutral-100 group">
- <div class="flex items-center">
- <svg class="w-5 h-5 text-neutral-400 mr-3 group-hover:text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
- <span class="text-sm font-semibold text-neutral-700">Yang aku ikuti</span>
- </div>
- <span class="text-xs bg-neutral-100 text-neutral-600 px-2 py-0.5 rounded-full">{{ $followingCount }}</span>
- </a>
- <a href="{{ route('profile.edit') }}" class="flex items-center px-5 py-3 hover:bg-neutral-50 transition group">
- <svg class="w-5 h-5 text-neutral-400 mr-3 group-hover:text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
- <span class="text-sm font-semibold text-neutral-700">Opsi</span>
- </a>
- </div>
- 
- @php $leftColumnHtml = \App\Helpers\SettingHelper::get('theme_block_left_column', ''); @endphp
- @if($leftColumnHtml)
-     <div class="mb-4">{!! $leftColumnHtml !!}</div>
- @endif
- </div>
+            <nav class="{{ $card }} p-2" aria-label="Menu akun">
+                @php
+                    $menu = [
+                        [route('profile.show', $me->username), 'user-round', 'Profilku', null],
+                        [route('profile.show', ['username' => $me->username, 'tab' => 'pengikut']), 'users', 'Pengikutku', $followerCount],
+                        [route('profile.show', ['username' => $me->username, 'tab' => 'mengikuti']), 'user-plus', 'Yang aku ikuti', $followingCount],
+                        [route('profile.edit'), 'settings-2', 'Opsi', null],
+                    ];
+                @endphp
+                @foreach($menu as [$href, $icon, $label, $count])
+                    <a href="{{ $href }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium text-zinc-700 hover:bg-zinc-50 hover:text-zinc-950 transition">
+                        <i data-lucide="{{ $icon }}" class="w-[18px] h-[18px] text-zinc-400"></i>
+                        <span class="flex-1">{{ $label }}</span>
+                        @if(!is_null($count))
+                            <span class="text-xs tabular-nums text-zinc-400">{{ $count }}</span>
+                        @endif
+                    </a>
+                @endforeach
+            </nav>
 
-    <!-- KOLOM TENGAH: BAGI CEPAT & FEED BERITA -->
-    <div class="lg:col-span-6 space-y-6 animate-fade-in-up delay-100">
+            @php $leftColumnHtml = \App\Helpers\SettingHelper::get('theme_block_left_column', ''); @endphp
+            @if($leftColumnHtml)
+                <div>{!! $leftColumnHtml !!}</div>
+            @endif
+        </aside>
 
-        <!-- Buat Post (Bagi Cepat) -->
- <x-feed-upload action="{{ route('stream.store') }}" app="feed" aid="0" wallId="0" />
+        {{-- ============ TENGAH ============ --}}
+        <section class="min-w-0 space-y-4 animate-fade-in-up delay-100">
+            <x-feed-upload action="{{ route('stream.store') }}" app="feed" aid="0" wallId="0" />
 
- <!-- Feed Berita -->
- <h3 class="text-xs font-bold text-neutral-800 uppercase border-l-4 border-red-700 pl-2 mt-8 mb-4">FEED BERITA</h3>
+            <div class="flex items-center justify-between px-1 pt-2">
+                <h2 class="xf-label">Feed terbaru</h2>
+                <span class="inline-flex items-center gap-1.5 text-[11px] font-medium text-zinc-500">
+                    <span class="relative flex size-1.5"><span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#990000] opacity-60"></span><span class="relative inline-flex size-1.5 rounded-full bg-[#990000]"></span></span>
+                    Realtime
+                </span>
+            </div>
 
-        <!-- Realtime New Post Notification Banner (hidden by default) -->
-        <div id="new-posts-banner" class="hidden mb-4 p-3 bg-red-600 hover:bg-red-700 text-white rounded-xl shadow cursor-pointer transition text-center text-xs font-bold flex items-center justify-center gap-2">
-            <svg class="w-4 h-4 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
-            <span>Ada postingan baru! Klik untuk melihat ke atas</span>
-        </div>
+            <button type="button" id="new-posts-banner" class="hidden w-full xf-pill justify-center bg-[#141416] text-white shadow-lg">
+                <i data-lucide="arrow-up" class="w-4 h-4"></i>
+                Ada postingan baru. Klik untuk melihat
+            </button>
 
-        <!-- Scrollable Wrapper Khusus Feed Berita -->
-        <div class="h-[90vh] min-h-[800px] overflow-y-auto overflow-x-hidden custom-scrollbar pr-2 pb-6">
-            <!-- Container Feed Berita -->
             <div id="feed-stream-container" class="space-y-4">
                 @forelse ($streams as $stream)
                     @php $delays = ['', 'delay-75', 'delay-150', 'delay-200', 'delay-300', 'delay-400']; $d = $delays[min($loop->index, 5)]; @endphp
@@ -138,20 +122,23 @@
                     @if($loop->index == 0 && $streams->currentPage() == 1)
                         @php $centerColumnHtml = \App\Helpers\SettingHelper::get('theme_block_center_column', ''); @endphp
                         @if($centerColumnHtml)
-                            <div class="mb-4">{!! $centerColumnHtml !!}</div>
+                            <div>{!! $centerColumnHtml !!}</div>
                         @endif
                     @endif
                 @empty
-                    <div id="feed-empty-state" class="text-center text-sm text-neutral-500 py-10 bg-white rounded-xl shadow-sm border border-neutral-200">Tidak ada feed berita terbaru.</div>
+                    <div id="feed-empty-state" class="{{ $card }} px-6 py-14 text-center">
+                        <span class="mx-auto grid place-items-center size-12 rounded-2xl bg-zinc-100 text-zinc-500"><i data-lucide="image" class="w-5 h-5"></i></span>
+                        <p class="mt-4 text-sm font-semibold text-zinc-800">Feed masih kosong</p>
+                        <p class="mt-1 text-sm text-zinc-500">Bagikan status atau foto pertama Anda di atas.</p>
+                    </div>
                 @endforelse
             </div>
 
-            <!-- Infinite Scroll Sentinel & Skeleton Shimmer Loading -->
-            <div id="feed-infinite-sentinel" class="py-4 text-center" data-next-page="{{ $streams->nextPageUrl() }}" data-has-more="{{ $streams->hasMorePages() ? '1' : '0' }}">
-                <div id="feed-loading-spinner" class="hidden my-2 space-y-4 text-left">
-                    <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
-                        <div class="flex items-center space-x-3 mb-4">
-                            <div class="skeleton-shimmer w-10 h-10 rounded-full flex-shrink-0"></div>
+            <div id="feed-infinite-sentinel" class="py-2 text-center" data-next-page="{{ $streams->nextPageUrl() }}" data-has-more="{{ $streams->hasMorePages() ? '1' : '0' }}">
+                <div id="feed-loading-spinner" class="hidden text-left">
+                    <div class="{{ $card }} p-5">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="skeleton-shimmer size-10 rounded-full flex-shrink-0"></div>
                             <div class="space-y-2 flex-1">
                                 <div class="skeleton-shimmer h-3.5 w-1/4 rounded"></div>
                                 <div class="skeleton-shimmer h-2.5 w-1/6 rounded"></div>
@@ -161,226 +148,187 @@
                             <div class="skeleton-shimmer h-3 w-3/4 rounded"></div>
                             <div class="skeleton-shimmer h-3 w-1/2 rounded"></div>
                         </div>
-                        <div class="skeleton-shimmer h-40 w-full rounded-xl"></div>
+                        <div class="skeleton-shimmer h-56 w-full rounded-2xl"></div>
                     </div>
                 </div>
-                <div id="feed-no-more" class="{{ $streams->hasMorePages() ? 'hidden' : '' }} text-xs text-neutral-400 py-3">
-                    Semua postingan telah ditampilkan.
+                <div id="feed-no-more" class="{{ $streams->hasMorePages() ? 'hidden' : '' }} text-xs text-zinc-400 py-3">
+                    Anda sudah melihat semua postingan.
                 </div>
             </div>
-        </div>
+        </section>
 
+        {{-- ============ KANAN ============ --}}
+        <aside class="grid gap-4 sm:grid-cols-2 xl:grid-cols-1 content-start lg:col-span-2 xl:col-span-1 xl:sticky xl:top-24 animate-fade-in-up delay-200 [&>*]:min-w-0">
 
-
- </div>
-
-    <!-- KOLOM KANAN: Review & Links -->
-    <div class="lg:col-span-3 space-y-6 animate-fade-in-up delay-200">
-        <!-- Widget Pantauan Member Online -->
-        <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
-            <!-- Header Widget -->
-            <div class="flex items-center justify-between border-l-4 border-red-700 pl-2 mb-3">
-                <h3 class="text-xs font-bold text-neutral-800 uppercase tracking-wider">MEMBER ONLINE</h3>
-                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    <span class="relative flex h-1.5 w-1.5">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
-                    </span>
-                    LIVE
-                </span>
-            </div>
-
-            <!-- Box Info Teks Berapa Member yang Online -->
-            <div class="bg-gradient-to-r from-emerald-50/80 to-teal-50/60 border border-emerald-100 rounded-xl p-3 mb-4 flex items-center justify-between">
-                <div class="flex items-center space-x-2.5 min-w-0">
-                    <div class="w-8 h-8 rounded-lg bg-white shadow-2xs border border-emerald-200/60 flex items-center justify-center text-emerald-600 shrink-0">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                    </div>
-                    <div class="min-w-0">
-                        <div id="online-counter-text" class="text-xs font-semibold text-neutral-800 leading-tight">
-                            @if($onlineCount <= 0)
-                                <span>Tidak ada member yang aktif</span>
-                            @elseif($onlineCount == 1)
-                                <span><strong id="online-counter-number" class="text-emerald-700 font-bold">1 member</strong> sedang aktif</span>
-                            @else
-                                <span><strong id="online-counter-number" class="text-emerald-700 font-bold">{{ $onlineCount }} member</strong> sedang aktif</span>
-                            @endif
-                        </div>
-                        <p class="text-[10px] text-neutral-400 mt-0.5">Terpantau secara realtime</p>
-                    </div>
+            {{-- Kartu profil --}}
+            <section class="{{ $card }} overflow-hidden">
+                <div class="relative h-24">
+                    <picture>
+                        <source srcset="{{ asset('assets/img/login-image.webp') }}" type="image/webp">
+                        <img src="{{ asset('assets/img/login-image.png') }}" alt="" class="absolute inset-0 h-full w-full object-cover">
+                    </picture>
+                    <div class="absolute inset-0 bg-gradient-to-b from-[#990000]/30 to-[#141416]/50"></div>
                 </div>
-            </div>
+                <div class="px-5 pb-5 text-center">
+                    <img src="{{ $me->avatar_url }}" alt="" class="relative -mt-10 mx-auto size-20 rounded-full object-cover ring-4 ring-white bg-zinc-200">
+                    <p class="mt-2 text-[15px] font-semibold text-zinc-900 truncate">{{ $me->fullname ?: $me->username }}</p>
+                    <p class="text-xs text-zinc-500">{{ '@'.$me->username }}</p>
 
-            <div id="online-members-container" class="space-y-2 max-h-[615px] overflow-y-auto pr-1.5 custom-scrollbar scroll-smooth">
-                @forelse($onlineMembers as $member)
-                    <a href="{{ route('profile.show', $member->username) }}" 
-                       class="flex items-center justify-between p-2 rounded-lg hover:bg-neutral-50 transition border border-transparent hover:border-neutral-100 group"
-                       data-member-id="{{ $member->id }}">
-                        <div class="flex items-center space-x-2.5 min-w-0">
-                            <div class="relative shrink-0">
-                                <img src="{{ $member->avatar_url }}" alt="{{ $member->fullname }}" class="w-9 h-9 rounded-full object-cover border border-neutral-200">
-                                <span class="member-status-dot absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white bg-emerald-500"></span>
-                            </div>
-                            <div class="min-w-0 flex-1">
-                                <p class="text-xs font-bold text-neutral-800 truncate group-hover:text-red-700 transition">
-                                    {{ $member->fullname }}
-                                </p>
-                                <p class="text-[11px] text-neutral-400 truncate">
-                                    {{ '@' . $member->username }}
-                                </p>
-                            </div>
-                        </div>
-                        <div class="shrink-0 text-right ml-2">
-                            <span class="member-status-badge text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/80">
-                                Online
-                            </span>
-                        </div>
+                    <dl class="mt-4 grid grid-cols-3 divide-x divide-zinc-100">
+                        <div><dt class="sr-only">Postingan</dt><dd class="text-base font-semibold tabular-nums text-zinc-900">{{ number_format($myPostCount) }}</dd><p class="text-[11px] text-zinc-500">postingan</p></div>
+                        <div><dt class="sr-only">Pengikut</dt><dd class="text-base font-semibold tabular-nums text-zinc-900">{{ number_format($followerCount) }}</dd><p class="text-[11px] text-zinc-500">pengikut</p></div>
+                        <div><dt class="sr-only">Mengikuti</dt><dd class="text-base font-semibold tabular-nums text-zinc-900">{{ number_format($followingCount) }}</dd><p class="text-[11px] text-zinc-500">mengikuti</p></div>
+                    </dl>
+
+                    @if(\App\Helpers\ModuleHelper::isActive('PHOTOS'))
+                    <a href="{{ route('foto.index') }}" class="xf-pill mt-5 w-full justify-center bg-[#141416] text-white hover:bg-black">
+                        <i data-lucide="camera" class="w-4 h-4"></i> Unggah foto
                     </a>
-                @empty
-                    <div id="online-empty-state" class="text-center py-5 px-3 bg-neutral-50 rounded-lg border border-dashed border-neutral-200">
-                        <svg class="w-8 h-8 mx-auto text-neutral-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                        <p class="text-xs font-medium text-neutral-500">Tidak ada member lain yang sedang online.</p>
-                    </div>
-                @endforelse
-            </div>
-        </div>
+                    @else
+                    <a href="{{ route('profile.show', $me->username) }}" class="xf-pill mt-5 w-full justify-center bg-[#141416] text-white hover:bg-black">
+                        <i data-lucide="user-round" class="w-4 h-4"></i> Lihat profil
+                    </a>
+                    @endif
+                </div>
+            </section>
 
-        <x-sidebar-right />
-        @php $rightColumnHtml = \App\Helpers\SettingHelper::get('theme_block_right_column', ''); @endphp
-        @if($rightColumnHtml)
-            <div class="mb-4">{!! $rightColumnHtml !!}</div>
-        @endif
+            {{-- Member online --}}
+            <section class="{{ $card }} p-4">
+                <div class="flex items-center justify-between px-1 mb-3">
+                    <h3 class="xf-label">Member online</h3>
+                    <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                        <span class="relative flex size-1.5"><span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex size-1.5 rounded-full bg-emerald-500"></span></span>
+                        Live
+                    </span>
+                </div>
+                <div id="online-counter-text" class="px-1 mb-3 text-[13px] text-zinc-600">
+                    @if($onlineCount <= 0)
+                        <span>Tidak ada member yang aktif</span>
+                    @else
+                        <span><strong id="online-counter-number" class="font-semibold text-zinc-900">{{ $onlineCount }} member</strong> sedang aktif</span>
+                    @endif
+                </div>
+
+                <div id="online-members-container" class="space-y-0.5 max-h-[340px] overflow-y-auto -mr-1.5 pr-1.5 custom-scrollbar">
+                    @forelse($onlineMembers as $member)
+                        <a href="{{ route('profile.show', $member->username) }}" class="flex items-center gap-3 rounded-xl px-1.5 py-1.5 hover:bg-zinc-50 transition group" data-member-id="{{ $member->id }}">
+                            <span class="relative shrink-0">
+                                <img src="{{ $member->avatar_url }}" alt="" class="size-9 rounded-full object-cover bg-zinc-200">
+                                <span class="member-status-dot absolute bottom-0 right-0 size-2.5 rounded-full ring-2 ring-white bg-emerald-500"></span>
+                            </span>
+                            <span class="min-w-0 flex-1">
+                                <span class="block truncate text-[13px] font-medium text-zinc-800 group-hover:text-zinc-950">{{ $member->fullname }}</span>
+                                <span class="block truncate text-[11px] text-zinc-400">{{ '@' . $member->username }}</span>
+                            </span>
+                        </a>
+                    @empty
+                        <div id="online-empty-state" class="rounded-xl border border-dashed border-zinc-200 px-3 py-5 text-center">
+                            <p class="text-xs text-zinc-500">Tidak ada member lain yang sedang online.</p>
+                        </div>
+                    @endforelse
+                </div>
+            </section>
+
+            <x-sidebar-right />
+            @php $rightColumnHtml = \App\Helpers\SettingHelper::get('theme_block_right_column', ''); @endphp
+            @if($rightColumnHtml)
+                <div>{!! $rightColumnHtml !!}</div>
+            @endif
+        </aside>
     </div>
-
- </div>
 </div>
 
 @include('components.lightbox')
 
 <!-- Report Modal -->
-<div id="reportModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-50 flex items-center justify-center p-4">
- <div class="bg-white rounded-xl shadow-lg w-full max-w-md overflow-hidden">
- <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
- <h3 class="font-bold text-gray-800 text-lg">Laporkan Konten</h3>
- <button type="button" onclick="closeReportModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
- <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
- </button>
- </div>
- <form action="{{ route('reports.store') }}" method="POST">
- @csrf
- <input type="hidden" name="url" id="reportUrl" value="">
- <div class="p-6">
- <label class="block text-sm font-semibold text-gray-700 mb-2">Alasan Pelaporan</label>
- <textarea name="message" rows="4" class="w-full text-sm p-3 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 resize-none mb-3" placeholder="Jelaskan mengapa konten ini tidak pantas..." required></textarea>
- <p class="text-xs text-gray-500">Laporan Anda bersifat anonim dan akan ditinjau oleh administrator.</p>
- </div>
- <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
- <button type="button" onclick="closeReportModal()" class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors">Batal</button>
- <button type="submit" class="px-4 py-2 bg-red-600 border border-transparent rounded-lg text-sm font-bold text-white hover:bg-red-700 shadow-sm transition-colors">Kirim Laporan</button>
- </div>
- </form>
- </div>
+<div id="reportModal" class="fixed inset-0 z-50 hidden bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-[24px] shadow-2xl w-full max-w-md overflow-hidden">
+        <div class="px-6 pt-6 flex justify-between items-start">
+            <div>
+                <h3 class="text-lg font-semibold text-zinc-900">Laporkan konten</h3>
+                <p class="mt-1 text-sm text-zinc-500">Laporan bersifat anonim dan ditinjau administrator.</p>
+            </div>
+            <button type="button" onclick="closeReportModal()" class="grid place-items-center size-9 rounded-full text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 transition" aria-label="Tutup">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+        <form action="{{ route('reports.store') }}" method="POST">
+            @csrf
+            <input type="hidden" name="url" id="reportUrl" value="">
+            <div class="px-6 pt-5">
+                <label for="report-message" class="block text-sm font-medium text-zinc-700 mb-2">Alasan pelaporan</label>
+                <textarea id="report-message" name="message" rows="4" class="w-full text-sm p-3 bg-zinc-50 border border-zinc-200 rounded-2xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#990000]/15 focus:border-[#990000] resize-none" placeholder="Jelaskan mengapa konten ini tidak pantas" required></textarea>
+            </div>
+            <div class="px-6 py-5 flex justify-end gap-2">
+                <button type="button" onclick="closeReportModal()" class="xf-pill bg-zinc-100 text-zinc-700 hover:bg-zinc-200">Batal</button>
+                <button type="submit" class="xf-pill bg-[#990000] text-white hover:bg-[#7a0000]">Kirim laporan</button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <script>
- function openReportModal(url) {
- document.getElementById('reportUrl').value = url;
- document.getElementById('reportModal').classList.remove('hidden');
- }
- 
- function closeReportModal() {
- document.getElementById('reportModal').classList.add('hidden');
- }
+    function openReportModal(url) {
+        document.getElementById('reportUrl').value = url;
+        document.getElementById('reportModal').classList.remove('hidden');
+    }
+    function closeReportModal() {
+        document.getElementById('reportModal').classList.add('hidden');
+    }
 </script>
-
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    function esc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; }
+
     function syncOnlineWidget() {
         if (!window.onlineUsers || !window.onlineUsersReady) return;
         const onlineList = Object.values(window.onlineUsers);
         const onlineIds = onlineList.map(u => parseInt(u.id));
         const count = onlineList.length;
 
-        // Perbarui teks info berapa member yang online secara elegan
         const counterText = document.getElementById('online-counter-text');
         if (counterText) {
-            if (count <= 0) {
-                counterText.innerHTML = '<span>Tidak ada member yang aktif</span>';
-            } else if (count === 1) {
-                counterText.innerHTML = '<span><strong id="online-counter-number" class="text-emerald-700 font-bold">1 member</strong> sedang aktif</span>';
-            } else {
-                counterText.innerHTML = `<span><strong id="online-counter-number" class="text-emerald-700 font-bold">${count} member</strong> sedang aktif</span>`;
-            }
+            counterText.innerHTML = count <= 0
+                ? '<span>Tidak ada member yang aktif</span>'
+                : `<span><strong id="online-counter-number" class="font-semibold text-zinc-900">${count} member</strong> sedang aktif</span>`;
         }
 
         const container = document.getElementById('online-members-container');
         if (!container) return;
 
-        // Hapus langsung member yang sudah offline (tidak lagi tampil sama sekali)
         container.querySelectorAll('[data-member-id]').forEach(el => {
-            const uid = parseInt(el.getAttribute('data-member-id'));
-            const isOnline = onlineIds.includes(uid);
-            if (!isOnline) {
-                el.remove();
-            }
+            if (!onlineIds.includes(parseInt(el.getAttribute('data-member-id')))) el.remove();
         });
 
-        // Sisipkan member baru jika ada yang join di presence channel dan belum ada di container
         onlineList.forEach(u => {
-            if (!u || !u.id) return;
-            const existing = container.querySelector(`[data-member-id="${u.id}"]`);
-            if (!existing && u.username) {
-                const emptyState = document.getElementById('online-empty-state');
-                if (emptyState) emptyState.remove();
-
-                const div = document.createElement('a');
-                div.href = window.AppBase ? `${window.AppBase}/@${u.username}` : `/@${u.username}`;
-                div.className = 'flex items-center justify-between p-2 rounded-lg hover:bg-neutral-50 transition border border-transparent hover:border-neutral-100 group animate-fade-in-up';
-                div.setAttribute('data-member-id', u.id);
-                div.innerHTML = `
-                    <div class="flex items-center space-x-2.5 min-w-0">
-                        <div class="relative shrink-0">
-                            <img src="${u.avatar_url || '/assets/img/default.png'}" alt="${u.fullname || u.username}" class="w-9 h-9 rounded-full object-cover border border-neutral-200">
-                            <span class="member-status-dot absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white bg-emerald-500"></span>
-                        </div>
-                        <div class="min-w-0 flex-1">
-                            <p class="text-xs font-bold text-neutral-800 truncate group-hover:text-red-700 transition">
-                                ${u.fullname || u.username}
-                            </p>
-                            <p class="text-[11px] text-neutral-400 truncate">
-                                @${u.username}
-                            </p>
-                        </div>
-                    </div>
-                    <div class="shrink-0 text-right ml-2">
-                        <span class="member-status-badge text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/80">
-                            Online
-                        </span>
-                    </div>
-                `;
-                container.prepend(div);
-            }
-        });
-
-        // Jika tidak ada member yang online sama sekali, tampilkan pesan kosong
-        const remainingMembers = container.querySelectorAll('[data-member-id]');
-        if (remainingMembers.length === 0) {
-            if (!document.getElementById('online-empty-state')) {
-                const emptyDiv = document.createElement('div');
-                emptyDiv.id = 'online-empty-state';
-                emptyDiv.className = 'text-center py-5 px-3 bg-neutral-50 rounded-lg border border-dashed border-neutral-200';
-                emptyDiv.innerHTML = `
-                    <svg class="w-8 h-8 mx-auto text-neutral-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                    <p class="text-xs font-medium text-neutral-500">Tidak ada member lain yang sedang online.</p>
-                `;
-                container.appendChild(emptyDiv);
-            }
-        } else {
+            if (!u || !u.id || !u.username) return;
+            if (container.querySelector(`[data-member-id="${u.id}"]`)) return;
             const emptyState = document.getElementById('online-empty-state');
             if (emptyState) emptyState.remove();
+
+            const a = document.createElement('a');
+            a.href = (window.AppBase || '') + '/@' + encodeURIComponent(u.username);
+            a.className = 'flex items-center gap-3 rounded-xl px-1.5 py-1.5 hover:bg-zinc-50 transition group animate-fade-in-up';
+            a.setAttribute('data-member-id', u.id);
+            a.innerHTML = `
+                <span class="relative shrink-0">
+                    <img src="${esc(u.avatar_url || '/assets/img/default.png')}" alt="" class="size-9 rounded-full object-cover bg-zinc-200">
+                    <span class="member-status-dot absolute bottom-0 right-0 size-2.5 rounded-full ring-2 ring-white bg-emerald-500"></span>
+                </span>
+                <span class="min-w-0 flex-1">
+                    <span class="block truncate text-[13px] font-medium text-zinc-800 group-hover:text-zinc-950">${esc(u.fullname || u.username)}</span>
+                    <span class="block truncate text-[11px] text-zinc-400">@${esc(u.username)}</span>
+                </span>`;
+            container.prepend(a);
+        });
+
+        if (!container.querySelector('[data-member-id]') && !document.getElementById('online-empty-state')) {
+            const empty = document.createElement('div');
+            empty.id = 'online-empty-state';
+            empty.className = 'rounded-xl border border-dashed border-zinc-200 px-3 py-5 text-center';
+            empty.innerHTML = '<p class="text-xs text-zinc-500">Tidak ada member lain yang sedang online.</p>';
+            container.appendChild(empty);
         }
     }
 
@@ -391,4 +339,3 @@ document.addEventListener('DOMContentLoaded', function () {
 
 @include('components.feed-scripts')
 @endsection
-

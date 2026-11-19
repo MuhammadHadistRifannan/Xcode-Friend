@@ -1,309 +1,232 @@
 @extends('layouts.app')
-@section('title', 'Welcome to XCODE-FRIENDS')
+@section('title', 'XCODE Friends · Komunitas teknologi')
+
+@php
+    $card = 'bg-white rounded-[20px] shadow-[0_1px_2px_rgba(20,20,22,0.04)]';
+    $input = 'w-full h-11 bg-zinc-50 border border-zinc-200/70 rounded-xl px-3.5 text-sm text-zinc-800 placeholder-zinc-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#990000]/10 focus:border-[#990000]/60 transition';
+@endphp
 
 @section('content')
-<div class="max-w-[95%] xl:max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+<div class="max-w-[1400px] mx-auto w-full px-4 sm:px-6">
+    <div class="grid grid-cols-1 lg:grid-cols-[272px_minmax(0,1fr)] xl:grid-cols-[288px_minmax(0,1fr)_304px] gap-5 items-start">
 
-    <!-- KOLOM KIRI: Login, Join Now, Recent Logins, Stats -->
-    <div class="lg:col-span-3 space-y-6">
+        {{-- ============ KIRI ============ --}}
+        <aside class="space-y-4 lg:sticky lg:top-24 order-2 lg:order-1 animate-fade-in-up">
+            <section class="{{ $card }} p-5">
+                <h2 class="text-[15px] font-semibold text-zinc-900">Masuk ke akun Anda</h2>
+                <p class="mt-1 text-xs text-zinc-500">Lanjutkan berbagi dengan komunitas.</p>
 
-        <!-- Form Login Cepat -->
-        <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-6">
-            <h3 class="text-[11px] font-bold text-neutral-800 uppercase mb-4 tracking-wider">Login</h3>
-
-            
-
-            <form method="POST" action="/login" class="space-y-4">
-                @csrf
-                <div>
-                    <label class="block text-[11px] font-bold text-neutral-600 mb-1">Username / Email Address</label>
-                    <input type="text" name="login" required placeholder="user@example.com" class="w-full bg-neutral-50 border border-neutral-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-red-700">
-                </div>
-                <div>
-                    <label class="block text-[11px] font-bold text-neutral-600 mb-1">Password</label>
-                    <input type="password" name="password" required placeholder="••••••••" class="w-full bg-neutral-50 border border-neutral-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-red-700">
-                </div>
-                <div class="flex items-center justify-between">
-                    <label class="flex items-center text-[10px] text-neutral-600 cursor-pointer">
-                        <input type="checkbox" name="remember" class="mr-1 h-3 w-3 rounded border-neutral-300 text-red-700 focus:ring-red-600"> Remember me
-                    </label>
-                    <a href="{{ route('password.request') }}" class="text-[10px] font-semibold text-red-700 hover:underline">Forgot password?</a>
-                </div>
-                <button type="submit" class="w-full bg-[#990000] text-white font-bold rounded-md py-2.5 text-xs tracking-wider hover:bg-red-800 transition">LOGIN</button>
-            </form>
-        </div>
-
-        <!-- Join Now Box -->
-        <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-6 text-center">
-            <h3 class="text-sm font-bold text-neutral-800 mb-2">Join Now!</h3>
-            <p class="text-[11px] text-neutral-500 mb-4 px-2">Become a part of our network to stay updated and connected.</p>
-            <a href="{{ route('register') }}" class="block w-full border border-red-700 text-red-700 font-bold rounded-md py-2 text-[11px] tracking-wider hover:bg-red-50 transition">REGISTER</a>
-        </div>
-
-        <!-- Recent Logins -->
-        <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-6">
-            <h3 class="text-[11px] font-bold text-neutral-800 uppercase mb-4 tracking-wider">Recent Logins</h3>
-            <div class="flex space-x-2">
-                @forelse($recentLogins as $recent)
-                    <img src="{{ $recent->avatar_url }}" alt="{{ $recent->fullname ?: $recent->username }}" class="w-8 h-8 rounded-full border border-neutral-200 object-cover">
-                @empty
-                    <p class="text-[10px] text-neutral-400">Belum ada data login.</p>
-                @endforelse
-            </div>
-        </div>
-
-        <!-- Network Statistics -->
-        <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-6">
-            <h3 class="text-[11px] font-bold text-neutral-800 uppercase mb-4 tracking-wider">Network Statistics</h3>
-            <div class="space-y-3">
-                <div class="flex justify-between items-center text-xs"><span class="text-neutral-500">Activities</span> <span class="font-bold bg-neutral-100 px-2 py-0.5 rounded">{{ number_format($stats['activities']) }}</span></div>
-                <div class="flex justify-between items-center text-xs"><span class="text-neutral-500">Members</span> <span class="font-bold bg-neutral-100 px-2 py-0.5 rounded">{{ number_format($stats['members']) }}</span></div>
-                <div class="flex justify-between items-center text-xs"><span class="text-neutral-500">Friendships</span> <span class="font-bold bg-neutral-100 px-2 py-0.5 rounded">{{ number_format($stats['friendships']) }}</span></div>
-                <div class="flex justify-between items-center text-xs"><span class="text-neutral-500">Comments</span> <span class="font-bold bg-neutral-100 px-2 py-0.5 rounded">{{ number_format($stats['comments']) }}</span></div>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- KOLOM TENGAH: Feed Komunitas -->
-    <div class="lg:col-span-6 space-y-6">
-        <!-- Hero Banner Image -->
-        <div class="w-full h-72 md:h-96 bg-neutral-200 rounded-xl overflow-hidden shadow-sm">
-            <!-- Pastikan kamu meletakkan gambar komunitas tim di public/assets/img/hero-banner.jpg -->
-            <img src="{{ asset('assets/img/hero-banner.jpg') }}" alt="Community" class="w-full h-full object-cover">
-        </div>
-
-        <h3 class="text-xs font-bold text-neutral-800 uppercase border-b border-neutral-200 pb-2 tracking-wider mt-4">Community activities</h3>
-
-        <!-- Scrollable Wrapper Khusus Feed Berita -->
-        <div class="h-[90vh] min-h-[800px] overflow-y-auto overflow-x-hidden custom-scrollbar pr-2 pb-6">
-            <!-- Feed Iteration -->
-            @forelse($publicStreams as $stream)
-            <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5 mb-4">
-                <div class="flex items-center space-x-3 mb-3">
-                    <div class="w-10 h-10 rounded-full bg-neutral-100 overflow-hidden flex-shrink-0 border border-neutral-200">
-                        <img src="{{ $stream->user?->avatar_url ?? asset('assets/img/default.png') }}" class="w-full h-full object-cover">
+                <form method="POST" action="/login" class="mt-4 space-y-3">
+                    @csrf
+                    <div>
+                        <label for="guest-login" class="block text-xs font-medium text-zinc-700 mb-1.5">Username atau email</label>
+                        <input id="guest-login" type="text" name="login" required autocomplete="username" placeholder="nama@contoh.com" class="{{ $input }}">
                     </div>
                     <div>
-                        <p class="text-sm text-neutral-800">
-                            <span class="font-bold">{{ $stream->user?->fullname ?? 'User Tidak Diketahui' }}</span> 
-                            @if($stream->type == 1 && !$stream->attachment)
-                            <span class="font-normal text-neutral-500">memperbarui status</span>
-                            @elseif($stream->type == 2)
-                            <span class="font-normal text-neutral-500">mengunggah foto</span>
-                            @elseif($stream->type == 3)
-                            <span class="font-normal text-neutral-500">membagikan video</span>
-                            @else
-                            <span class="font-normal text-neutral-500">memposting</span>
-                            @endif
-                        </p>
-                        <p class="text-[11px] text-neutral-400">
-                            {{ \Carbon\Carbon::createFromTimestamp($stream->created)->diffForHumans() }}
-                            @if($stream->app === 'group' && $stream->targetPage)
-                                &bull; Mengunggah di Grup <a href="{{ url('/groups/' . $stream->targetPage->id) }}" class="font-semibold text-neutral-600 hover:text-red-700 hover:underline">{{ $stream->targetPage->name }}</a>
-                            @elseif($stream->app === 'page' && $stream->targetPage)
-                                &bull; Mengunggah di Halaman <a href="{{ url('/pages/' . $stream->targetPage->id) }}" class="font-semibold text-neutral-600 hover:text-red-700 hover:underline">{{ $stream->targetPage->name }}</a>
-                            @elseif($stream->app === 'feed' && $stream->wall_id != $stream->uid && $stream->targetWallUser)
-                                &bull; Mengunggah di Profil <a href="{{ url('/@' . $stream->targetWallUser->username) }}" class="font-semibold text-neutral-600 hover:text-red-700 hover:underline">{{ $stream->targetWallUser->fullname ?? $stream->targetWallUser->username }}</a>
-                            @endif
-                        </p>
+                        <label for="guest-password" class="block text-xs font-medium text-zinc-700 mb-1.5">Kata sandi</label>
+                        <input id="guest-password" type="password" name="password" required autocomplete="current-password" placeholder="Masukkan kata sandi" class="{{ $input }}">
+                    </div>
+                    <div class="flex items-center justify-between pt-0.5">
+                        <label class="flex items-center gap-2 text-xs text-zinc-600 cursor-pointer">
+                            <input type="checkbox" name="remember" class="size-4 rounded border-zinc-300 text-[#990000] focus:ring-[#990000]/30"> Ingat saya
+                        </label>
+                        <a href="{{ route('password.request') }}" class="text-xs font-medium text-[#990000] hover:underline">Lupa sandi?</a>
+                    </div>
+                    <button type="submit" class="xf-pill w-full justify-center h-11 bg-[#990000] text-white font-semibold shadow-sm shadow-red-900/20 hover:bg-[#7a0000]">
+                        Masuk <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </button>
+                </form>
+
+                <div class="mt-4 pt-4 border-t border-zinc-100 text-center text-xs text-zinc-500">
+                    Belum punya akun?
+                    <a href="{{ route('register') }}" class="font-semibold text-zinc-900 hover:text-[#990000]">Daftar gratis</a>
+                </div>
+            </section>
+
+            <section class="{{ $card }} p-5">
+                <h3 class="xf-label mb-3">Statistik jaringan</h3>
+                <dl class="grid grid-cols-2 gap-2">
+                    @foreach(['activities' => 'Aktivitas', 'members' => 'Member', 'friendships' => 'Pertemanan', 'comments' => 'Komentar'] as $key => $label)
+                        <div class="rounded-2xl bg-zinc-50 px-3 py-2.5">
+                            <dd class="text-lg font-semibold tabular-nums text-zinc-900">{{ number_format($stats[$key]) }}</dd>
+                            <dt class="text-[11px] text-zinc-500">{{ $label }}</dt>
+                        </div>
+                    @endforeach
+                </dl>
+            </section>
+
+            <section class="{{ $card }} p-5">
+                <h3 class="xf-label mb-3">Baru saja masuk</h3>
+                <div class="flex -space-x-2">
+                    @forelse($recentLogins as $recent)
+                        <img src="{{ $recent->avatar_url }}" alt="{{ $recent->fullname ?: $recent->username }}" title="{{ $recent->fullname ?: $recent->username }}" class="size-9 rounded-full object-cover ring-2 ring-white bg-zinc-200">
+                    @empty
+                        <p class="text-xs text-zinc-400">Belum ada data login.</p>
+                    @endforelse
+                </div>
+            </section>
+        </aside>
+
+        {{-- ============ TENGAH ============ --}}
+        <section class="min-w-0 space-y-4 order-1 lg:order-2 animate-fade-in-up delay-100">
+            {{-- Hero: gambar yang sama dengan halaman login --}}
+            <div class="relative overflow-hidden rounded-[24px] bg-[#f6eef0] min-h-[300px] sm:min-h-[360px]">
+                <picture>
+                    <source srcset="{{ asset('assets/img/login-image.webp') }}" type="image/webp">
+                    <img src="{{ asset('assets/img/login-image.png') }}" alt="" class="absolute inset-0 h-full w-full object-cover object-left">
+                </picture>
+                {{-- Teks di area putih kanan gambar, tidak menutupi karakter --}}
+                <div class="absolute inset-y-0 right-0 w-full sm:w-3/5 bg-gradient-to-l from-white/90 via-white/70 to-transparent sm:from-white/80 sm:via-white/50"></div>
+                <div class="relative ml-auto flex min-h-[300px] sm:min-h-[360px] w-full sm:w-[40%] flex-col items-end justify-center p-6 sm:p-8 text-right">
+                    <span class="inline-flex w-fit items-center gap-2 rounded-full bg-white/80 px-3 py-1 text-[11px] font-medium text-zinc-700 ring-1 ring-zinc-900/5 backdrop-blur">
+                        <span class="size-1.5 rounded-full bg-emerald-500"></span>
+                        {{ number_format($stats['members']) }} member bergabung
+                    </span>
+                    <h1 class="mt-3 text-2xl lg:text-[26px] xl:text-[28px] font-semibold tracking-tight leading-[1.15] text-zinc-950">Belajar, berbagi, dan tumbuh bersama <span class="text-[#990000]">XCODE.</span></h1>
+                    <p class="mt-2.5 text-[13px] text-zinc-600 leading-relaxed max-w-[30ch]">Komunitas pegiat keamanan siber, developer, dan arsitek digital.</p>
+                    <div class="mt-5 flex flex-wrap justify-end gap-2">
+                        <a href="{{ route('login') }}" class="xf-pill h-10 px-4 bg-white text-zinc-800 ring-1 ring-zinc-900/10 hover:bg-zinc-50">Masuk</a>
+                        <a href="{{ route('register') }}" class="xf-pill h-10 px-4 bg-[#990000] text-white font-semibold shadow-sm shadow-red-900/20 hover:bg-[#7a0000]">Gabung sekarang</a>
                     </div>
                 </div>
+            </div>
 
-                <div class="pl-13 mb-4">
-                    <p class="text-sm text-neutral-700 whitespace-pre-wrap break-all mb-4">{{ $stream->message }}</p>
+            <div class="flex items-center justify-between px-1 pt-2">
+                <h2 class="xf-label">Aktivitas komunitas</h2>
+                <a href="{{ route('login') }}" class="text-xs font-medium text-zinc-500 hover:text-[#990000]">Masuk untuk ikut berdiskusi</a>
+            </div>
 
-                    @if($stream->app === 'music' && $stream->attachment)
-                        <div class="mb-4 bg-neutral-50 rounded-xl border border-neutral-200 p-4 flex items-center gap-4 shadow-sm">
-                            <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center text-red-600 flex-shrink-0">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <h5 class="text-sm font-bold text-neutral-800 truncate mb-2">{{ $stream->message ?: 'Lagu tanpa judul' }}</h5>
-                                <audio controls class="w-full h-8 outline-none" preload="none">
-                                    <source src="{{ asset('storage/music/' . $stream->attachment) }}" type="audio/mpeg">
-                                    Browser Anda tidak mendukung elemen audio.
-                                </audio>
-                            </div>
-                        </div>
-                    @endif
-
+            <div class="space-y-4">
+                @forelse($publicStreams as $stream)
                     @php
                         $att = $stream->parsed_attachment;
                         $photosList = $stream->photo_urls;
+                        $ptCount = count($photosList);
+                        $jsonPhotos = json_encode($photosList);
+                        $tile = 'w-full h-full object-cover rounded-xl cursor-pointer bg-zinc-100 transition duration-300 hover:brightness-95';
+                        $onErr = "this.onerror=null; this.closest('.post-photo-wrapper')?.remove();";
                     @endphp
+                    <article class="min-w-0 {{ $card }} p-5">
+                        <div class="flex items-center gap-3 mb-3">
+                            <img src="{{ $stream->user?->avatar_url ?? asset('assets/img/default.png') }}" alt="" class="size-10 rounded-full object-cover bg-zinc-100 shrink-0">
+                            <div class="min-w-0">
+                                <p class="text-sm leading-tight">
+                                    <span class="font-semibold text-zinc-900">{{ $stream->user?->fullname ?? 'Pengguna' }}</span>
+                                    <span class="text-zinc-500">
+                                        @if($stream->type == 1 && !$stream->attachment) memperbarui status
+                                        @elseif($stream->type == 2) mengunggah foto
+                                        @elseif($stream->type == 3) membagikan video
+                                        @else memposting
+                                        @endif
+                                    </span>
+                                </p>
+                                <p class="mt-0.5 text-[11px] text-zinc-400">
+                                    {{ \Carbon\Carbon::createFromTimestamp($stream->created)->diffForHumans() }}
+                                    @if($stream->app === 'group' && $stream->targetPage)
+                                        &bull; di grup <a href="{{ url('/groups/' . $stream->targetPage->id) }}" class="font-medium text-zinc-600 hover:text-[#990000]">{{ $stream->targetPage->name }}</a>
+                                    @elseif($stream->app === 'page' && $stream->targetPage)
+                                        &bull; di page <a href="{{ url('/pages/' . $stream->targetPage->id) }}" class="font-medium text-zinc-600 hover:text-[#990000]">{{ $stream->targetPage->name }}</a>
+                                    @endif
+                                </p>
+                            </div>
+                        </div>
 
-                    @if(count($photosList) > 0)
-                        @php
-                            $ptCount = count($photosList);
-                            $jsonPhotos = json_encode($photosList);
-                        @endphp
-                        <div class="mb-4 rounded-xl overflow-hidden border border-neutral-200 post-photo-wrapper relative select-none">
-                            @if($ptCount == 1)
-                                <img src="{{ $photosList[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' onerror="this.onerror=null; this.closest('.post-photo-wrapper')?.remove();" class="w-full h-auto max-h-[500px] object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
-                            @elseif($ptCount == 2)
-                                <div class="grid grid-cols-2 gap-1 h-64 sm:h-80">
-                                    <img src="{{ $photosList[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' onerror="this.onerror=null; this.closest('.post-photo-wrapper')?.remove();" class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
-                                    <img src="{{ $photosList[1] }}" onclick='openLightbox({!! $jsonPhotos !!}, 1)' onerror="this.onerror=null; this.closest('.post-photo-wrapper')?.remove();" class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
-                                </div>
-                            @elseif($ptCount == 3)
-                                <div class="grid grid-cols-2 gap-1 h-64 sm:h-80">
-                                    <img src="{{ $photosList[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' onerror="this.onerror=null; this.closest('.post-photo-wrapper')?.remove();" class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
-                                    <div class="grid grid-rows-2 gap-1 h-full">
-                                        <img src="{{ $photosList[1] }}" onclick='openLightbox({!! $jsonPhotos !!}, 1)' onerror="this.onerror=null; this.closest('.post-photo-wrapper')?.remove();" class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
-                                        <img src="{{ $photosList[2] }}" onclick='openLightbox({!! $jsonPhotos !!}, 2)' onerror="this.onerror=null; this.closest('.post-photo-wrapper')?.remove();" class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                        @if($stream->message)
+                            <p class="text-[14px] text-zinc-700 mb-4 whitespace-pre-wrap [overflow-wrap:anywhere] leading-relaxed">{{ $stream->message }}</p>
+                        @endif
+
+                        @if($ptCount > 0)
+                            <div class="mb-4 post-photo-wrapper relative select-none">
+                                @if($ptCount == 1)
+                                    <img src="{{ $photosList[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' onerror="{{ $onErr }}" class="w-full h-auto max-h-[520px] object-cover rounded-2xl cursor-pointer bg-zinc-100" alt="Foto postingan">
+                                @elseif($ptCount == 2)
+                                    <div class="grid grid-cols-2 gap-1.5 h-64 sm:h-80">
+                                        @foreach([0, 1] as $i)
+                                            <img src="{{ $photosList[$i] }}" onclick='openLightbox({!! $jsonPhotos !!}, {{ $i }})' onerror="{{ $onErr }}" class="{{ $tile }}" alt="Foto postingan">
+                                        @endforeach
                                     </div>
-                                </div>
-                            @elseif($ptCount >= 4)
-                                <div class="grid grid-cols-2 grid-rows-2 gap-1 h-72 sm:h-96">
-                                    <img src="{{ $photosList[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' onerror="this.onerror=null; this.closest('.post-photo-wrapper')?.remove();" class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
-                                    <img src="{{ $photosList[1] }}" onclick='openLightbox({!! $jsonPhotos !!}, 1)' onerror="this.onerror=null; this.closest('.post-photo-wrapper')?.remove();" class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
-                                    <img src="{{ $photosList[2] }}" onclick='openLightbox({!! $jsonPhotos !!}, 2)' onerror="this.onerror=null; this.closest('.post-photo-wrapper')?.remove();" class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
-                                    <div class="relative w-full h-full" onclick='openLightbox({!! $jsonPhotos !!}, 3)'>
-                                        <img src="{{ $photosList[3] }}" onerror="this.onerror=null; this.closest('.post-photo-wrapper')?.remove();" class="w-full h-full object-cover cursor-pointer" alt="Post Photo">
-                                        @if($ptCount > 4)
-                                            <div class="absolute inset-0 bg-black/60 flex items-center justify-center cursor-pointer hover:bg-black/50 transition">
-                                                <span class="text-white text-3xl font-bold">+{{ $ptCount - 4 }}</span>
+                                @else
+                                    <div class="grid grid-cols-{{ $ptCount == 3 ? '3' : '4' }} grid-rows-2 gap-1.5 h-64 sm:h-80">
+                                        <img src="{{ $photosList[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' onerror="{{ $onErr }}" class="{{ $tile }} col-span-2 row-span-2" alt="Foto postingan">
+                                        <img src="{{ $photosList[1] }}" onclick='openLightbox({!! $jsonPhotos !!}, 1)' onerror="{{ $onErr }}" class="{{ $tile }} {{ $ptCount >= 4 ? 'row-span-2' : '' }}" alt="Foto postingan">
+                                        <img src="{{ $photosList[2] }}" onclick='openLightbox({!! $jsonPhotos !!}, 2)' onerror="{{ $onErr }}" class="{{ $tile }}" alt="Foto postingan">
+                                        @if($ptCount >= 4)
+                                            <div class="relative w-full h-full" onclick='openLightbox({!! $jsonPhotos !!}, 3)'>
+                                                <img src="{{ $photosList[3] }}" onerror="{{ $onErr }}" class="{{ $tile }}" alt="Foto postingan">
+                                                @if($ptCount > 4)
+                                                    <div class="absolute inset-0 rounded-xl bg-[#141416]/60 flex items-center justify-center cursor-pointer">
+                                                        <span class="text-white text-2xl font-semibold tabular-nums">+{{ $ptCount - 4 }}</span>
+                                                    </div>
+                                                @endif
                                             </div>
                                         @endif
                                     </div>
-                                </div>
-                            @endif
-                        </div>
-                    @endif
-
-                    @if(($stream->type == 3 || in_array($stream->app, ['video', 'videos'])) && $att)
-                        @php
-                            $videoUrl = $att['video_url'] ?? null;
-                            $videoId = $att['video_id'] ?? null;
-                            if (!$videoId && !empty($att['uri']) && preg_match('/(?:videos\/viewstory\/|\/)(\d+)$/', $att['uri'], $vm)) {
-                                $videoId = $vm[1];
-                            }
-                            if (!$videoId && ($videoUrl || $stream->id)) {
-                                $vFound = \App\Models\Video::where(function($q) use ($stream, $videoUrl) {
-                                    $q->where('stream_id', $stream->id);
-                                    if ($videoUrl) {
-                                        $q->orWhere(function($sq) use ($stream, $videoUrl) {
-                                            $sq->where('uid', $stream->uid)->where('var1', $videoUrl);
-                                        });
-                                        if (preg_match('/(?:youtu\.be\/|v=)([^"&?\/\s]{11})/', $videoUrl, $yid)) {
-                                            $q->orWhere(function($sq) use ($stream, $yid) {
-                                                $sq->where('uid', $stream->uid)->where('var1', 'like', '%' . $yid[1] . '%');
-                                            });
-                                        }
-                                    }
-                                })->first();
-                                if ($vFound) {
-                                    $videoId = $vFound->id;
-                                }
-                            }
-                            $embedUrl = '';
-                            if ($videoUrl && preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i', $videoUrl, $matches)) {
-                                $embedUrl = 'https://www.youtube.com/embed/' . $matches[1];
-                            } elseif ($videoId) {
-                                $vidModel = \App\Models\Video::find($videoId);
-                                if ($vidModel && $vidModel->youtube_embed_url) {
-                                    $embedUrl = $vidModel->youtube_embed_url;
-                                }
-                            }
-                        @endphp
-                        <div class="mb-4 rounded-xl overflow-hidden border border-neutral-200">
-                            @if($embedUrl)
-                                <iframe src="{{ $embedUrl }}" class="w-full h-[300px]" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                                @if($videoId)
-                                    <div class="p-2.5 bg-neutral-50 border-t border-neutral-100 flex items-center justify-between">
-                                        <span class="text-xs text-neutral-600 font-semibold truncate">{{ $att['title'] ?? ($att['name'] ?? 'Video') }}</span>
-                                        <a href="{{ url('/videos/' . $videoId . '/watch') }}" class="text-xs text-red-600 hover:text-red-800 font-bold hover:underline shrink-0 flex items-center gap-1">
-                                            Tonton di Pemutar Video &rarr;
-                                        </a>
-                                    </div>
                                 @endif
-                            @elseif($videoId)
-                                <a href="{{ url('/videos/' . $videoId . '/watch') }}" class="flex items-center gap-3 p-4 bg-neutral-50 hover:bg-neutral-100 transition group">
-                                    <div class="w-12 h-12 rounded-lg bg-red-600 flex items-center justify-center text-white shrink-0 group-hover:scale-105 transition-transform">
-                                        <svg class="w-6 h-6 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                                    </div>
-                                    <div>
-                                        <h5 class="text-sm font-bold text-neutral-800 group-hover:text-red-700 transition">{{ $att['title'] ?? ($att['name'] ?? 'Tonton Video') }}</h5>
-                                        <span class="text-xs text-neutral-500">Klik untuk memutar video</span>
-                                    </div>
-                                </a>
+                            </div>
+                        @endif
+
+                        @if(($stream->type == 3 || in_array($stream->app, ['video', 'videos'])) && $att)
+                            @php
+                                $videoUrl = $att['video_url'] ?? null;
+                                $embedUrl = '';
+                                if ($videoUrl && preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i', $videoUrl, $matches)) {
+                                    $embedUrl = 'https://www.youtube.com/embed/' . $matches[1];
+                                }
+                            @endphp
+                            @if($embedUrl)
+                                <div class="mb-4 overflow-hidden rounded-2xl bg-zinc-900">
+                                    <iframe src="{{ $embedUrl }}" class="w-full aspect-video" frameborder="0" loading="lazy" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                                </div>
                             @elseif($videoUrl)
-                                <a href="{{ $videoUrl }}" target="_blank" class="text-blue-600 hover:underline flex items-center p-3 bg-neutral-50"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Tonton Video</a>
+                                <a href="{{ $videoUrl }}" target="_blank" rel="noopener" class="mb-4 flex items-center gap-3 rounded-2xl bg-zinc-50 p-3 hover:bg-zinc-100 transition">
+                                    <span class="grid place-items-center size-10 rounded-xl bg-[#990000] text-white"><i data-lucide="play" class="w-4 h-4"></i></span>
+                                    <span class="text-sm font-medium text-zinc-800">Tonton video</span>
+                                </a>
                             @endif
-                        </div>
-                    @endif
+                        @endif
 
-                    @if($stream->app === 'blogs' && $att && !empty($att['name']))
-                        <div class="mb-4 rounded-xl border border-neutral-200 bg-neutral-50 p-4 flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-lg bg-neutral-200 flex items-center justify-center text-neutral-600 shrink-0">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
+                        @if($stream->app === 'music' && $stream->attachment)
+                            <div class="mb-4 flex items-center gap-3 rounded-2xl bg-zinc-50 p-3">
+                                <span class="grid place-items-center size-10 rounded-xl bg-red-50 text-[#990000] shrink-0"><i data-lucide="music" class="w-4 h-4"></i></span>
+                                <audio controls class="w-full h-8" preload="none"><source src="{{ asset('storage/music/' . $stream->attachment) }}" type="audio/mpeg"></audio>
                             </div>
-                            <div class="min-w-0 flex-1">
-                                <span class="text-[10px] font-bold text-neutral-400 tracking-wider uppercase">ARTIKEL BLOG</span>
-                                <h5 class="text-sm font-bold text-neutral-800 truncate">{{ $att['name'] }}</h5>
-                            </div>
+                        @endif
+
+                        <div class="flex items-center gap-1 -ml-2.5">
+                            <a href="{{ route('login') }}" class="flex items-center gap-1.5 h-9 px-2.5 rounded-full text-[13px] font-medium text-zinc-600 hover:bg-zinc-100 hover:text-[#990000] transition">
+                                <i data-lucide="thumbs-up" class="w-4 h-4"></i> <span class="tabular-nums">{{ $stream->likes }}</span> suka
+                            </a>
+                            <a href="{{ route('login') }}" class="flex items-center gap-1.5 h-9 px-2.5 rounded-full text-[13px] font-medium text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 transition">
+                                <i data-lucide="message-circle" class="w-4 h-4"></i> Masuk untuk berkomentar
+                            </a>
                         </div>
-                    @endif
+                    </article>
+                @empty
+                    <div class="{{ $card }} px-6 py-14 text-center">
+                        <p class="text-sm font-semibold text-zinc-800">Belum ada aktivitas</p>
+                        <p class="mt-1 text-sm text-zinc-500">Jadilah yang pertama membagikan sesuatu.</p>
+                    </div>
+                @endforelse
+
+                <div class="pt-2 pb-4 text-center">
+                    <a href="{{ route('login') }}" class="xf-pill bg-white text-zinc-700 shadow-sm hover:bg-zinc-50">Masuk untuk melihat lebih banyak</a>
                 </div>
+            </div>
+        </section>
 
-                <div class="text-right border-t border-neutral-100 pt-3">
-                    <a href="{{ route('login') }}" class="text-[11px] font-bold text-red-700 hover:underline inline-flex items-center transition">
-                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
-                        Login to comment
-                    </a>
+        {{-- ============ KANAN ============ --}}
+        <aside class="grid gap-4 sm:grid-cols-2 xl:grid-cols-1 content-start order-3 lg:col-span-2 xl:col-span-1 xl:sticky xl:top-24 animate-fade-in-up delay-200 [&>*]:min-w-0">
+            <a href="{{ route('register') }}" class="xf-promo block group">
+                <div class="relative flex items-start justify-between gap-3">
+                    <span class="text-[11px] font-semibold uppercase tracking-[0.08em] text-white/70">Gabung gratis</span>
+                    <span class="grid place-items-center size-7 rounded-full bg-white/10 transition group-hover:bg-white/20 group-hover:rotate-45">
+                        <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+                    </span>
                 </div>
-            </div>
-            @empty
-                <div class="text-center text-sm text-neutral-500 py-10">Belum ada aktivitas. Jadilah yang pertama membuat postingan!</div>
-            @endforelse
-
-            <div class="text-center pt-4 pb-10">
-                <a href="{{ route('login') }}" class="inline-block bg-white border border-neutral-200 text-neutral-600 font-bold px-6 py-2.5 rounded-full text-[11px] tracking-wider shadow-sm hover:bg-neutral-50 transition">LOAD MORE ACTIVITIES</a>
-            </div>
-        </div>
-    </div>
-
-    <!-- KOLOM KANAN: Review & Links -->
-    <div class="lg:col-span-3 space-y-6">
-        <!-- Widget Review -->
-        <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-6 text-center">
-            <h4 class="text-xs font-bold text-neutral-600 mb-2">Google Reviews</h4>
-            <div class="flex justify-center text-yellow-400 mb-1">
-                <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-            </div>
-            <div class="text-3xl font-extrabold text-neutral-800 my-1">4.9</div>
-            <a href="#" class="text-xs text-blue-600 hover:underline">532 Reviews</a>
-        </div>
-
-        <!-- Network Links -->
-        <div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
-            <h3 class="text-xs font-bold text-neutral-800 uppercase mb-4">Network Links</h3>
-            <div class="space-y-2">
-                <a href="#" class="flex items-center justify-between p-3 bg-neutral-50 border border-neutral-100 rounded-lg hover:bg-neutral-100 transition group">
-                    <div class="flex items-center text-sm font-medium text-neutral-600">
-                        <img src="{{ asset('assets/img/logo-linkedin.png') }}" class="w-4 h-4 mr-3 opacity-60 group-hover:opacity-100 transition"> LinkedIn
-                    </div>
-                    <span class="text-blue-500 font-bold">&rarr;</span>
-                </a>
-                <a href="#" class="flex items-center justify-between p-3 bg-neutral-50 border border-neutral-100 rounded-lg hover:bg-neutral-100 transition group">
-                    <div class="flex items-center text-sm font-medium text-neutral-600">
-                        <img src="{{ asset('assets/img/logo-phpbb.png') }}" class="w-4 h-4 mr-3 opacity-60 group-hover:opacity-100 transition"> phpBB Group
-                    </div>
-                    <span class="text-blue-500 font-bold">&rarr;</span>
-                </a>
-                <a href="#" class="flex items-center justify-between p-3 bg-neutral-50 border border-neutral-100 rounded-lg hover:bg-neutral-100 transition group">
-                    <div class="flex items-center text-sm font-medium text-neutral-600">
-                        <svg class="w-4 h-4 mr-3 text-neutral-400 group-hover:text-[#1877F2] transition" fill="currentColor" viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"></path></svg> Facebook
-                    </div>
-                    <span class="text-blue-500 font-bold">&rarr;</span>
-                </a>
-            </div>
-        </div>
+                <p class="relative mt-3 text-[15px] font-semibold leading-snug">Buat akun dan mulai terhubung dengan rekan satu minat.</p>
+            </a>
+            <x-sidebar-right />
+        </aside>
     </div>
 </div>
 @include('components.lightbox')

@@ -1,14 +1,14 @@
 @props(['stream', 'forBroadcast' => false])
 
-<div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5 stream-card transition-all duration-300" id="stream-card-{{ $stream->id }}" x-data="{ editingStream: false, openOptions: false }">
-    <div class="flex justify-between items-start mb-2">
-        <div class="flex items-center space-x-3">
-            <a href="/{{ '@' . ($stream->user->username ?? '') }}" class="w-10 h-10 rounded-full bg-neutral-100 overflow-hidden flex-shrink-0 border border-neutral-200 hover:ring-2 hover:ring-red-700 transition">
-                <img src="{{ $stream->user?->avatar_url ?? asset('assets/img/default.png') }}" class="w-full h-full object-cover">
+<div class="min-w-0 bg-white rounded-[20px] shadow-[0_1px_2px_rgba(20,20,22,0.04)] p-5 stream-card transition-all duration-300" id="stream-card-{{ $stream->id }}" x-data="{ editingStream: false, openOptions: false }">
+    <div class="flex justify-between items-start mb-3">
+        <div class="flex items-center gap-3 min-w-0">
+            <a href="/{{ '@' . ($stream->user->username ?? '') }}" class="size-10 rounded-full bg-zinc-100 overflow-hidden flex-shrink-0 hover:ring-2 hover:ring-[#990000]/60 hover:ring-offset-2 transition">
+                <img src="{{ $stream->user?->avatar_url ?? asset('assets/img/default.png') }}" alt="" class="w-full h-full object-cover">
             </a>
-            <div>
-                <h4 class="text-sm font-bold text-neutral-900">
-                    <a href="/{{ '@' . ($stream->user->username ?? '') }}" class="hover:text-red-700 transition">{{ $stream->user->fullname ?? 'Unknown User' }}</a> 
+            <div class="min-w-0">
+                <h4 class="text-sm font-semibold text-zinc-900 leading-tight">
+                    <a href="/{{ '@' . ($stream->user->username ?? '') }}" class="hover:text-[#990000] transition">{{ $stream->user->fullname ?? 'Unknown User' }}</a>
                     @if($stream->type == 1 && !$stream->attachment)
                         <span class="font-normal text-neutral-500">memperbarui status</span>
                     @elseif($stream->type == 2)
@@ -23,7 +23,8 @@
                         <span class="font-normal text-neutral-500">memposting</span>
                     @endif
                 </h4>
-                <p class="text-[11px] text-neutral-400 flex flex-wrap items-center gap-x-1">
+                <p class="mt-0.5 text-[11px] text-zinc-400 flex flex-wrap items-center gap-x-1">
+                    @if($stream->user?->username)<span class="text-zinc-500">{{ '@'.$stream->user->username }}</span> &bull;@endif
                     {{ \Carbon\Carbon::createFromTimestamp($stream->created)->diffForHumans() }}
                     &bull;
                     @if($stream->privacy === 'private')
@@ -45,10 +46,10 @@
         </div>
         <!-- 3-dots dropdown -->
         <div class="relative">
-            <button @click="openOptions = !openOptions" @click.away="openOptions = false" class="text-neutral-400 hover:text-neutral-600 focus:outline-none mt-1">
+            <button @click="openOptions = !openOptions" @click.away="openOptions = false" class="grid place-items-center size-8 -mr-1 rounded-full text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 focus:outline-none transition" aria-label="Opsi postingan">
                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z"></path></svg>
             </button>
-            <div x-show="openOptions" style="display: none;" class="absolute right-0 mt-2 w-36 bg-white rounded-md shadow-lg border border-neutral-100 z-50 overflow-hidden">
+            <div x-show="openOptions" style="display: none;" class="absolute right-0 mt-1 w-40 bg-white rounded-2xl shadow-xl shadow-zinc-900/10 ring-1 ring-zinc-900/5 z-50 overflow-hidden py-1">
                 @php
                     $isAuthor = !$forBroadcast && auth()->check() && ((int) auth()->id() === (int) $stream->uid);
                     $isAdmin = !$forBroadcast && auth()->check() && (auth()->user()->isAdmin());
@@ -72,7 +73,7 @@
     </div>
 
     @if($stream->message)
-        <p x-show="!editingStream" class="text-sm text-neutral-800 mb-4 whitespace-pre-wrap leading-relaxed">{{ $stream->message }}</p>
+        <p x-show="!editingStream" class="text-[14px] text-zinc-700 mb-4 whitespace-pre-wrap [overflow-wrap:anywhere] leading-relaxed">{{ $stream->message }}</p>
         <form x-show="editingStream" style="display: none;" action="{{ route('stream.update', $stream->id) }}" method="POST" class="mb-4">
             @csrf
             @method('PUT')
@@ -121,32 +122,35 @@
             $ptCount = count($photosList);
             $jsonPhotos = json_encode($photosList);
         @endphp
-        <div class="mb-4 rounded-xl overflow-hidden border border-neutral-200 post-photo-wrapper relative select-none">
+        @php
+            $tile = 'w-full h-full object-cover rounded-xl cursor-pointer bg-zinc-100 transition duration-300 hover:brightness-95';
+            $onErr = "this.onerror=null; this.closest('.post-photo-wrapper')?.remove();";
+        @endphp
+        <div class="mb-4 post-photo-wrapper relative select-none">
             @if($ptCount == 1)
-                <img src="{{ $photosList[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' onerror="this.onerror=null; this.closest('.post-photo-wrapper')?.remove();" class="w-full h-auto max-h-[500px] object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                <img src="{{ $photosList[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' onerror="{{ $onErr }}" class="w-full h-auto max-h-[520px] object-cover rounded-2xl cursor-pointer bg-zinc-100 transition duration-300 hover:brightness-95" alt="Foto postingan">
             @elseif($ptCount == 2)
-                <div class="grid grid-cols-2 gap-1 h-64 sm:h-80">
-                    <img src="{{ $photosList[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' onerror="this.onerror=null; this.closest('.post-photo-wrapper')?.remove();" class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
-                    <img src="{{ $photosList[1] }}" onclick='openLightbox({!! $jsonPhotos !!}, 1)' onerror="this.onerror=null; this.closest('.post-photo-wrapper')?.remove();" class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                <div class="grid grid-cols-2 gap-1.5 h-64 sm:h-80">
+                    @foreach([0, 1] as $i)
+                        <img src="{{ $photosList[$i] }}" onclick='openLightbox({!! $jsonPhotos !!}, {{ $i }})' onerror="{{ $onErr }}" class="{{ $tile }}" alt="Foto postingan">
+                    @endforeach
                 </div>
             @elseif($ptCount == 3)
-                <div class="grid grid-cols-2 gap-1 h-64 sm:h-80">
-                    <img src="{{ $photosList[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' onerror="this.onerror=null; this.closest('.post-photo-wrapper')?.remove();" class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
-                    <div class="grid grid-rows-2 gap-1 h-full">
-                        <img src="{{ $photosList[1] }}" onclick='openLightbox({!! $jsonPhotos !!}, 1)' onerror="this.onerror=null; this.closest('.post-photo-wrapper')?.remove();" class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
-                        <img src="{{ $photosList[2] }}" onclick='openLightbox({!! $jsonPhotos !!}, 2)' onerror="this.onerror=null; this.closest('.post-photo-wrapper')?.remove();" class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
-                    </div>
+                <div class="grid grid-cols-3 grid-rows-2 gap-1.5 h-64 sm:h-80">
+                    <img src="{{ $photosList[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' onerror="{{ $onErr }}" class="{{ $tile }} col-span-2 row-span-2" alt="Foto postingan">
+                    <img src="{{ $photosList[1] }}" onclick='openLightbox({!! $jsonPhotos !!}, 1)' onerror="{{ $onErr }}" class="{{ $tile }}" alt="Foto postingan">
+                    <img src="{{ $photosList[2] }}" onclick='openLightbox({!! $jsonPhotos !!}, 2)' onerror="{{ $onErr }}" class="{{ $tile }}" alt="Foto postingan">
                 </div>
             @elseif($ptCount >= 4)
-                <div class="grid grid-cols-2 grid-rows-2 gap-1 h-72 sm:h-96">
-                    <img src="{{ $photosList[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' onerror="this.onerror=null; this.closest('.post-photo-wrapper')?.remove();" class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
-                    <img src="{{ $photosList[1] }}" onclick='openLightbox({!! $jsonPhotos !!}, 1)' onerror="this.onerror=null; this.closest('.post-photo-wrapper')?.remove();" class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
-                    <img src="{{ $photosList[2] }}" onclick='openLightbox({!! $jsonPhotos !!}, 2)' onerror="this.onerror=null; this.closest('.post-photo-wrapper')?.remove();" class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition" alt="Post Photo">
+                <div class="grid grid-cols-4 grid-rows-2 gap-1.5 h-64 sm:h-80">
+                    <img src="{{ $photosList[0] }}" onclick='openLightbox({!! $jsonPhotos !!}, 0)' onerror="{{ $onErr }}" class="{{ $tile }} col-span-2 row-span-2" alt="Foto postingan">
+                    <img src="{{ $photosList[1] }}" onclick='openLightbox({!! $jsonPhotos !!}, 1)' onerror="{{ $onErr }}" class="{{ $tile }} row-span-2" alt="Foto postingan">
+                    <img src="{{ $photosList[2] }}" onclick='openLightbox({!! $jsonPhotos !!}, 2)' onerror="{{ $onErr }}" class="{{ $tile }}" alt="Foto postingan">
                     <div class="relative w-full h-full" onclick='openLightbox({!! $jsonPhotos !!}, 3)'>
-                        <img src="{{ $photosList[3] }}" onerror="this.onerror=null; this.closest('.post-photo-wrapper')?.remove();" class="w-full h-full object-cover cursor-pointer" alt="Post Photo">
+                        <img src="{{ $photosList[3] }}" onerror="{{ $onErr }}" class="{{ $tile }}" alt="Foto postingan">
                         @if($ptCount > 4)
-                            <div class="absolute inset-0 bg-black/60 flex items-center justify-center cursor-pointer hover:bg-black/50 transition">
-                                <span class="text-white text-3xl font-bold">+{{ $ptCount - 4 }}</span>
+                            <div class="absolute inset-0 rounded-xl bg-[#141416]/60 flex items-center justify-center cursor-pointer hover:bg-[#141416]/50 transition">
+                                <span class="text-white text-2xl font-semibold tabular-nums">+{{ $ptCount - 4 }}</span>
                             </div>
                         @endif
                     </div>
@@ -244,21 +248,24 @@
         </div>
     @endif
 
-    <div class="flex items-center space-x-4 mt-3">
-        <button type="button" onclick="document.getElementById('comment-form-home-{{ $stream->id }}').classList.toggle('hidden')" class="btn-press flex items-center text-xs text-neutral-500 hover:text-red-700 transition font-medium">
-            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg> <span id="comments-count-{{ $stream->id }}">{{ $stream->comments->count() ?? 0 }}</span>&nbsp;Komentar
-        </button>
+    <div class="flex items-center gap-1 -ml-2.5 mt-1">
         <form action="{{ route('like.toggle', $stream->id) }}" method="POST" class="form-like">
             @csrf
-            <button type="submit" class="btn-press like-btn flex items-center text-xs text-neutral-500 hover:text-red-700 transition font-medium group/like">
-                <svg class="like-icon w-4 h-4 mr-1.5 transition-transform duration-200 group-hover/like:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.514"></path></svg> <span id="like-count-{{ $stream->id }}">{{ $stream->likes }}</span>&nbsp;Suka
+            <button type="submit" class="btn-press like-btn flex items-center h-9 px-2.5 rounded-full text-[13px] text-zinc-600 hover:bg-zinc-100 hover:text-[#990000] transition font-medium group/like">
+                <svg class="like-icon w-4 h-4 mr-1.5 transition-transform duration-200 group-hover/like:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.514"></path></svg> <span id="like-count-{{ $stream->id }}" class="tabular-nums">{{ $stream->likes }}</span>&nbsp;suka
             </button>
         </form>
+        <button type="button" onclick="document.getElementById('comment-form-home-{{ $stream->id }}').classList.toggle('hidden')" class="btn-press flex items-center h-9 px-2.5 rounded-full text-[13px] text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 transition font-medium">
+            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg> <span id="comments-count-{{ $stream->id }}" class="tabular-nums">{{ $stream->comments->count() ?? 0 }}</span>&nbsp;komentar
+        </button>
+        <a href="{{ url('/stream/'.$stream->id) }}" class="ml-auto grid place-items-center size-9 rounded-full text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 transition" title="Buka postingan" aria-label="Buka postingan">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M20 12H4"></path></svg>
+        </a>
     </div>
 
     <!-- Comment Section -->
-    <div id="comment-form-home-{{ $stream->id }}" class="hidden mt-3 pt-3 border-t border-neutral-100">
-        <div id="comments-list-{{ $stream->id }}" class="bg-neutral-50 rounded-lg p-4 mb-3 space-y-3 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-neutral-200">
+    <div id="comment-form-home-{{ $stream->id }}" class="hidden mt-3 pt-3 border-t border-zinc-100">
+        <div id="comments-list-{{ $stream->id }}" class="bg-zinc-50 rounded-2xl p-4 mb-3 space-y-3 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-neutral-200">
             @foreach($stream->comments as $comment)
                 <div class="flex gap-2" id="comment-{{ $comment->id }}">
                     <div class="w-8 h-8 rounded-full bg-neutral-200 overflow-hidden flex-shrink-0 border border-neutral-200">
@@ -332,7 +339,7 @@
         <form action="{{ route('comment.store', $stream->id) }}" method="POST" class="flex gap-2 form-comment" data-stream-id="{{ $stream->id }}">
             @csrf
             <input type="text" name="message" id="comment-input-{{ $stream->id }}" required placeholder="Tulis komentar..." class="flex-1 rounded-full bg-neutral-50 border border-neutral-200 focus:bg-white focus:border-red-300 focus:ring-2 focus:ring-red-100 text-sm px-4 py-2 transition-all outline-none">
-            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white rounded-full p-2 shrink-0 transition-colors flex items-center justify-center w-9 h-9 shadow-sm">
+            <button type="submit" class="bg-[#990000] hover:bg-[#7a0000] text-white rounded-full p-2 shrink-0 transition active:scale-95 flex items-center justify-center w-9 h-9 shadow-sm" aria-label="Kirim komentar">
                 <svg class="w-4 h-4 transform rotate-45 -mt-0.5 -ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
             </button>
         </form>

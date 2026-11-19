@@ -3,8 +3,16 @@
     $photoAlbums = \App\Models\Album::whereIn('app', ['photos', 'photo'])->where('gid', auth()->id())->get();
     $videoAlbums = \App\Models\Album::whereIn('app', ['video', 'videos'])->where('gid', auth()->id())->get();
 @endphp
-<div class="bg-white rounded-xl shadow-sm border border-neutral-200 p-5">
-    <h3 class="text-xs font-bold text-neutral-800 uppercase border-l-4 border-red-700 pl-2 mb-4">BAGI CEPAT</h3>
+<div class="bg-white rounded-[20px] shadow-[0_1px_2px_rgba(20,20,22,0.04)] p-5">
+    <div class="flex items-center justify-between gap-3 mb-4">
+        <div class="flex items-center gap-3 min-w-0">
+            <img src="{{ auth()->user()->avatar_url }}" alt="" class="size-10 rounded-full object-cover bg-zinc-200 shrink-0">
+            <div class="min-w-0">
+                <p class="text-sm font-semibold text-zinc-900 leading-tight">Bagi cepat</p>
+                <p class="text-xs text-zinc-500 truncate">Status, foto, atau video untuk komunitas</p>
+            </div>
+        </div>
+    </div>
 
     @if(session('success_post'))
         <div class="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 text-xs font-semibold rounded-xl flex items-center gap-2">
@@ -16,17 +24,17 @@
     
 
     <!-- Tabs -->
-    <div class="flex space-x-6 mb-4 border-b border-neutral-100 pb-2">
-        <button type="button" onclick="switchTab('status')" id="tab-btn-status" class="flex items-center text-xs font-bold text-red-700 pb-2 border-b-2 border-red-700 transition">
+    <div class="flex flex-wrap gap-1 mb-3 p-1 rounded-full bg-zinc-100/70 w-fit">
+        <button type="button" onclick="switchTab('status')" id="tab-btn-status" class="xf-tab flex items-center text-xs font-bold text-red-700 pb-2 border-b-2 border-red-700 transition">
             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg> Status
         </button>
         @if(\App\Helpers\ModuleHelper::isActive('PHOTOS'))
-        <button type="button" onclick="switchTab('unggah')" id="tab-btn-unggah" class="flex items-center text-xs font-medium text-neutral-500 hover:text-red-700 pb-2 transition">
+        <button type="button" onclick="switchTab('unggah')" id="tab-btn-unggah" class="xf-tab flex items-center text-xs font-medium text-neutral-500 transition">
             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg> Foto
         </button>
         @endif
         @if(\App\Helpers\ModuleHelper::isActive('VIDEOS'))
-        <button type="button" onclick="switchTab('video')" id="tab-btn-video" class="flex items-center text-xs font-medium text-neutral-500 hover:text-red-700 pb-2 transition">
+        <button type="button" onclick="switchTab('video')" id="tab-btn-video" class="xf-tab flex items-center text-xs font-medium text-neutral-500 transition">
             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg> Video
         </button>
         @endif
@@ -41,7 +49,8 @@
         
         <!-- TAB CONTENT: STATUS -->
         <div id="tab-content-status">
-            <textarea name="message" rows="3" placeholder="What's happening..." class="w-full bg-neutral-50 border border-neutral-200 rounded-2xl px-4 py-3 text-sm text-neutral-700 placeholder-neutral-400 shadow-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition resize-none"></textarea>
+            <label for="feed-status-message" class="sr-only">Status</label>
+            <textarea id="feed-status-message" name="message" rows="3" placeholder="Apa yang sedang Anda kerjakan hari ini?" class="w-full bg-zinc-50 border border-zinc-200/70 rounded-2xl px-4 py-3 text-sm text-zinc-800 placeholder-zinc-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#990000]/10 focus:border-[#990000]/60 transition resize-none"></textarea>
         </div>
 
         @if(\App\Helpers\ModuleHelper::isActive('PHOTOS'))
@@ -251,12 +260,12 @@
             </div>
         </div>
         @endif
-        <div class="flex items-center justify-between mt-4 border-t border-neutral-100 pt-4">
+        <div class="flex items-center justify-between mt-3">
             <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <svg class="w-3.5 h-3.5 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 </div>
-                <select name="privacy" class="appearance-none bg-neutral-50 border border-neutral-200 text-neutral-600 text-xs font-semibold rounded-full pl-8 pr-8 py-2 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition cursor-pointer">
+                <select name="privacy" aria-label="Privasi" class="appearance-none h-9 bg-zinc-100 border border-transparent text-zinc-700 text-xs font-medium rounded-full pl-8 pr-8 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition cursor-pointer">
                     <option value="public">Publik</option>
                     <option value="friends">Teman</option>
                     <option value="private">Hanya Saya</option>
@@ -265,7 +274,7 @@
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </div>
             </div>
-            <button type="submit" class="bg-[#990000] text-white font-bold px-6 py-2 rounded-full shadow-sm text-sm hover:bg-red-800 transition flex items-center">
+            <button type="submit" class="xf-pill bg-[#990000] text-white px-5 font-semibold shadow-sm shadow-red-900/20 hover:bg-[#7a0000]">
                 Bagikan
             </button>
         </div>

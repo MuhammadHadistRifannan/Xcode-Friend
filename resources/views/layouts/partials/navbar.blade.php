@@ -1,73 +1,82 @@
-<nav class="bg-[#0A0A0A] text-white border-b border-neutral-800 sticky top-0 z-50 w-full">
-    <div class="max-w-[96%] mx-auto px-4 sm:px-6 h-14 flex items-center justify-between relative">
+@php
+    $navOn = 'bg-[#141416] text-white';
+    $navOff = 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900';
+@endphp
+<nav class="bg-white/90 backdrop-blur-md text-zinc-900 border-b border-zinc-200/70 sticky top-0 z-50 w-full">
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4 relative">
 
         <!-- BAGIAN KIRI: Logo -->
         <div class="flex-shrink-0 flex items-center">
-            <a href="/" class="flex items-center space-x-3">
-                <img src="{{ asset('assets/img/logo-xcode.png') }}" alt="XCODE Logo" class="h-8 w-auto">
-                <span class="font-bold tracking-widest uppercase text-sm hidden lg:block mt-1">XCODE-FRIENDS</span>
+            <a href="/" class="flex items-center gap-2.5">
+                <span class="grid place-items-center size-9 rounded-xl bg-[#990000] shadow-sm shadow-red-900/20">
+                    <img src="{{ asset('assets/img/logo-xcode.png') }}" alt="XCODE Logo" class="h-[18px] w-auto">
+                </span>
+                <span class="hidden lg:block leading-tight">
+                    <span class="block text-[15px] font-semibold tracking-tight">XCODE Friends</span>
+                    <span class="block text-[11px] text-zinc-500">Komunitas teknologi</span>
+                </span>
             </a>
         </div>
 
         <!-- BAGIAN TENGAH: Menu Navigasi (desktop) -->
-        <div class="hidden lg:flex items-center justify-center flex-1 space-x-8 text-[13px] font-medium text-neutral-400 mt-1">
-            <a href="{{ auth()->check() ? route('beranda') : '/' }}" class="{{ request()->routeIs('beranda') ? 'text-red-600' : 'hover:text-white' }} transition">Beranda</a>
+        <div class="hidden lg:flex items-center justify-center flex-1 gap-1">
+            <a href="{{ auth()->check() ? route('beranda') : '/' }}" class="xf-pill {{ request()->routeIs('beranda') ? $navOn : $navOff }}">Beranda</a>
             @if(\App\Helpers\ModuleHelper::isActive('BROWSE'))
-            <a href="{{ route('telusur.index') }}" class="{{ request()->routeIs('telusur.*') ? 'text-red-600' : 'hover:text-white' }} transition">Telusur</a>
+            <a href="{{ route('telusur.index') }}" class="xf-pill {{ request()->routeIs('telusur.*') ? $navOn : $navOff }}">Telusur</a>
             @endif
             @if(\App\Helpers\ModuleHelper::isActive('VIDEOS'))
-            <a href="{{ route('videos.public') }}" class="{{ request()->routeIs('videos.*') ? 'text-red-600' : 'hover:text-white' }} transition">Video</a>
+            <a href="{{ route('videos.public') }}" class="xf-pill {{ request()->routeIs('videos.*') ? $navOn : $navOff }}">Video</a>
             @endif
             @if(\App\Helpers\ModuleHelper::isActive('PAGES'))
-            <a href="{{ route('pages.index') }}" class="{{ request()->routeIs('pages.*') ? 'text-red-600' : 'hover:text-white' }} transition">Pages</a>
+            <a href="{{ route('pages.index') }}" class="xf-pill {{ request()->routeIs('pages.*') ? $navOn : $navOff }}">Pages</a>
             @endif
 
             @auth
             <!-- Dropdown My Apps -->
-            <div class="relative group py-4">
+            <div class="relative group py-3">
                 @php
                     $isMyAppActive = request()->is('dasbor') || request()->routeIs('foto.*') || request()->routeIs('video.*') || request()->routeIs('undang.*') || request()->routeIs('desain-profil.*') || request()->routeIs('my-pages.*') || request()->routeIs('groups.*');
                 @endphp
-                <button class="flex items-center {{ $isMyAppActive ? 'text-red-600' : 'text-neutral-400' }} hover:text-red-500 transition font-semibold cursor-pointer outline-none">
+                <button class="xf-pill cursor-pointer outline-none {{ $isMyAppActive ? $navOn : $navOff }}">
                     My Apps
-                    <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
 
                 <!-- Jembatan Hover -->
-                <div class="absolute left-1/2 transform -translate-x-1/2 top-[80%] pt-4 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                    <div class="bg-[#1A1A1A] border border-neutral-800 rounded-lg shadow-2xl p-1.5 flex flex-col gap-1">
-                        <a href="{{ auth()->check() ? route('beranda') : '/' }}" class="flex items-center gap-3 px-3 py-2.5 {{ request()->is('dasbor') ? 'bg-[#990000] text-white' : 'text-neutral-300 hover:text-white hover:bg-neutral-800' }} rounded-md transition group/item">
+                <div class="absolute left-1/2 transform -translate-x-1/2 top-[85%] pt-3 w-52 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                    <div class="bg-white ring-1 ring-zinc-900/5 rounded-2xl shadow-xl shadow-zinc-900/10 p-1.5 flex flex-col gap-1">
+                        <a href="{{ auth()->check() ? route('beranda') : '/' }}" class="flex items-center gap-3 px-3 py-2.5 {{ request()->is('dasbor') ? 'bg-red-50 text-[#990000] font-semibold' : 'text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100' }} rounded-xl transition group/item">
                             <svg class="w-4 h-4 {{ request()->is('dasbor') ? 'opacity-90' : 'opacity-70 group-hover/item:opacity-100 transition' }}" fill="currentColor" viewBox="0 0 20 20"><path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                             <span class="text-xs font-semibold">Dasbor</span>
                         </a>
                         @if(\App\Helpers\ModuleHelper::isActive('PHOTOS'))
-                        <a href="{{ route('foto.index') }}" class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('foto.*') ? 'bg-[#990000] text-white' : 'text-neutral-300 hover:text-white hover:bg-neutral-800' }} rounded-md transition group/item">
+                        <a href="{{ route('foto.index') }}" class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('foto.*') ? 'bg-red-50 text-[#990000] font-semibold' : 'text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100' }} rounded-xl transition group/item">
                             <svg class="w-4 h-4 {{ request()->routeIs('foto.*') ? 'opacity-90' : 'opacity-70 group-hover/item:opacity-100 transition' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                             <span class="text-xs">Foto</span>
                         </a>
                         @endif
                         @if(\App\Helpers\ModuleHelper::isActive('VIDEOS'))
-                        <a href="{{ route('video.index') }}" class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('video.*') ? 'bg-[#990000] text-white' : 'text-neutral-300 hover:text-white hover:bg-neutral-800' }} rounded-md transition group/item">
+                        <a href="{{ route('video.index') }}" class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('video.*') ? 'bg-red-50 text-[#990000] font-semibold' : 'text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100' }} rounded-xl transition group/item">
                             <svg class="w-4 h-4 {{ request()->routeIs('video.*') ? 'opacity-90' : 'opacity-70 group-hover/item:opacity-100 transition' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                             <span class="text-xs">Video</span>
                         </a>
                         @endif
-                        <a href="{{ route('undang.index') }}" class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('undang.*') ? 'bg-[#990000] text-white' : 'text-neutral-300 hover:text-white hover:bg-neutral-800' }} rounded-md transition group/item">
+                        <a href="{{ route('undang.index') }}" class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('undang.*') ? 'bg-red-50 text-[#990000] font-semibold' : 'text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100' }} rounded-xl transition group/item">
                             <svg class="w-4 h-4 {{ request()->routeIs('undang.*') ? 'opacity-90' : 'opacity-70 group-hover/item:opacity-100 transition' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
                             <span class="text-xs">Undang</span>
                         </a>
-                        <a href="{{ route('desain-profil.index') }}" class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('desain-profil.*') ? 'bg-[#990000] text-white' : 'text-neutral-300 hover:text-white hover:bg-neutral-800' }} rounded-md transition group/item">
+                        <a href="{{ route('desain-profil.index') }}" class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('desain-profil.*') ? 'bg-red-50 text-[#990000] font-semibold' : 'text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100' }} rounded-xl transition group/item">
                             <svg class="w-4 h-4 {{ request()->routeIs('desain-profil.*') ? 'opacity-90' : 'opacity-70 group-hover/item:opacity-100 transition' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             <span class="text-xs">Desain Profil</span>
                         </a>
                         @if(\App\Helpers\ModuleHelper::isActive('PAGES'))
-                        <a href="{{ route('my-pages.index') }}" class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('my-pages.*') ? 'bg-[#990000] text-white' : 'text-neutral-300 hover:text-white hover:bg-neutral-800' }} rounded-md transition group/item">
+                        <a href="{{ route('my-pages.index') }}" class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('my-pages.*') ? 'bg-red-50 text-[#990000] font-semibold' : 'text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100' }} rounded-xl transition group/item">
                             <svg class="w-4 h-4 {{ request()->routeIs('my-pages.*') ? 'opacity-90' : 'opacity-70 group-hover/item:opacity-100 transition' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                             <span class="text-xs">My Pages</span>
                         </a>
                         @endif
                         @if(\App\Helpers\ModuleHelper::isActive('GROUPS'))
-                        <a href="{{ route('groups.index') }}" class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('groups.*') ? 'bg-[#990000] text-white' : 'text-neutral-300 hover:text-white hover:bg-neutral-800' }} rounded-md transition group/item">
+                        <a href="{{ route('groups.index') }}" class="flex items-center gap-3 px-3 py-2.5 {{ request()->routeIs('groups.*') ? 'bg-red-50 text-[#990000] font-semibold' : 'text-zinc-700 hover:text-zinc-950 hover:bg-zinc-100' }} rounded-xl transition group/item">
                             <svg class="w-4 h-4 {{ request()->routeIs('groups.*') ? 'opacity-90' : 'opacity-70 group-hover/item:opacity-100 transition' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                             <span class="text-xs">Groups</span>
                         </a>
@@ -82,7 +91,7 @@
         <div class="flex-shrink-0 flex items-center justify-end space-x-3 sm:space-x-4">
 
             {{-- Hamburger Button (mobile) --}}
-            <button id="mobile-menu-btn" type="button" class="lg:hidden p-1.5 rounded-md hover:bg-neutral-800 transition text-neutral-400 hover:text-white focus:outline-none">
+            <button id="mobile-menu-btn" type="button" class="lg:hidden grid place-items-center size-10 rounded-full hover:bg-zinc-100 transition text-zinc-600 hover:text-zinc-900 focus:outline-none" aria-label="Menu">
                 <svg id="hamburger-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 <svg id="close-icon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
@@ -90,26 +99,27 @@
             {{-- Global Search with Autocomplete --}}
             <div class="relative hidden md:block" id="navbar-search-wrapper">
                 <form method="GET" action="{{ route('search.index') }}" autocomplete="off" id="navbar-search-form">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-neutral-500 pointer-events-none">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-400 pointer-events-none">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                     </span>
+                    <label for="navbar-search-input" class="sr-only">Cari</label>
                     <input
                         type="text"
                         name="q"
                         id="navbar-search-input"
-                        placeholder="Cari anggota, grup, postingan..."
+                        placeholder="Cari anggota, grup, postingan"
                         value="{{ request('q') }}"
-                        class="bg-[#1A1A1A] border border-neutral-800 rounded-md pl-9 pr-3 py-1.5 text-xs text-neutral-300 focus:outline-none focus:border-neutral-600 w-56 transition placeholder-neutral-600"
+                        class="h-10 bg-zinc-100 border border-transparent rounded-full pl-10 pr-4 text-[13px] text-zinc-800 focus:outline-none focus:bg-white focus:border-zinc-300 w-60 xl:w-64 transition placeholder-zinc-500"
                     >
                 </form>
                 {{-- Dropdown Autocomplete --}}
                 <div id="navbar-search-dropdown"
-                     class="absolute top-full right-0 mt-1.5 w-80 sm:w-96 bg-[#1A1A1A] border border-neutral-800 rounded-xl shadow-2xl z-50 overflow-hidden hidden">
+                     class="absolute top-full right-0 mt-1.5 w-80 sm:w-96 bg-white border border-zinc-200/70 rounded-xl shadow-xl shadow-zinc-900/10 z-50 overflow-hidden hidden">
                     <div id="navbar-search-results" class="py-1 max-h-96 overflow-y-auto"></div>
-                    <div id="navbar-search-footer" class="hidden border-t border-neutral-800 px-3 py-2">
+                    <div id="navbar-search-footer" class="hidden border-t border-zinc-100 px-3 py-2">
                         <a id="navbar-search-all" href="#"
-                           class="text-xs text-[#990000] hover:text-red-400 font-semibold transition">
-                            Lihat semua hasil →
+                           class="text-xs text-[#990000] hover:text-[#7a0000] font-semibold transition">
+                            Lihat semua hasil &rarr;
                         </a>
                     </div>
                 </div>
@@ -117,32 +127,32 @@
 
             @auth
                 <!-- Ikon Teman, Setting, Notif, Chat -->
-                <div class="hidden sm:flex items-center space-x-3 text-neutral-400">
-                    <a href="{{ route('friends.index') }}" class="hover:text-white transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg></a>
-                    <a href="{{ route('profile.edit') }}" class="hover:text-white transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></a>
+                <div class="hidden sm:flex items-center gap-1 text-zinc-600 [&>a]:grid [&>a]:place-items-center [&>a]:size-10 [&>a]:rounded-full [&>a:hover]:bg-zinc-100">
+                    <a href="{{ route('friends.index') }}" class="hover:text-zinc-900 transition" title="Teman" aria-label="Teman"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg></a>
+                    <a href="{{ route('profile.edit') }}" class="hover:text-zinc-900 transition" title="Pengaturan" aria-label="Pengaturan"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></a>
                     @php $notifCount = app(\App\Repositories\Contracts\NotificationRepositoryInterface::class)->countUnread(auth()->id()); @endphp
                     <!-- Notifikasi Dropdown Wrapper -->
                     <div class="relative" id="notif-dropdown-wrapper">
-                        <button type="button" id="notif-badge-btn" class="hover:text-white transition relative focus:outline-none flex items-center p-1 rounded-full hover:bg-neutral-800" title="Notifikasi">
+                        <button type="button" id="notif-badge-btn" class="hover:text-zinc-900 transition relative focus:outline-none flex items-center justify-center size-10 rounded-full hover:bg-zinc-100" title="Notifikasi" aria-label="Notifikasi">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                            <span id="notif-badge-ping" class="absolute -top-1 -right-1 bg-red-600 rounded-full h-4 w-4 animate-ping pointer-events-none hidden"></span>
-                            <span id="notif-badge" class="absolute -top-1 -right-1 bg-[#b71c1c] text-white text-[9px] font-bold rounded-full h-4 w-4 flex items-center justify-center {{ $notifCount > 0 ? '' : 'hidden' }} transition-transform duration-200 shadow-sm">{{ $notifCount > 9 ? '9+' : $notifCount }}</span>
+                            <span id="notif-badge-ping" class="absolute top-1 right-1 bg-red-600 rounded-full h-4 w-4 animate-ping pointer-events-none hidden"></span>
+                            <span id="notif-badge" class="absolute top-1 right-1 bg-[#b71c1c] text-white text-[9px] font-bold rounded-full h-4 w-4 flex items-center justify-center {{ $notifCount > 0 ? '' : 'hidden' }} transition-transform duration-200 shadow-sm">{{ $notifCount > 9 ? '9+' : $notifCount }}</span>
                         </button>
 
                         <!-- Panel Dropdown Notifikasi -->
-                        <div id="notif-dropdown-panel" class="hidden absolute right-0 mt-3 w-80 sm:w-96 bg-[#1A1A1A] border border-neutral-800 rounded-2xl shadow-2xl z-50 overflow-hidden transform transition-all duration-200 origin-top-right">
-                            <div class="px-4 py-3 border-b border-neutral-800 flex items-center justify-between bg-[#141414]">
+                        <div id="notif-dropdown-panel" class="hidden absolute right-0 mt-3 w-80 sm:w-96 bg-white border border-zinc-200/70 rounded-2xl shadow-xl shadow-zinc-900/10 z-50 overflow-hidden transform transition-all duration-200 origin-top-right">
+                            <div class="px-4 py-3 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/70">
                                 <div class="flex items-center gap-2">
-                                    <h4 class="text-xs font-bold text-white uppercase tracking-wider">Notifikasi</h4>
+                                    <h4 class="text-xs font-semibold text-zinc-900 uppercase tracking-wider">Notifikasi</h4>
                                     <span id="notif-panel-badge" class="bg-[#b71c1c] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full {{ $notifCount > 0 ? '' : 'hidden' }}">{{ $notifCount }}</span>
                                 </div>
-                                <button type="button" id="notif-mark-all-btn" class="text-[10px] text-neutral-400 hover:text-white transition font-medium hover:underline">Tandai Semua Dibaca</button>
+                                <button type="button" id="notif-mark-all-btn" class="text-[10px] text-zinc-500 hover:text-zinc-900 transition font-medium hover:underline">Tandai Semua Dibaca</button>
                             </div>
-                            <div id="notif-dropdown-content" class="max-h-80 overflow-y-auto divide-y divide-neutral-800/60 scrollbar-thin scrollbar-thumb-neutral-700">
+                            <div id="notif-dropdown-content" class="max-h-80 overflow-y-auto divide-y divide-zinc-100 scrollbar-thin scrollbar-thumb-zinc-200">
                                 <div class="p-4 text-center text-xs text-neutral-500">Memuat notifikasi...</div>
                             </div>
-                            <div class="border-t border-neutral-800 p-2.5 bg-[#141414] text-center">
-                                <a href="{{ route('notifications.index') }}" class="text-xs font-bold text-[#b71c1c] hover:text-red-400 transition block py-0.5">Lihat Semua Notifikasi →</a>
+                            <div class="border-t border-zinc-100 p-2.5 bg-zinc-50/70 text-center">
+                                <a href="{{ route('notifications.index') }}" class="text-xs font-bold text-[#990000] hover:text-[#7a0000] transition block py-0.5">Lihat Semua Notifikasi &rarr;</a>
                             </div>
                         </div>
                     </div>
@@ -150,26 +160,26 @@
                     @php $msgCount = app(\App\Repositories\Contracts\MessageRepositoryInterface::class)->countUnread(auth()->id()); @endphp
                     <!-- Pesan Dropdown Wrapper -->
                     <div class="relative" id="msg-dropdown-wrapper">
-                        <button type="button" id="msg-badge-btn" class="hover:text-white transition relative focus:outline-none flex items-center p-1 rounded-full hover:bg-neutral-800" title="Pesan Obrolan">
+                        <button type="button" id="msg-badge-btn" class="hover:text-zinc-900 transition relative focus:outline-none flex items-center justify-center size-10 rounded-full hover:bg-zinc-100" title="Pesan Obrolan" aria-label="Pesan">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
-                            <span id="msg-badge-ping" class="absolute -top-1 -right-1 bg-red-600 rounded-full h-4 w-4 animate-ping pointer-events-none hidden"></span>
-                            <span id="msg-badge" class="absolute -top-1 -right-1 bg-[#b71c1c] text-white text-[9px] font-bold rounded-full h-4 w-4 flex items-center justify-center {{ $msgCount > 0 ? '' : 'hidden' }} transition-transform duration-200 shadow-sm">{{ $msgCount > 9 ? '9+' : $msgCount }}</span>
+                            <span id="msg-badge-ping" class="absolute top-1 right-1 bg-red-600 rounded-full h-4 w-4 animate-ping pointer-events-none hidden"></span>
+                            <span id="msg-badge" class="absolute top-1 right-1 bg-[#b71c1c] text-white text-[9px] font-bold rounded-full h-4 w-4 flex items-center justify-center {{ $msgCount > 0 ? '' : 'hidden' }} transition-transform duration-200 shadow-sm">{{ $msgCount > 9 ? '9+' : $msgCount }}</span>
                         </button>
 
                         <!-- Panel Dropdown Pesan -->
-                        <div id="msg-dropdown-panel" class="hidden absolute right-0 mt-3 w-80 sm:w-96 bg-[#1A1A1A] border border-neutral-800 rounded-2xl shadow-2xl z-50 overflow-hidden transform transition-all duration-200 origin-top-right">
-                            <div class="px-4 py-3 border-b border-neutral-800 flex items-center justify-between bg-[#141414]">
+                        <div id="msg-dropdown-panel" class="hidden absolute right-0 mt-3 w-80 sm:w-96 bg-white border border-zinc-200/70 rounded-2xl shadow-xl shadow-zinc-900/10 z-50 overflow-hidden transform transition-all duration-200 origin-top-right">
+                            <div class="px-4 py-3 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/70">
                                 <div class="flex items-center gap-2">
-                                    <h4 class="text-xs font-bold text-white uppercase tracking-wider">Pesan Masuk</h4>
+                                    <h4 class="text-xs font-semibold text-zinc-900 uppercase tracking-wider">Pesan Masuk</h4>
                                     <span id="msg-panel-badge" class="bg-[#b71c1c] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full {{ $msgCount > 0 ? '' : 'hidden' }}">{{ $msgCount }}</span>
                                 </div>
-                                <a href="{{ route('messages.index') }}" class="text-[10px] text-neutral-400 hover:text-white transition font-medium hover:underline">Kotak Masuk</a>
+                                <a href="{{ route('messages.index') }}" class="text-[10px] text-zinc-500 hover:text-zinc-900 transition font-medium hover:underline">Kotak Masuk</a>
                             </div>
-                            <div id="msg-dropdown-content" class="max-h-80 overflow-y-auto divide-y divide-neutral-800/60 scrollbar-thin scrollbar-thumb-neutral-700">
+                            <div id="msg-dropdown-content" class="max-h-80 overflow-y-auto divide-y divide-zinc-100 scrollbar-thin scrollbar-thumb-zinc-200">
                                 <div class="p-4 text-center text-xs text-neutral-500">Memuat pesan...</div>
                             </div>
-                            <div class="border-t border-neutral-800 p-2.5 bg-[#141414] text-center">
-                                <a href="{{ route('messages.index') }}" class="text-xs font-bold text-[#b71c1c] hover:text-red-400 transition block py-0.5">Buka Semua Pesan →</a>
+                            <div class="border-t border-zinc-100 p-2.5 bg-zinc-50/70 text-center">
+                                <a href="{{ route('messages.index') }}" class="text-xs font-bold text-[#990000] hover:text-[#7a0000] transition block py-0.5">Buka Semua Pesan &rarr;</a>
                             </div>
                         </div>
                     </div>
@@ -179,7 +189,7 @@
             <!-- Tombol Profile & Dropdown (Sistem HOVER murni tanpa JS) -->
             <div class="relative ml-2 group">
                 <!-- Tombol Avatar -->
-                <div class="w-8 h-8 rounded-full flex items-center justify-center cursor-pointer hover:opacity-80 transition shadow bg-neutral-800 overflow-hidden text-neutral-400">
+                <div class="size-10 rounded-full flex items-center justify-center cursor-pointer hover:opacity-90 transition ring-2 ring-white shadow-sm bg-zinc-200 overflow-hidden text-zinc-500">
                     @auth
                         <img src="{{ auth()->user()->avatar_url }}" alt="Avatar" class="w-full h-full object-cover">
                     @else
@@ -188,32 +198,32 @@
                 </div>
 
                 <!-- Pembungkus Dropdown dengan Jembatan Hover (pt-2) -->
-                <div class="absolute right-0 top-full pt-2 w-40 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                    <div class="bg-[#1A1A1A] border border-neutral-800 rounded-lg shadow-xl py-1">
+                <div class="absolute right-0 top-full pt-2 w-52 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                    <div class="bg-white ring-1 ring-zinc-900/5 rounded-2xl shadow-xl shadow-zinc-900/10 py-1.5 overflow-hidden">
                         
                         @guest
-                            <div class="px-3 py-2 border-b border-neutral-800">
+                            <div class="px-3 py-2 border-b border-zinc-100">
                                 <p class="text-[10px] text-neutral-400 font-medium uppercase tracking-wider">Welcome Guest</p>
                             </div>
-                            <a href="{{ route('login') }}" class="block px-4 py-2 text-xs text-neutral-300 hover:bg-neutral-800 hover:text-white transition">Masuk (Login)</a>
-                            <a href="{{ route('register') }}" class="block px-4 py-2 text-xs text-neutral-300 hover:bg-neutral-800 hover:text-white transition">Daftar Akun</a>
+                            <a href="{{ route('login') }}" class="block px-4 py-2 text-xs text-zinc-700 hover:bg-zinc-100 hover:text-zinc-950 transition">Masuk (Login)</a>
+                            <a href="{{ route('register') }}" class="block px-4 py-2 text-xs text-zinc-700 hover:bg-zinc-100 hover:text-zinc-950 transition">Daftar Akun</a>
                         @endguest
 
                         @auth
-                            <div class="px-3 py-2 border-b border-neutral-800">
-                                <p class="text-xs text-white font-semibold truncate">{{ auth()->user()->fullname ?: auth()->user()->username }}</p>
+                            <div class="px-3 py-2 border-b border-zinc-100">
+                                <p class="text-[13px] text-zinc-900 font-semibold truncate">{{ auth()->user()->fullname ?: auth()->user()->username }}</p>
                                 <p class="text-[10px] text-neutral-500 truncate">{{ auth()->user()->email }}</p>
                             </div>
-                            <a href="{{ route('profile.show', auth()->user()->username) }}" class="block px-4 py-2 text-xs text-neutral-300 hover:bg-neutral-800 hover:text-white transition mt-1">Profil Saya</a>
-                            <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-xs text-neutral-300 hover:bg-neutral-800 hover:text-white transition">Pengaturan</a>
+                            <a href="{{ route('profile.show', auth()->user()->username) }}" class="block px-4 py-2 text-xs text-zinc-700 hover:bg-zinc-100 hover:text-zinc-950 transition mt-1">Profil Saya</a>
+                            <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-xs text-zinc-700 hover:bg-zinc-100 hover:text-zinc-950 transition">Pengaturan</a>
                             
                             @if(auth()->user()->isAdmin())
-                                <a href="{{ route('admin.dashboard') }}" class="block px-4 py-2 text-xs text-neutral-300 hover:bg-neutral-800 hover:text-white transition">Dashboard Admin</a>
+                                <a href="{{ route('admin.dashboard') }}" class="block px-4 py-2 text-xs text-zinc-700 hover:bg-zinc-100 hover:text-zinc-950 transition">Dashboard Admin</a>
                             @endif
 
                             <form method="POST" action="{{ route('logout') }}" class="block w-full text-left">
                                 @csrf
-                                <button type="submit" class="w-full text-left px-4 py-2 text-xs text-red-500 font-bold hover:bg-neutral-800 hover:text-red-400 transition mt-1 border-t border-neutral-800">
+                                <button type="submit" class="w-full text-left px-4 py-2 text-xs text-[#990000] font-semibold hover:bg-red-50 transition mt-1 border-t border-zinc-100">
                                     Logout
                                 </button>
                             </form>
@@ -228,7 +238,7 @@
 </nav>
 
 <!-- ========== MOBILE MENU PANEL (md below) ========== -->
-<div id="mobile-menu-panel" class="lg:hidden hidden fixed inset-x-0 top-14 z-40 bg-[#0A0A0A] border-b border-neutral-800 shadow-2xl max-h-[calc(100vh-3.5rem)] overflow-y-auto">
+<div id="mobile-menu-panel" class="lg:hidden hidden fixed inset-x-0 top-16 z-40 bg-[#141416] border-b border-neutral-800 shadow-2xl max-h-[calc(100dvh-4rem)] overflow-y-auto">
     <div class="px-4 py-4 space-y-4">
 
         {{-- Search (mobile) --}}
@@ -421,12 +431,12 @@
 
         all.forEach(item => {
             if (item.type !== lastType) {
-                html += `<div class="px-3 pt-2 pb-1 text-[9px] font-bold uppercase tracking-widest text-neutral-600">${labels[item.type]}</div>`;
+                html += `<div class="px-3 pt-2 pb-1 text-[9px] font-bold uppercase tracking-widest text-zinc-400">${labels[item.type]}</div>`;
                 lastType = item.type;
             }
             const avatar = item.avatar || item.logo
-                ? `<img src="${item.avatar || item.logo}" class="w-7 h-7 rounded-full object-cover border border-neutral-700 flex-shrink-0">`
-                : `<div class="w-7 h-7 rounded-full bg-neutral-800 flex items-center justify-center flex-shrink-0">${icons[item.type]}</div>`;
+                ? `<img src="${item.avatar || item.logo}" class="w-7 h-7 rounded-full object-cover border border-zinc-200 flex-shrink-0">`
+                : `<div class="w-7 h-7 rounded-full bg-zinc-100 flex items-center justify-center flex-shrink-0">${icons[item.type]}</div>`;
 
             let sub = '';
             if (item.type === 'post') {
@@ -440,10 +450,10 @@
             }
 
             html += `
-                <a href="${item.url}" class="flex items-center gap-2.5 px-3 py-2 hover:bg-neutral-800 transition group">
+                <a href="${item.url}" class="flex items-center gap-2.5 px-3 py-2 hover:bg-zinc-50 transition group">
                     ${avatar}
                     <div class="min-w-0 flex-1">
-                        <div class="text-xs text-neutral-200 font-medium truncate group-hover:text-white">${item.name}</div>
+                        <div class="text-xs text-zinc-800 font-medium truncate group-hover:text-zinc-950">${item.name}</div>
                         ${sub}
                     </div>
                 </a>`;
@@ -599,11 +609,11 @@
             var html = '';
             data.conversations.forEach(function(conv) {
                 var avatarHtml = conv.user.avatar_url
-                    ? '<img src="' + conv.user.avatar_url + '" class="w-9 h-9 rounded-full object-cover border border-neutral-700">'
-                    : '<div class="w-9 h-9 rounded-full bg-red-950/60 text-red-400 font-bold flex items-center justify-center text-xs border border-red-900/50">' + (conv.user.initial || 'U') + '</div>';
+                    ? '<img src="' + conv.user.avatar_url + '" class="w-9 h-9 rounded-full object-cover border border-zinc-200">'
+                    : '<div class="w-9 h-9 rounded-full bg-red-50 text-[#990000] font-bold flex items-center justify-center text-xs border border-red-100">' + (conv.user.initial || 'U') + '</div>';
 
                 var unreadDot = conv.unread > 0
-                    ? '<span class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-[#b71c1c] rounded-full ring-2 ring-[#1A1A1A]"></span>'
+                    ? '<span class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-[#b71c1c] rounded-full ring-2 ring-white"></span>'
                     : '';
 
                 var snippet = conv.last_message
@@ -613,14 +623,14 @@
                 var timeStr = conv.last_message ? conv.last_message.time : '';
                 var isUnread = conv.unread > 0;
 
-                html += '<a href="' + conv.url + '" class="flex items-center gap-3 p-3 hover:bg-neutral-800/80 transition group ' + (isUnread ? 'bg-neutral-800/30' : '') + '">'
+                html += '<a href="' + conv.url + '" class="flex items-center gap-3 p-3 hover:bg-zinc-50 transition group ' + (isUnread ? 'bg-red-50/40' : '') + '">'
                     + '<div class="relative flex-shrink-0">' + avatarHtml + unreadDot + '</div>'
                     + '<div class="flex-1 min-w-0">'
                     + '<div class="flex items-center justify-between mb-0.5">'
-                    + '<h5 class="text-xs font-bold text-neutral-200 truncate group-hover:text-white">' + escapeHtml(conv.user.name) + '</h5>'
+                    + '<h5 class="text-xs font-bold text-zinc-900 truncate">' + escapeHtml(conv.user.name) + '</h5>'
                     + '<span class="text-[10px] text-neutral-500 flex-shrink-0 ml-1">' + timeStr + '</span>'
                     + '</div>'
-                    + '<p class="text-[11px] ' + (isUnread ? 'text-neutral-200 font-semibold' : 'text-neutral-400') + ' truncate">' + snippet + '</p>'
+                    + '<p class="text-[11px] ' + (isUnread ? 'text-zinc-900 font-semibold' : 'text-neutral-400') + ' truncate">' + snippet + '</p>'
                     + '</div>'
                     + (isUnread ? '<span class="bg-[#b71c1c] text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full flex-shrink-0">' + conv.unread + '</span>' : '')
                     + '</a>';
